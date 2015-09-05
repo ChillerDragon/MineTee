@@ -1585,6 +1585,8 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 	m_Layers.Init(Kernel());
 	m_Collision.Init(&m_Layers);
 
+	m_pMapGen = new CMapGen(&m_World);
+
 	// reset everything here
 	//world = new GAMEWORLD;
 	//players = new CPlayer[MAX_CLIENTS];
@@ -1617,6 +1619,9 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 	num_spawn_points[1] = 0;
 	num_spawn_points[2] = 0;
 	*/
+
+	if(true) // config variable
+		m_pMapGen->GenerateMap();
 
 
 	for(int y = 0; y < pTileMap->m_Height; y++)

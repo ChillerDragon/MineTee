@@ -10,6 +10,7 @@
 
 #include <game/layers.h>
 #include <game/voting.h>
+#include <game/mapgen.h>
 
 #include "eventhandler.h"
 #include "gamecontroller.h"
@@ -47,6 +48,8 @@ class CGameContext : public IGameServer
 	CTuningParams m_Tuning;
 	IStorage *m_pStorage; // MineTee
 
+	CMapGen *m_pMapGen;
+
 	static void ConTuneParam(IConsole::IResult *pResult, void *pUserData);
 	static void ConTuneReset(IConsole::IResult *pResult, void *pUserData);
 	static void ConTuneDump(IConsole::IResult *pResult, void *pUserData);
@@ -78,6 +81,8 @@ public:
 	CTuningParams *Tuning() { return &m_Tuning; }
 	CLayers *Layers() { return &m_Layers; } // MineTee
 	IStorage *Storage() const { return m_pStorage; } // MineTee
+
+	CMapGen *MapGen() { return m_pMapGen; }
 
 	CGameContext();
 	~CGameContext();

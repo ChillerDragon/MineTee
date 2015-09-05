@@ -13,6 +13,8 @@ class CCollision
 	int m_Height;
 	class CLayers *m_pLayers;
 
+	class CMapGen *m_pMapGen;
+
 	bool IsTileSolid(int x, int y, bool nocoll = true); // MineTee
 	int GetTile(int x, int y);
 
