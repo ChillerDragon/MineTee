@@ -1620,7 +1620,8 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 	num_spawn_points[2] = 0;
 	*/
 
-	if(true) // config variable
+	// generate a random world if wanted
+	if(g_Config.m_SvMapGeneration)
 		m_pMapGen->GenerateMap();
 
 

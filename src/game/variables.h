@@ -87,6 +87,8 @@ MACRO_CONFIG_INT(SvVoteKickBantime, sv_vote_kick_bantime, 5, 0, 1440, CFGFLAG_SE
 MACRO_CONFIG_INT(SvMonsters, sv_monsters, 1, 0, 1, CFGFLAG_SERVER, "Enable/Disable Monsters")
 MACRO_CONFIG_INT(SvAnimals, sv_animals, 1, 0, 1, CFGFLAG_SERVER, "Enable/Disable Animals")
 
+MACRO_CONFIG_INT(SvMapGeneration, sv_map_generation, 1, 0, 1, CFGFLAG_SERVER, "Enable/Disable random world generation")
+
 // debug
 #ifdef CONF_DEBUG // this one can crash the server if not used correctly
 	MACRO_CONFIG_INT(DbgDummies, dbg_dummies, 0, 0, 15, CFGFLAG_SERVER, "")
