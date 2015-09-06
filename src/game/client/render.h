@@ -47,6 +47,7 @@ class CRenderTools
 public:
 	class IGraphics *m_pGraphics;
 	class CUI *m_pUI;
+	class CCollision *m_pCollision; // MineTee
 
 	class IGraphics *Graphics() const { return m_pGraphics; }
 	class CUI *UI() const { return m_pUI; }
@@ -80,7 +81,7 @@ public:
 		float OffsetX, float OffsetY, float Aspect, float Zoom, float *pPoints);
 
 	// MineTee
-	void UpdateLights(CCollision *pCollision, CTile *pTiles, CTile *pLights, int w, int h, int DarknessLevel = 0);
+	void UpdateLights(CTile *pTiles, CTile *pLights, int w, int h, int DarknessLevel = 0);
 	void RenderTile(int Index, vec2 Pos, float Scale, float Alpha = 1.0f, float Rot = 0.0f);
 };
 

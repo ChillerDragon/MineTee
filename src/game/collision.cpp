@@ -89,7 +89,6 @@ bool CCollision::IsTileSolid(int x, int y, bool nocoll)
     // MineTee
     if (m_pMineTeeTiles)
     {
-    	int FluidType = 0;
     	int TileIndex = GetMineTeeTileAt(vec2(x,y));
     	CBlockManager::CBlockInfo BlockInfo;
     	m_pBlockManager->GetBlockInfo(TileIndex, &BlockInfo);
@@ -104,7 +103,7 @@ bool CCollision::IsTileSolid(int x, int y, bool nocoll)
 
             return 0;
         }
-        else if (IsTileFluid(TileIndex, &FluidType))
+        else if (m_pBlockManager->IsFluid(TileIndex))
         	return 0;
         else if (nocoll && !BlockInfo.m_PlayerCollide)
             return 0;
@@ -270,7 +269,7 @@ int CCollision::GetMineTeeTileAt(vec2 Pos)
 }
 
 
-void CCollision::CreateTile(vec2 pos, int group, int layer, int index, int flags)
+void CCollision::ModifTile(vec2 pos, int group, int layer, int index, int flags)
 {
     CMapItemGroup *pGroup = m_pLayers->GetGroup(group);
     CMapItemLayer *pLayer = m_pLayers->GetLayer(pGroup->m_StartLayer+layer);
@@ -284,7 +283,6 @@ void CCollision::CreateTile(vec2 pos, int group, int layer, int index, int flags
 
     if (pTilemap == m_pLayers->MineTeeLayer())
     {
-    	int FluidType = -1;
         CTile *pTiles = static_cast<CTile *>(m_pLayers->Map()->GetData(pTilemap->m_Data));
         pTiles[tpos].m_Flags = flags;
         pTiles[tpos].m_Index = index;
@@ -294,7 +292,7 @@ void CCollision::CreateTile(vec2 pos, int group, int layer, int index, int flags
     		m_pTiles[tpos].m_Index = 0;
     		m_pTiles[tpos].m_Flags = 0;
     	}
-    	else if (!IsTileFluid(index, &FluidType))
+    	else if (!m_pBlockManager->IsFluid(index))
     	{
     		m_pTiles[tpos].m_Index = COLFLAG_SOLID;
     		m_pTiles[tpos].m_Flags = 0;
@@ -327,17 +325,4 @@ void CCollision::CreateTile(vec2 pos, int group, int layer, int index, int flags
                 m_pTiles[tpos].m_Index = 0;
         }
     }
-}
-
-bool CCollision::IsTileFluid(int TileIndex, int *pType)
-{
-	*pType = 0;
-	if (TileIndex >= CBlockManager::WATER_A && TileIndex <= CBlockManager::WATER_D)
-		*pType = FLUID_WATER;
-	else if (TileIndex >= CBlockManager::LAVA_A && TileIndex <= CBlockManager::LAVA_D)
-		*pType = FLUID_LAVA;
-	else
-		return false;
-
-	return true;
 }

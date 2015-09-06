@@ -153,6 +153,9 @@ public:
 		LAVA_C,
 		LAVA_D,
 		MAX_BLOCKS=256,
+
+		FLUID_WATER=1,
+		FLUID_LAVA,
     };
 
 	struct CBlockInfo
@@ -161,6 +164,8 @@ public:
     	{
     		mem_zero(m_aName, sizeof(m_aName));
     		m_Health = 1;
+    		m_LightSize = 0;
+    		m_CraftNum = 1;
     		m_Gravity = false;
     		m_Damage = false;
     		m_HalfTile = false;
@@ -173,14 +178,16 @@ public:
 
 		char m_aName[24];
 		int m_Health;
+		int m_LightSize;
+		int m_CraftNum;
 		bool m_Gravity;
 		bool m_Damage;
 		bool m_HalfTile;
 		bool m_PlayerCollide;
 		int m_OnPut;
-		std::map<int, char> m_vOnBreak;
-		std::map<int, char> m_vOnCook;
-		std::map<int, char> m_vCraft;
+		std::map<int, unsigned char> m_vOnBreak;
+		std::map<int, unsigned char> m_vOnCook;
+		std::map<int, unsigned char> m_vCraft;
 	};
 
 	CBlockManager();
@@ -189,6 +196,7 @@ public:
 	bool Init();
 
 	bool GetBlockInfo(unsigned char BlockID, CBlockInfo *pBlockInfo);
+	bool IsFluid(int BlockID, int *pType = 0x0);
 
 private:
 	json_value *m_pJsonData;

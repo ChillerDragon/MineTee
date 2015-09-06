@@ -44,9 +44,9 @@ public:
 	bool TestBox(vec2 Pos, vec2 Size);
 
 	// MineTee
-	void CreateTile(vec2 pos, int group, int layer, int index, int flags);
+	void ModifTile(vec2 pos, int group, int layer, int index, int flags);
 	int GetMineTeeTileAt(vec2 Pos);
-	bool IsTileFluid(int TileIndex, int *pType);
+	CBlockManager *GetBlockManager() const { return m_pBlockManager; }
 	//
 };
 

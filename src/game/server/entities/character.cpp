@@ -355,7 +355,7 @@ void CCharacter::Construct()
                 return;
 
         	GameServer()->SendTileModif(ALL_PLAYERS, vec2(TilePos.x, TilePos.y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeBGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0);
-            GameServer()->Collision()->CreateTile(vec2(TilePos.x, TilePos.y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeBGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0);
+            GameServer()->Collision()->ModifTile(vec2(TilePos.x, TilePos.y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeBGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0);
             GameServer()->CreateSound(m_Pos, SOUND_DESTROY_BLOCK);
 
             Builded = true;
@@ -373,7 +373,7 @@ void CCharacter::Construct()
                 return;
 
         	GameServer()->SendTileModif(ALL_PLAYERS, vec2(TilePos.x, TilePos.y), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeFGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0);
-            GameServer()->Collision()->CreateTile(vec2(TilePos.x, TilePos.y), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeFGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0);
+            GameServer()->Collision()->ModifTile(vec2(TilePos.x, TilePos.y), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeFGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0);
             GameServer()->CreateSound(m_Pos, SOUND_DESTROY_BLOCK);
 
             Builded = true;
@@ -441,7 +441,7 @@ void CCharacter::Construct()
             if (distance(m_Pos, finishPosPost) >= 42.0f)
             {
             	GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0);
-                GameServer()->Collision()->CreateTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0);
+                GameServer()->Collision()->ModifTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0);
                 GameServer()->CreateSound(m_Pos, SOUND_DESTROY_BLOCK);
 
                 Builded = true;
@@ -542,7 +542,7 @@ void CCharacter::FireWeapon()
 						{
 							vec2 TilePos = vec2(static_cast<int>(finishPosPost.x/32.0f), static_cast<int>(finishPosPost.y/32.0f));
                         	GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
-                            GameServer()->Collision()->CreateTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
+                            GameServer()->Collision()->ModifTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
 							GameServer()->CreateSound(m_Pos, SOUND_DESTROY_BLOCK);
 
 							if (TIndex == CBlockManager::TNT)
@@ -557,7 +557,7 @@ void CCharacter::FireWeapon()
 								{
 									if (BlockInfo.m_vOnBreak.size() > 0)
 									{
-										for (std::map<int, char>::iterator it = BlockInfo.m_vOnBreak.begin(); it != BlockInfo.m_vOnBreak.end(); it++)
+										for (std::map<int, unsigned char>::iterator it = BlockInfo.m_vOnBreak.begin(); it != BlockInfo.m_vOnBreak.end(); it++)
 										{
 											if (it->first == 0)
 											{
@@ -1268,7 +1268,7 @@ void CCharacter::Snap(int SnappingClient)
 		int FluidType = 0;
 		if (!m_Jumped && ((TileIndexD >= CBlockManager::LARGE_BED_LEFT && TileIndexD <= CBlockManager::LARGE_BED_RIGHT) || TileIndexD == CBlockManager::BED))
 			pCharacter->m_Emote = EMOTE_BLINK;
-		else if (GameServer()->Collision()->IsTileFluid(TileIndex, &FluidType))
+		else if (GameServer()->m_BlockManager.IsFluid(TileIndex, &FluidType))
 		{
 			if (FluidType == CCollision::FLUID_WATER)
 				pCharacter->m_Emote = EMOTE_BLINK;
@@ -1609,8 +1609,7 @@ void CCharacter::BotIA()
         m_Input.m_Jump = 1;
 
     // Fluids
-    int FluidType = 0;
-    if (GameServer()->Collision()->IsTileFluid(GameServer()->Collision()->GetMineTeeTileAt(m_Pos), &FluidType))
+    if (GameServer()->m_BlockManager.IsFluid(GameServer()->Collision()->GetMineTeeTileAt(m_Pos)))
     	m_Input.m_Jump = 1;
 
     //Limits

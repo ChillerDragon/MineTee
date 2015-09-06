@@ -791,8 +791,7 @@ void IGameController::GenerateRandomSpawn(CSpawnEval *pEval, int Team)
 	CCharacter *aEnts[MAX_CLIENTS];
 	int Num = GameServer()->m_World.FindEntities(P, 32*48, (CEntity**)aEnts, MAX_CLIENTS, CGameWorld::ENTTYPE_CHARACTER);
 
-	int FluidType = 0;
-	if (m_pGameServer->Collision()->CheckPoint(P, true) || m_pGameServer->Collision()->IsTileFluid(m_pGameServer->Collision()->GetMineTeeTileAt(P), &FluidType))
+	if (m_pGameServer->Collision()->CheckPoint(P, true) || m_pGameServer->m_BlockManager.IsFluid(m_pGameServer->Collision()->GetMineTeeTileAt(P)))
 		return;
 
 	bool CanSpawn = !IsBot;

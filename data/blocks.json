@@ -77,7 +77,8 @@
     },
     {
         "name": "GOLDEN BLOCK",
-        "onBreak": { "212":4 }
+        "onBreak": { "212":9 },
+        "craft": { "212": 10 },
     },
     {
         "name": "DIAMOND BLOCK",
@@ -91,6 +92,7 @@
     },
     {
         "name": "CHEST",
+        "craft": { "20":10 }
     },
     {
         "name": "MUSHROOM RED",
@@ -132,6 +134,7 @@
     },
     {
         "name": "MIDDLE STONE TOP",
+        "halfTile": true
     },
     {
         "name": "NOT USED 39",
@@ -152,6 +155,7 @@
     },
     {
         "name": "OVEN (OFF)",
+        "craft": { "1": 20 },
     },
     {
         "name": "NOT USED 45",
@@ -207,6 +211,7 @@
     },
     {
         "name": "OVEN (ON)",
+        "lightSize": 1,
     },
     {
         "name": "NOT USED 62",
@@ -272,21 +277,32 @@
 
     {
         "name": "TORCH",
+        "lightSize": 80,
+        "craft": { "20":1, "30":1 },
+        "craftNum": 4
     },
     {
         "name": "WOODEN WINDOW II",
     },
     {
         "name": "IRON WINDOW",
+        "craft": { "212":6 },
+        "craftNum": 4
     },
     {
         "name": "WOODEN FENCE",
+        "craft": { "20":6 },
+        "craftNum": 4
     },
     {
         "name": "WOODEN WINDOW I",
+        "craft": { "20":6 },
+        "craftNum": 4
     },
     {
         "name": "IRON FENCE",
+        "craft": { "212":6 },
+        "craftNum": 4
     },
     {
         "name": "GROUND CULTIVATION (WET)",
@@ -405,7 +421,8 @@
     },
     {
         "name": "PUMPKIN ON",
-        "onBreak": { "120":1 }
+        "onBreak": { "120":1 },
+        "lightSize": 10,
     },
     {
         "name": "PUMPKIN OFF",
@@ -483,7 +500,9 @@
         "name": "NOT USED 142",
     },
     {
-        "name": "IRON BARS 143",
+        "name": "IRON BARS",
+        "craft": { "211":6 },
+        "craftNum": 4
     },
 
 
@@ -519,6 +538,7 @@
     {
         "name": "BED",
         "halfTile": true,
+        "craft": { "20":4, "187":2 }
     },
     {
         "name": "NOT USED 153",
@@ -587,6 +607,7 @@
     },
     {
         "name": "SPOT LIGHT",
+        "lightSize": 40,
     },
     {
         "name": "END STONE",
@@ -784,15 +805,19 @@
     },
     {
         "name": "LAVA IV",
+        "lightSize": 1,
     },
     {
         "name": "LAVA III",
+        "lightSize": 1,
     },
     {
         "name": "LAVA II",
+        "lightSize": 1,
     },
     {
         "name": "LAVA I",
+        "lightSize": 1,
     },
 
 

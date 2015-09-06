@@ -251,35 +251,49 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
 			int c = mx + my*w;
 
 			unsigned char Index = pTiles[c].m_Index;
+			unsigned char Flags = pTiles[c].m_Flags;
+
 			if(Index)
 			{
                 // MineTee
-                if (TileMineTee == 1 && pEffects)
+                if (TileMineTee == 1)
                 {
-                    CEffects *pEff = static_cast<CEffects*>(pEffects);
+                	CBlockManager::CBlockInfo BlockInfo;
+                	m_pCollision->GetBlockManager()->GetBlockInfo(Index, &BlockInfo);
 
-                    if (Index == CBlockManager::TORCH)
-                        pEff->LightFlame(vec2(x*Scale+16.0f, y*Scale));
-                    if (my>0)
-                    {
-                        int tu = mx + (my-1)*w;
-                        if (Index == CBlockManager::LAVA_D && pTiles[tu].m_Index == 0)
-                        {
-                            int rnd = rand()%512;
-                            if (rnd == 2)
-                                pEff->FireSplit(vec2((x<<5)+16.0f,(y<<5)+16.0f), vec2(0,-1));
-                        }
-                        else if (Index == CBlockManager::OVEN_ON)
-                        {
-                            int rnd = rand()%215;
-                            if (rnd == 2)
-                                pEff->SmokeTrail(vec2((x<<5)+16.0f,(y<<5)-6.0f), vec2(0,-5));
-                        }
-                    }
+                	if (pEffects)
+                	{
+						CEffects *pEff = static_cast<CEffects*>(pEffects);
+
+						if (Index == CBlockManager::TORCH)
+							pEff->LightFlame(vec2(x*Scale+16.0f, y*Scale));
+						if (my>0)
+						{
+							int tu = mx + (my-1)*w;
+							if (Index == CBlockManager::LAVA_D && pTiles[tu].m_Index == 0)
+							{
+								int rnd = rand()%512;
+								if (!rnd)
+									pEff->FireSplit(vec2((x<<5)+16.0f,(y<<5)+16.0f), vec2(0,-1));
+							}
+							else if (Index == CBlockManager::OVEN_ON)
+							{
+								int rnd = rand()%215;
+								if (!rnd)
+									pEff->SmokeTrail(vec2((x<<5)+16.0f,(y<<5)-6.0f), vec2(0,-5));
+							}
+						}
+                	}
+
+                	// Flip HalfTiles
+                	if (my > 0 && BlockInfo.m_HalfTile)
+                	{
+                		int tu = mx + (my-1)*w;
+                		if (pTiles[tu].m_Index != 0 && !(pTiles[c].m_Flags&TILEFLAG_HFLIP))
+                			pTiles[c].m_Flags |= TILEFLAG_HFLIP;
+                	}
                 }
                 //
-
-				unsigned char Flags = pTiles[c].m_Flags;
 
 				bool Render = false;
 				if(Flags&TILEFLAG_OPAQUE)
@@ -397,9 +411,9 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
 
 // MineTee
 // FIXME: 5-phase seems very ugly and slow... :(
-void CRenderTools::UpdateLights(CCollision *pCollision, CTile *pTiles, CTile *pLights, int w, int h, int DarknessLevel)
+void CRenderTools::UpdateLights(CTile *pTiles, CTile *pLights, int w, int h, int DarknessLevel)
 {
-	if (!pCollision || !pTiles || !pLights)
+	if (!m_pCollision || !pTiles || !pLights)
 		return;
 
     CTile *pLightsTemp = static_cast<CTile*>(mem_alloc(sizeof(CTile)*w*h, 1));
@@ -439,12 +453,11 @@ void CRenderTools::UpdateLights(CCollision *pCollision, CTile *pTiles, CTile *pL
 			for(int x = StartX; x < EndX; x++)
 			{
 				int c = x + y*w;
-				int FluidType = 0;
-				if (pCollision->CheckPoint(x*Scale, y*Scale, true) || pCollision->IsTileFluid(pTiles[c].m_Index, &FluidType))
+				if (m_pCollision->CheckPoint(x*Scale, y*Scale, true) || m_pCollision->GetBlockManager()->IsFluid(pTiles[c].m_Index))
 				{
 					int tmy = y+1;
 					int tc = x + tmy*w;
-					while (!pCollision->CheckPoint(x*Scale, tmy*Scale, true) && tmy < h)
+					while (!m_pCollision->CheckPoint(x*Scale, tmy*Scale, true) && tmy < h)
 					{
 						pLightsTemp[tc].m_Index = aTileIndexDarkness[4];
 						++tmy;
@@ -584,11 +597,11 @@ void CRenderTools::UpdateLights(CCollision *pCollision, CTile *pTiles, CTile *pL
 	}
 
     // Spot Lights & Bright Tiles
-    static int LightSize = 80;
-    static float LightTime = time_get();
-    if (time_get() - LightTime > 8.5f*time_freq())
+    static int64 LightTime = time_get();
+    static bool BigSize = false;
+    if (time_get() - LightTime > 8.5f*time_freq()) // Blink
     {
-        LightSize = rand() % (80-79+1) + 79;
+    	BigSize = !BigSize;
         LightTime = time_get();
     }
 
@@ -596,9 +609,14 @@ void CRenderTools::UpdateLights(CCollision *pCollision, CTile *pTiles, CTile *pL
 		for(int x = StartX; x < EndX; x++)
 		{
             int c = x + y*w;
+            int TileIndex = pTiles[c].m_Index;
+            CBlockManager::CBlockInfo BlockInfo;
+            if (!m_pCollision->GetBlockManager()->GetBlockInfo(TileIndex, &BlockInfo))
+            	continue;
 
-            if (pTiles[c].m_Index == CBlockManager::TORCH)
+            if (BlockInfo.m_LightSize > 1)
             {
+            	int LightSize = (!BigSize)?(BlockInfo.m_LightSize - BlockInfo.m_LightSize/3):BlockInfo.m_LightSize;
                 for (int e=0; e<=LightSize; e++)
                 {
                     int index = 4-(e*4)/LightSize;
@@ -615,29 +633,8 @@ void CRenderTools::UpdateLights(CCollision *pCollision, CTile *pTiles, CTile *pL
                 pLightsTemp[c].m_Index = 0;
                 x += pTiles[c].m_Skip;
             }
-            if (pTiles[c].m_Index == CBlockManager::PUMPKIN_ON)
-            {
-                const int calabazaLight = 10;
-                for (int e=0; e<=calabazaLight; e++)
-                {
-                    int index = 4-(e*4)/calabazaLight;
-                    const int ff = (calabazaLight-e)/2;
-                    for (int i=ff; i>=-ff; i--)
-                        for (int o=-ff; o<=ff; o++)
-                        {
-                            int tc = clamp(x+o, 0, w-1) + clamp(y-i, 0, h-1)*w;
-                            if (aTileIndexDarkness[index] < pLightsTemp[tc].m_Index)
-                                pLightsTemp[tc].m_Index = aTileIndexDarkness[index];
-                        }
-                }
-
-                pLightsTemp[c].m_Index = 0;
-                x += pTiles[c].m_Skip;
-            }
-            else if (pTiles[c].m_Index >= CBlockManager::LAVA_A && pTiles[c].m_Index <= CBlockManager::LAVA_D)
-                pLightsTemp[c].m_Index = 0;
-            else if (pTiles[c].m_Index == CBlockManager::OVEN_ON)
-                pLightsTemp[c].m_Index = 0;
+            else if (BlockInfo.m_LightSize == 1)
+            	pLightsTemp[c].m_Index = 0;
 		}
 
     mem_copy(pLights, pLightsTemp, sizeof(CTile)*w*h);

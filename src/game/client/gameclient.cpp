@@ -233,6 +233,7 @@ void CGameClient::OnInit()
 	m_UI.SetGraphics(Graphics(), TextRender());
 	m_RenderTools.m_pGraphics = Graphics();
 	m_RenderTools.m_pUI = UI();
+	m_RenderTools.m_pCollision = Collision(); // MineTee
 	
 	int64 Start = time_get();
 
@@ -565,7 +566,7 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker)
     {
         CNetMsg_SvAn_TileModif *pMsg = (CNetMsg_SvAn_TileModif *)pRawMsg;
 
-        Collision()->CreateTile(vec2(pMsg->m_X, pMsg->m_Y), pMsg->m_Group, pMsg->m_Layer, pMsg->m_Index, pMsg->m_Flags);
+        Collision()->ModifTile(vec2(pMsg->m_X, pMsg->m_Y), pMsg->m_Group, pMsg->m_Layer, pMsg->m_Index, pMsg->m_Flags);
     }
 }
 
