@@ -6,7 +6,10 @@
 
 enum
 {
-	GEN_START_Y = 75
+	DIRT_LEVEL = 75,
+	STONE_LEVEL = 90,
+
+	LEVEL_TOLERANCE = 10
 };
 
 class CMapGen

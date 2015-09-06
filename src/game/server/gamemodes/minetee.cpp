@@ -209,8 +209,7 @@ void CGameControllerMineTee::Tick()
                         //BLOCK FALL
                         if (BlockInfo.m_Gravity)
                         {
-
-                        	dbg_msg("aa", "pasaaaa: %d -- %d", x, y);
+                        	//dbg_msg("aa", "pasaaaa: %d -- %d", x, y);
 
                             int indexT = (y+1)*pTmap->m_Width+x;
                             if (pTempTiles[indexT].m_Index == 0)
