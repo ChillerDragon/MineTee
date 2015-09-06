@@ -89,16 +89,20 @@ bool CCollision::IsTileSolid(int x, int y, bool nocoll)
     // MineTee
     if (m_pMineTeeTiles)
     {
-    	int TileIndex = GetMineTeeTileAt(vec2(x,y));
+    	int Nx = clamp(x/32, 0, m_Width-1);
+    	int Ny = clamp(y/32, 0, m_Height-1);
+
+    	int Index = Nx + Ny*m_Width;
+    	int TIndex = Nx + (Ny-1)*m_Width;
+    	int TileIndex = m_pMineTeeTiles[Index].m_Index;
+    	int TileIndexTop =  m_pMineTeeTiles[TIndex].m_Index;
     	CBlockManager::CBlockInfo BlockInfo;
     	m_pBlockManager->GetBlockInfo(TileIndex, &BlockInfo);
     	if (BlockInfo.m_HalfTile)
         {
-            int Nx = clamp(x/32, 0, m_Width-1);
-            int Ny = clamp(y/32, 0, m_Height-1);
             Nx *= 32; Ny *= 32;
 
-            if (y >= Ny+16.0f)
+            if ((!TileIndexTop && y >= Ny+16.0f) || (TileIndexTop && y <= Ny+16.0f))
                 return 1;
 
             return 0;
