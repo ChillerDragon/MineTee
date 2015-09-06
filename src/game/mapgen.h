@@ -4,6 +4,11 @@
 #include <base/vmath.h>
 #include <game/server/gameworld.h>
 
+enum
+{
+	GEN_START_Y = 75
+};
+
 class CMapGen
 {
 	class CGameWorld *m_pGameWorld;

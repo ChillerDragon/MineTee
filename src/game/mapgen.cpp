@@ -30,10 +30,20 @@ void CMapGen::GenerateMap()
 		GameServer()->Collision()->CreateTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeBGLayerIndex(), 0, 0);
 	}
 
-	// generate a very basic map (for now, EXTEND ME!)
-	for(int i = MineTeeLayerSize/1.3f; i < MineTeeLayerSize; i++)
+	// initial Y
+	int TilePosY = GEN_START_Y;
+	for(int i = 0; i < GameServer()->Layers()->MineTeeLayer()->m_Width; i++)
 	{
-		vec2 TilePos = vec2(i%GameServer()->Layers()->MineTeeLayer()->m_Width, (i-(i%GameServer()->Layers()->MineTeeLayer()->m_Width))/GameServer()->Layers()->MineTeeLayer()->m_Width);
-		GameServer()->Collision()->CreateTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::DIRT, 0);
+		int TilePosX = i;
+		TilePosY -= (rand()%3)-1;
+		GameServer()->Collision()->CreateTile(vec2(TilePosX, TilePosY), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::DIRT, 0);
+		
+		// fill the tiles under the random tile
+		int TempTileY = TilePosY+1;
+		while(TempTileY < GameServer()->Layers()->MineTeeLayer()->m_Height)
+		{
+			GameServer()->Collision()->CreateTile(vec2(TilePosX, TempTileY), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::DIRT, 0);
+			TempTileY++;
+		}
 	}
 }
