@@ -69,7 +69,7 @@
         "name": "WOOD BROWN",
     },
     {
-        "name": "NOT USED 21",
+        "name": "WOOD FRAME",
     },
     {
         "name": "IRON BLOCK",
@@ -127,7 +127,7 @@
         "name": "LIBRARY",
     },
     {
-        "name": "NOT USED 36",
+        "name": "GREEN ORE",
     },
     {
         "name": "VIOLET BLOCK",
@@ -420,12 +420,12 @@
         "name": "PUMPKIN",
     },
     {
+        "name": "PUMPKIN OFF",
+    },
+    {
         "name": "PUMPKIN ON",
         "onBreak": { "120":1 },
         "lightSize": 10,
-    },
-    {
-        "name": "PUMPKIN OFF",
     },
     {
         "name": "NOT USED 121",
@@ -482,7 +482,7 @@
         "name": "MELON",
     },
     {
-        "name": "NOT USED 137",
+        "name": "MELON FRAME",
     },
     {
         "name": "EMPTY INDICATOR",
@@ -635,6 +635,7 @@
     },
     {
         "name": "ENCHANTING TABLE",
+        "halfTile": true,
     },
     {
         "name": "OBSIDIAN I",
