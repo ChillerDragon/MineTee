@@ -206,7 +206,7 @@ void CGameContext::CreateExplosion(vec2 Pos, int Owner, int Weapon, bool NoDamag
 								}
 
 								CPickup *pPickup = new CPickup(&m_World, POWERUP_BLOCK, it->first);
-								pPickup->m_Pos = vec2(TilePos.x*32.0f + 8.0f, (TilePos.y-1)*32.0f + 8.0f);
+								pPickup->m_Pos = vec2(TilePos.x*32.0f + 8.0f, (TilePos.y)*32.0f + 8.0f);
 								pPickup->m_Amount = it->second;
 							}
 						}

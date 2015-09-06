@@ -566,7 +566,7 @@ void CCharacter::FireWeapon()
 											}
 
 											CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, it->first);
-											pPickup->m_Pos = vec2(TilePos.x*32.0f + 8.0f, (TilePos.y-1)*32.0f + 8.0f);
+											pPickup->m_Pos = vec2(TilePos.x*32.0f + 8.0f, (TilePos.y)*32.0f + 8.0f);
 											pPickup->m_Amount = it->second;
 										}
 									}
