@@ -30,6 +30,13 @@ void CMapGen::GenerateMap()
 		GameServer()->Collision()->CreateTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeBGLayerIndex(), 0, 0);
 	}
 
+	// generate the world
+	GenerateBasicTerrain();
+	GenerateTrees();
+}
+
+void CMapGen::GenerateBasicTerrain()
+{
 	// initial Y
 	int TilePosY = DIRT_LEVEL;
 	int TilePosX = 0;
@@ -76,8 +83,6 @@ void CMapGen::GenerateMap()
 			TempTileY++;
 		}
 	}
-
-	GenerateTrees();
 }
 
 void CMapGen::GenerateTrees()
