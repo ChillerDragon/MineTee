@@ -21,7 +21,7 @@ bool CBlockManager::Init()
 		long size = io_tell(fileAutoUpdate);
 		io_seek(fileAutoUpdate, 0, IOSEEK_START);
 
-		char aFileBuff[size]={0};
+		char aFileBuff[size];
 		if (io_read(fileAutoUpdate, aFileBuff, size))
 		{
 			char aError[256];
