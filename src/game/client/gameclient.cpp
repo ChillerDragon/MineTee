@@ -277,6 +277,8 @@ void CGameClient::OnInit()
 	Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "gameclient", aBuf);
 
 	m_ServerMode = SERVERMODE_PURE;
+
+	m_BlockManager.Init(); // MineTee
 }
 
 void CGameClient::DispatchInput()
@@ -321,7 +323,7 @@ int CGameClient::OnSnapInput(int *pData)
 void CGameClient::OnConnected()
 {
 	m_Layers.Init(Kernel());
-	m_Collision.Init(Layers());
+	m_Collision.Init(Layers(), &m_BlockManager); // MineTee
 
 	RenderTools()->RenderTilemapGenerateSkip(Layers());
 
@@ -852,6 +854,7 @@ void CGameClient::OnNewSnapshot()
 				m_Inventory.m_Ammo[7] = pInfo->m_Ammo8;
 				m_Inventory.m_Ammo[8] = pInfo->m_Ammo9;
 				m_Inventory.m_Selected = pInfo->m_Selected;
+				IntsToStr(&pInfo->m_SelectedName0, 6, m_Inventory.m_aSelectedName);
 			}
 		}
 	}

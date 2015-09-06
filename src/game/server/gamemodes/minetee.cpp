@@ -57,6 +57,7 @@ void CGameControllerMineTee::Tick()
         CMapItemLayerTilemap *pTmap = (CMapItemLayerTilemap *)GameServer()->Layers()->MineTeeLayer();
         if (pTmap)
         {
+        	CBlockManager::CBlockInfo BlockInfo;
             CTile *pTiles = (CTile *)GameServer()->Layers()->Map()->GetData(pTmap->m_Data);
             CTile *pTempTiles = static_cast<CTile*>(mem_alloc(sizeof(CTile)*pTmap->m_Width*pTmap->m_Height,1));
             mem_copy(pTempTiles, pTiles, sizeof(CTile)*pTmap->m_Width*pTmap->m_Height);
@@ -66,35 +67,37 @@ void CGameControllerMineTee::Tick()
                 for(int x = 0; x < pTmap->m_Width-1; x++)
                 {
                     int c = y*pTmap->m_Width+x;
+                    if (!GameServer()->m_BlockManager.GetBlockInfo(pTempTiles[c].m_Index, &BlockInfo))
+                    	continue;
 
                     if (Envirionment)
                     {
-                        if (((pTempTiles[c].m_Index >= BLOCK_UNDEF82 && pTempTiles[c].m_Index <= BLOCK_AGUA) || (pTempTiles[c].m_Index >= BLOCK_UNDEF104 && pTempTiles[c].m_Index <= BLOCK_LAVA)) && y+1 < pTmap->m_Height && x+1 < pTmap->m_Width)
+                        if (((pTempTiles[c].m_Index >= CBlockManager::WATER_A && pTempTiles[c].m_Index <= CBlockManager::WATER_D) || (pTempTiles[c].m_Index >= CBlockManager::LAVA_A && pTempTiles[c].m_Index <= CBlockManager::LAVA_D)) && y+1 < pTmap->m_Height && x+1 < pTmap->m_Width)
                         {
                             int tc = (y+1)*pTmap->m_Width+x;
-                            if (pTempTiles[tc].m_Index == 0 || (pTempTiles[tc].m_Index >= BLOCK_UNDEF82 && pTempTiles[tc].m_Index < BLOCK_UNDEF84) || (pTempTiles[tc].m_Index >= BLOCK_UNDEF104 && pTempTiles[tc].m_Index < BLOCK_UNDEF106))
+                            if (pTempTiles[tc].m_Index == 0 || (pTempTiles[tc].m_Index >= CBlockManager::WATER_A && pTempTiles[tc].m_Index < CBlockManager::WATER_C) || (pTempTiles[tc].m_Index >= CBlockManager::LAVA_A && pTempTiles[tc].m_Index < CBlockManager::LAVA_C))
                             {
-                                int TileIndex = (pTempTiles[c].m_Index >= BLOCK_UNDEF82 && pTempTiles[c].m_Index <= BLOCK_AGUA)?BLOCK_UNDEF84:BLOCK_UNDEF106;
+                                int TileIndex = (pTempTiles[c].m_Index >= CBlockManager::WATER_A && pTempTiles[c].m_Index <= CBlockManager::WATER_D)?CBlockManager::WATER_A:CBlockManager::LAVA_A;
 
                                 GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y+1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0);
                                 GameServer()->Collision()->CreateTile(vec2(x, y+1), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0);
                             }
-                            else if ((pTempTiles[c].m_Index >= BLOCK_UNDEF104 && pTempTiles[c].m_Index <= BLOCK_LAVA && pTempTiles[tc].m_Index >= BLOCK_UNDEF82 && pTempTiles[tc].m_Index <= BLOCK_AGUA) ||
-                                     (pTempTiles[c].m_Index >= BLOCK_UNDEF82 && pTempTiles[c].m_Index <= BLOCK_AGUA && pTempTiles[tc].m_Index >= BLOCK_UNDEF104 && pTempTiles[tc].m_Index <= BLOCK_LAVA))
+                            else if ((pTempTiles[c].m_Index >= CBlockManager::LAVA_A && pTempTiles[c].m_Index <= CBlockManager::LAVA_D && pTempTiles[tc].m_Index >= CBlockManager::WATER_A && pTempTiles[tc].m_Index <= CBlockManager::WATER_D) ||
+                                     (pTempTiles[c].m_Index >= CBlockManager::WATER_A && pTempTiles[c].m_Index <= CBlockManager::WATER_D && pTempTiles[tc].m_Index >= CBlockManager::LAVA_A && pTempTiles[tc].m_Index <= CBlockManager::LAVA_D))
                             {
-                            	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y+1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_RUDINIUM, 0);
-                                GameServer()->Collision()->CreateTile(vec2(x, y+1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_RUDINIUM, 0);
+                            	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y+1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::OBSIDIAN_A, 0);
+                                GameServer()->Collision()->CreateTile(vec2(x, y+1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::OBSIDIAN_A, 0);
                             }
 
                             tc = y*pTmap->m_Width+(x+1);
                             int tb = (y+1)*pTmap->m_Width+(x+1);
                             int te = (y-1)*pTmap->m_Width+(x+1);
                             int tl = (y+1)*pTmap->m_Width+x;
-                            if (pTempTiles[tl].m_Index != 0 && (pTempTiles[tl].m_Index < BLOCK_UNDEF82 || pTempTiles[tl].m_Index > BLOCK_AGUA) && (pTempTiles[tl].m_Index < BLOCK_UNDEF104 || pTempTiles[tl].m_Index > BLOCK_LAVA) &&
+                            if (pTempTiles[tl].m_Index != 0 && (pTempTiles[tl].m_Index < CBlockManager::WATER_A || pTempTiles[tl].m_Index > CBlockManager::WATER_D) && (pTempTiles[tl].m_Index < CBlockManager::LAVA_A || pTempTiles[tl].m_Index > CBlockManager::LAVA_D) &&
                                 pTempTiles[tc].m_Index == 0 &&
-                                (pTempTiles[tb].m_Index < BLOCK_UNDEF82 || pTempTiles[tb].m_Index > BLOCK_AGUA) && (pTempTiles[tb].m_Index < BLOCK_UNDEF104 || pTempTiles[tb].m_Index > BLOCK_LAVA) &&
-                                pTempTiles[c].m_Index-1 != BLOCK_UNDEF82-1 && pTempTiles[c].m_Index-1 != BLOCK_UNDEF104-1 &&
-                                (pTempTiles[te].m_Index < BLOCK_UNDEF82 || pTempTiles[te].m_Index > BLOCK_AGUA) && (pTempTiles[te].m_Index < BLOCK_UNDEF104 || pTempTiles[te].m_Index > BLOCK_LAVA))
+                                (pTempTiles[tb].m_Index < CBlockManager::WATER_A || pTempTiles[tb].m_Index > CBlockManager::WATER_D) && (pTempTiles[tb].m_Index < CBlockManager::LAVA_A || pTempTiles[tb].m_Index > CBlockManager::LAVA_D) &&
+                                pTempTiles[c].m_Index-1 != CBlockManager::WATER_A-1 && pTempTiles[c].m_Index-1 != CBlockManager::LAVA_A-1 &&
+                                (pTempTiles[te].m_Index < CBlockManager::WATER_A || pTempTiles[te].m_Index > CBlockManager::WATER_D) && (pTempTiles[te].m_Index < CBlockManager::LAVA_A || pTempTiles[te].m_Index > CBlockManager::LAVA_D))
                             {
                             	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x+1, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), pTiles[c].m_Index-1, 0);
                                 GameServer()->Collision()->CreateTile(vec2(x+1, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), pTiles[c].m_Index-1, 0);
@@ -102,60 +105,60 @@ void CGameControllerMineTee::Tick()
                             tc = y*pTmap->m_Width+(x-1);
                             tb = (y+1)*pTmap->m_Width+(x-1);
                             te = (y-1)*pTmap->m_Width+(x-1);
-                            if (pTempTiles[tl].m_Index != 0 && pTempTiles[tl].m_Index != BLOCK_AGUA && pTempTiles[tl].m_Index != BLOCK_LAVA &&
+                            if (pTempTiles[tl].m_Index != 0 && pTempTiles[tl].m_Index != CBlockManager::WATER_D && pTempTiles[tl].m_Index != CBlockManager::LAVA_D &&
                                 pTempTiles[tc].m_Index == 0 &&
-                                (pTempTiles[tb].m_Index < BLOCK_UNDEF82 || pTempTiles[tb].m_Index > BLOCK_AGUA) && (pTempTiles[tb].m_Index < BLOCK_UNDEF104 || pTempTiles[tb].m_Index > BLOCK_LAVA) &&
-                                pTempTiles[c].m_Index-1 != BLOCK_UNDEF82-1 && pTempTiles[c].m_Index-1 != BLOCK_UNDEF104-1 &&
-                                (pTempTiles[te].m_Index < BLOCK_UNDEF82 || pTempTiles[te].m_Index > BLOCK_AGUA) && (pTempTiles[te].m_Index < BLOCK_UNDEF104 || pTempTiles[te].m_Index > BLOCK_LAVA))
+                                (pTempTiles[tb].m_Index < CBlockManager::WATER_A || pTempTiles[tb].m_Index > CBlockManager::WATER_D) && (pTempTiles[tb].m_Index < CBlockManager::LAVA_A || pTempTiles[tb].m_Index > CBlockManager::LAVA_D) &&
+                                pTempTiles[c].m_Index-1 != CBlockManager::WATER_A-1 && pTempTiles[c].m_Index-1 != CBlockManager::LAVA_A-1 &&
+                                (pTempTiles[te].m_Index < CBlockManager::WATER_A || pTempTiles[te].m_Index > CBlockManager::WATER_D) && (pTempTiles[te].m_Index < CBlockManager::LAVA_A || pTempTiles[te].m_Index > CBlockManager::LAVA_D))
                             {
                             	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x-1, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), pTiles[c].m_Index-1, 0);
                                 GameServer()->Collision()->CreateTile(vec2(x-1, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), pTiles[c].m_Index-1, 0);
                             }
                         }
-                        else if (pTempTiles[c].m_Index == BLOCK_ROSAR || pTempTiles[c].m_Index == BLOCK_ROSAY)
+                        else if (pTempTiles[c].m_Index == CBlockManager::ROSE || pTempTiles[c].m_Index == CBlockManager::DAISY)
                         {
                             int indexT = (y+1)*pTmap->m_Width+x;
-                            if (pTempTiles[indexT].m_Index == BLOCK_GROUND)
+                            if (pTempTiles[indexT].m_Index == CBlockManager::DIRT)
                             {
-                            	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y+1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_AGRASS, 0);
-                                GameServer()->Collision()->CreateTile(vec2(x, y+1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_APGRASS, 0);
+                            	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y+1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::GROUND_CULTIVATION_DRY, 0);
+                                GameServer()->Collision()->CreateTile(vec2(x, y+1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::GROUND_CULTIVATION_DRY, 0);
                             }
                         }
-                        else if (pTempTiles[c].m_Index == BLOCK_BED)
+                        else if (pTempTiles[c].m_Index == CBlockManager::BED)
                         {
                             int indexT = y*pTmap->m_Width+(x+1);
-                            if (pTempTiles[indexT].m_Index == BLOCK_BED)
+                            if (pTempTiles[indexT].m_Index == CBlockManager::BED)
                             {
-                            	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_UNDEF48, 0);
-                                GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_UNDEF48, 0);
+                            	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::LARGE_BED_LEFT, 0);
+                                GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::LARGE_BED_LEFT, 0);
 
-                                GameServer()->SendTileModif(ALL_PLAYERS, vec2(x+1, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_UNDEF49, 0);
-                                GameServer()->Collision()->CreateTile(vec2(x+1, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_UNDEF49, 0);
+                                GameServer()->SendTileModif(ALL_PLAYERS, vec2(x+1, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::LARGE_BED_RIGHT, 0);
+                                GameServer()->Collision()->CreateTile(vec2(x+1, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::LARGE_BED_RIGHT, 0);
                             }
                         }
-                        else if (pTempTiles[c].m_Index == BLOCK_INVENTARY)
+                        else if (pTempTiles[c].m_Index == CBlockManager::CHEST)
                         {
                             int indexT = y*pTmap->m_Width+(x+1);
-                            if (pTempTiles[indexT].m_Index == BLOCK_INVENTARY)
+                            if (pTempTiles[indexT].m_Index == CBlockManager::CHEST)
                             {
-                            	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_INVTA, 0);
-                                GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_INVTA, 0);
+                            	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::LARGE_CHEST_LEFT, 0);
+                                GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::LARGE_CHEST_LEFT, 0);
 
-                                GameServer()->SendTileModif(ALL_PLAYERS, vec2(x+1, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_INVTB, 0);
-                                GameServer()->Collision()->CreateTile(vec2(x+1, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_INVTB, 0);
+                                GameServer()->SendTileModif(ALL_PLAYERS, vec2(x+1, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::LARGE_CHEST_RIGHT, 0);
+                                GameServer()->Collision()->CreateTile(vec2(x+1, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::LARGE_CHEST_RIGHT, 0);
                             }
                         }
 
 
                         if (y>0)
                         {
-                            if (pTempTiles[c].m_Index == BLOCK_GROUND)
+                            if (pTempTiles[c].m_Index == CBlockManager::DIRT)
                             {
                                 bool found = false;
                                 for (int o=y-1; o>=0; o--)
                                 {
                                     int indexT = o*pTmap->m_Width+x;
-                                    if (pTempTiles[indexT].m_Index != 0 && (pTempTiles[indexT].m_Index < BLOCK_SEED2 || pTempTiles[indexT].m_Index > BLOCK_SEED8))
+                                    if (pTempTiles[indexT].m_Index != 0 && (pTempTiles[indexT].m_Index < CBlockManager::GRASS_A || pTempTiles[indexT].m_Index > CBlockManager::GRASS_F))
                                     {
                                         found = true;
                                         break;
@@ -164,37 +167,37 @@ void CGameControllerMineTee::Tick()
 
                                 if (!found)
                                 {
-                                	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_GRASSGROUND, 0);
-                                    GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_GRASSGROUND, 0);
+                                	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::GRASS, 0);
+                                    GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::GRASS, 0);
                                 }
                             }
-                            else if (pTempTiles[c].m_Index == BLOCK_GRASSGROUND)
+                            else if (pTempTiles[c].m_Index == CBlockManager::GRASS)
                             {
                                 int indexT = (y-1)*pTmap->m_Width+x;
-                                if (pTempTiles[indexT].m_Index != 0 && (pTempTiles[indexT].m_Index < BLOCK_SEED2 || pTempTiles[indexT].m_Index > BLOCK_SEED8))
+                                if (pTempTiles[indexT].m_Index != 0 && (pTempTiles[indexT].m_Index < CBlockManager::GRASS_A || pTempTiles[indexT].m_Index > CBlockManager::GRASS_F))
                                 {
-                                    int TileIndex = (pTempTiles[indexT].m_Index == BLOCK_NIEVE)?BLOCK_BNGRASS:BLOCK_GROUND;
+                                    int TileIndex = (pTempTiles[indexT].m_Index == CBlockManager::SNOW)?CBlockManager::DIRT_SNOW:CBlockManager::DIRT;
 
                                     GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0);
                                     GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0);
                                 }
                             }
-                            else if (pTempTiles[c].m_Index == BLOCK_HORNO_OFF)
+                            else if (pTempTiles[c].m_Index == CBlockManager::OVEN_OFF)
                             {
                                 int indexT = (y-1)*pTmap->m_Width+x;
                                 int indexR = y*pTmap->m_Width+(x-1);
                                 int indexS = y*pTmap->m_Width+(x+1);
-                                if (pTempTiles[indexT].m_Index == BLOCK_CARBONP || pTempTiles[indexR].m_Index == BLOCK_CARBONP || pTempTiles[indexS].m_Index == BLOCK_CARBONP)
+                                if (pTempTiles[indexT].m_Index == CBlockManager::COAL || pTempTiles[indexR].m_Index == CBlockManager::COAL || pTempTiles[indexS].m_Index == CBlockManager::COAL)
                                 {
-                                	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_HORNO_ON, 0);
-                                    GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_HORNO_ON, 0);
+                                	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::OVEN_ON, 0);
+                                    GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::OVEN_ON, 0);
 
                                     vec2 TilePos;
-                                    if (pTempTiles[indexT].m_Index == BLOCK_CARBONP)
+                                    if (pTempTiles[indexT].m_Index == CBlockManager::COAL)
                                     	TilePos = vec2(x, y-1);
-                                    else if (pTempTiles[indexR].m_Index == BLOCK_CARBONP)
+                                    else if (pTempTiles[indexR].m_Index == CBlockManager::COAL)
                                     	TilePos = vec2(x-1, y);
-                                    else if (pTempTiles[indexS].m_Index == BLOCK_CARBONP)
+                                    else if (pTempTiles[indexS].m_Index == CBlockManager::COAL)
                                     	TilePos = vec2(x+1, y);
 
                                     GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
@@ -204,8 +207,11 @@ void CGameControllerMineTee::Tick()
                         }
 
                         //BLOCK FALL
-                        if (pTempTiles[c].m_Index == BLOCK_ARENA || pTempTiles[c].m_Index == BLOCK_ARENAB || pTempTiles[c].m_Index == BLOCK_NIEVE || pTempTiles[c].m_Index == BLOCK_CARBONP || pTempTiles[c].m_Index == BLOCK_TNT)
+                        if (BlockInfo.m_Gravity)
                         {
+
+                        	dbg_msg("aa", "pasaaaa: %d -- %d", x, y);
+
                             int indexT = (y+1)*pTmap->m_Width+x;
                             if (pTempTiles[indexT].m_Index == 0)
                             {
@@ -218,7 +224,7 @@ void CGameControllerMineTee::Tick()
                         }
 
                         //BLOCK DAMAGE
-                        if (pTempTiles[c].m_Index == BLOCK_CACTUS)
+                        if (BlockInfo.m_Damage)
                         {
                             for (size_t e=0; e<MAX_CLIENTS; e++)
                             {
@@ -233,42 +239,42 @@ void CGameControllerMineTee::Tick()
 
                     if (Destruction)
                     {
-                        if (pTempTiles[c].m_Index == BLOCK_AZUCAR)
+                        if (pTempTiles[c].m_Index == CBlockManager::SUGAR_CANE)
                         {
                             int indexT = (y+1)*pTmap->m_Width+x;
-                            if (pTempTiles[indexT].m_Index != BLOCK_AZUCAR && pTempTiles[indexT].m_Index != BLOCK_APGRASS)
+                            if (pTempTiles[indexT].m_Index != CBlockManager::SUGAR_CANE && pTempTiles[indexT].m_Index != CBlockManager::GROUND_CULTIVATION_WET)
                             {
                             	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
                                 GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
 
-                                CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, BLOCK_AZUCAR);
+                                CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, CBlockManager::SUGAR_CANE);
                                 pPickup->m_Pos = vec2(x*32.0f + 8.0f, y*32.0f + 8.0f);
                             }
                         }
-                        else if (pTempTiles[c].m_Index == BLOCK_CACTUS)
+                        else if (pTempTiles[c].m_Index == CBlockManager::CACTUS)
                         {
                             int indexT = (y+1)*pTmap->m_Width+x;
-                            if (pTempTiles[indexT].m_Index != BLOCK_CACTUS && pTempTiles[indexT].m_Index != BLOCK_ARENA && pTempTiles[indexT].m_Index != BLOCK_ARENAB)
+                            if (pTempTiles[indexT].m_Index != CBlockManager::CACTUS && pTempTiles[indexT].m_Index != CBlockManager::SAND)
                             {
                             	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
                                 GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
 
-                                CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, BLOCK_CACTUS);
+                                CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, CBlockManager::CACTUS);
                                 pPickup->m_Pos = vec2(x*32.0f + 8.0f, y*32.0f + 8.0f);
                             }
                         }
-                        else if (pTempTiles[c].m_Index == BLOCK_LUZ)
+                        else if (pTempTiles[c].m_Index == CBlockManager::TORCH)
                         {
                             bool found = false;
 
                             int indexT = y*pTmap->m_Width+(x-1);
-                            if (pTempTiles[indexT].m_Index != 0 && pTempTiles[indexT].m_Index != BLOCK_LAVA && pTempTiles[indexT].m_Index != BLOCK_AGUA)
+                            if (pTempTiles[indexT].m_Index != 0 && pTempTiles[indexT].m_Index != CBlockManager::LAVA_D && pTempTiles[indexT].m_Index != CBlockManager::WATER_D)
                                 found = true;
                             indexT = y*pTmap->m_Width+(x+1);
-                            if (pTempTiles[indexT].m_Index != 0 && pTempTiles[indexT].m_Index != BLOCK_LAVA && pTempTiles[indexT].m_Index != BLOCK_AGUA)
+                            if (pTempTiles[indexT].m_Index != 0 && pTempTiles[indexT].m_Index != CBlockManager::LAVA_D && pTempTiles[indexT].m_Index != CBlockManager::WATER_D)
                                 found = true;
                             indexT = (y+1)*pTmap->m_Width+x;
-                            if (pTempTiles[indexT].m_Index != 0 && pTempTiles[indexT].m_Index != BLOCK_LAVA && pTempTiles[indexT].m_Index != BLOCK_AGUA)
+                            if (pTempTiles[indexT].m_Index != 0 && pTempTiles[indexT].m_Index != CBlockManager::LAVA_D && pTempTiles[indexT].m_Index != CBlockManager::WATER_D)
                                 found = true;
 
                             if (!found)
@@ -276,11 +282,11 @@ void CGameControllerMineTee::Tick()
                             	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
                                 GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
 
-                                CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, BLOCK_LUZ);
+                                CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, CBlockManager::TORCH);
                                 pPickup->m_Pos = vec2(x*32.0f + 8.0f, y*32.0f + 8.0f);
                             }
                         }
-                        else if (pTempTiles[c].m_Index >= BLOCK_SEED1 && pTempTiles[c].m_Index <= BLOCK_SEED8)
+                        else if (pTempTiles[c].m_Index >= CBlockManager::GRASS_A && pTempTiles[c].m_Index <= CBlockManager::GRASS_G)
                         {
                             int indexT = (y+1)*pTmap->m_Width+x;
                             if (pTempTiles[indexT].m_Index == 0)
@@ -288,11 +294,11 @@ void CGameControllerMineTee::Tick()
                             	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
                                 GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
 
-                                CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, BLOCK_SEEDM);
+                                CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, CBlockManager::SEED);
                                 pPickup->m_Pos = vec2(x*32.0f + 8.0f, y*32.0f + 8.0f);
                             }
                         }
-                        else if (pTempTiles[c].m_Index == BLOCK_UNDEF48)
+                        else if (pTempTiles[c].m_Index == CBlockManager::LARGE_BED_LEFT)
                         {
                             int indexT = y*pTmap->m_Width+(x+1);
                             if (pTempTiles[indexT].m_Index == 0)
@@ -300,11 +306,11 @@ void CGameControllerMineTee::Tick()
                             	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
                                 GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
 
-                                CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, BLOCK_BED);
+                                CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, CBlockManager::BED);
                                 pPickup->m_Pos = vec2(x*32.0f + 8.0f, y*32.0f + 8.0f);
                             }
                         }
-                        else if (pTempTiles[c].m_Index == BLOCK_UNDEF49)
+                        else if (pTempTiles[c].m_Index == CBlockManager::LARGE_BED_RIGHT)
                         {
                             int indexT = y*pTmap->m_Width+(x-1);
                             if (pTempTiles[indexT].m_Index == 0)
@@ -312,11 +318,11 @@ void CGameControllerMineTee::Tick()
                             	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
                                 GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
 
-                                CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, BLOCK_BED);
+                                CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, CBlockManager::BED);
                                 pPickup->m_Pos = vec2(x*32.0f + 8.0f, y*32.0f + 8.0f);
                             }
                         }
-                        else if (pTempTiles[c].m_Index == BLOCK_INVTA)
+                        else if (pTempTiles[c].m_Index == CBlockManager::LARGE_CHEST_LEFT)
                         {
                             int indexT = y*pTmap->m_Width+(x+1);
                             if (pTempTiles[indexT].m_Index == 0)
@@ -324,11 +330,11 @@ void CGameControllerMineTee::Tick()
                             	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
                                 GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
 
-                                CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, BLOCK_INVENTARY);
+                                CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, CBlockManager::CHEST);
                                 pPickup->m_Pos = vec2(x*32.0f + 8.0f, y*32.0f + 8.0f);
                             }
                         }
-                        else if (pTempTiles[c].m_Index == BLOCK_INVTB)
+                        else if (pTempTiles[c].m_Index == CBlockManager::LARGE_CHEST_RIGHT)
                         {
                             int indexT = y*pTmap->m_Width+(x-1);
                             if (pTempTiles[indexT].m_Index == 0)
@@ -336,37 +342,37 @@ void CGameControllerMineTee::Tick()
                             	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
                                 GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
 
-                                CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, BLOCK_INVENTARY);
+                                CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, CBlockManager::CHEST);
                                 pPickup->m_Pos = vec2(x*32.0f + 8.0f, y*32.0f + 8.0f);
                             }
                         }
-                        else if (pTempTiles[c].m_Index == BLOCK_UNDEF84)
+                        else if (pTempTiles[c].m_Index == CBlockManager::WATER_C)
                         {
                             int indexT = (y-1)*pTmap->m_Width+x;
                             int indexR = y*pTmap->m_Width+(x-1);
                             int indexS = y*pTmap->m_Width+(x+1);
-                            if ((pTempTiles[indexT].m_Index < BLOCK_UNDEF82 || pTempTiles[indexT].m_Index > BLOCK_AGUA) &&
-                                (pTempTiles[indexR].m_Index < BLOCK_UNDEF82 || pTempTiles[indexR].m_Index > BLOCK_AGUA) &&
-                                (pTempTiles[indexS].m_Index < BLOCK_UNDEF82 || pTempTiles[indexS].m_Index > BLOCK_AGUA))
+                            if ((pTempTiles[indexT].m_Index < CBlockManager::WATER_A || pTempTiles[indexT].m_Index > CBlockManager::WATER_D) &&
+                                (pTempTiles[indexR].m_Index < CBlockManager::WATER_A || pTempTiles[indexR].m_Index > CBlockManager::WATER_D) &&
+                                (pTempTiles[indexS].m_Index < CBlockManager::WATER_A || pTempTiles[indexS].m_Index > CBlockManager::WATER_D))
                             {
                             	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
                                 GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
                             }
                         }
-                        else if (pTempTiles[c].m_Index == BLOCK_UNDEF106)
+                        else if (pTempTiles[c].m_Index == CBlockManager::LAVA_C)
                         {
                             int indexT = (y-1)*pTmap->m_Width+x;
                             int indexR = y*pTmap->m_Width+(x-1);
                             int indexS = y*pTmap->m_Width+(x+1);
-                            if ((pTempTiles[indexT].m_Index < BLOCK_UNDEF104 || pTempTiles[indexT].m_Index > BLOCK_LAVA) &&
-                                (pTempTiles[indexR].m_Index < BLOCK_UNDEF104 || pTempTiles[indexR].m_Index > BLOCK_LAVA) &&
-                                (pTempTiles[indexS].m_Index < BLOCK_UNDEF104 || pTempTiles[indexS].m_Index > BLOCK_LAVA))
+                            if ((pTempTiles[indexT].m_Index < CBlockManager::LAVA_A || pTempTiles[indexT].m_Index > CBlockManager::LAVA_D) &&
+                                (pTempTiles[indexR].m_Index < CBlockManager::LAVA_A || pTempTiles[indexR].m_Index > CBlockManager::LAVA_D) &&
+                                (pTempTiles[indexS].m_Index < CBlockManager::LAVA_A || pTempTiles[indexS].m_Index > CBlockManager::LAVA_D))
                             {
                             	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
                                 GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
                             }
                         }
-                        else if (pTempTiles[c].m_Index == BLOCK_ROSAR || pTempTiles[c].m_Index == BLOCK_ROSAY)
+                        else if (pTempTiles[c].m_Index == CBlockManager::ROSE || pTempTiles[c].m_Index == CBlockManager::DAISY)
                         {
                             int indexT = (y+1)*pTmap->m_Width+x;
                             if (pTempTiles[indexT].m_Index == 0)
@@ -383,10 +389,10 @@ void CGameControllerMineTee::Tick()
                     if (Vegetal)
                     {
                         /** Crecimiento **/
-                        if (pTempTiles[c].m_Index == BLOCK_AZUCAR)
+                        if (pTempTiles[c].m_Index == CBlockManager::SUGAR_CANE)
                         {
                             int indexT = (y+1)*pTmap->m_Width+x;
-                            if (pTempTiles[indexT].m_Index == BLOCK_AZUCAR || pTempTiles[indexT].m_Index == BLOCK_APGRASS)
+                            if (pTempTiles[indexT].m_Index == CBlockManager::SUGAR_CANE || pTempTiles[indexT].m_Index == CBlockManager::GROUND_CULTIVATION_WET)
                             {
                                 indexT = (y-1)*pTmap->m_Width+x;
                                 if (pTempTiles[indexT].m_Index == 0)
@@ -396,11 +402,11 @@ void CGameControllerMineTee::Tick()
                                     for(int u=1; u<=5; u++)
                                     {
                                         int indexA = (y+u)*pTmap->m_Width+x;
-                                        if (pTempTiles[indexA].m_Index == BLOCK_AZUCAR)
+                                        if (pTempTiles[indexA].m_Index == CBlockManager::SUGAR_CANE)
                                             tam++;
                                         else
                                         {
-                                            if (pTempTiles[indexA].m_Index == BLOCK_APGRASS)
+                                            if (pTempTiles[indexA].m_Index == CBlockManager::GROUND_CULTIVATION_WET)
                                                 canC = true;
                                             break;
                                         }
@@ -408,17 +414,17 @@ void CGameControllerMineTee::Tick()
 
                                     if ((rand()%10) == 7 && canC && tam < 5)
                                     {
-                                    	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y-1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_AZUCAR, 0);
-                                        GameServer()->Collision()->CreateTile(vec2(x, y-1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_AZUCAR, 0);
+                                    	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y-1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::SUGAR_CANE, 0);
+                                        GameServer()->Collision()->CreateTile(vec2(x, y-1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::SUGAR_CANE, 0);
                                     }
                                 }
                             }
                         }
 
-                        if (pTempTiles[c].m_Index == BLOCK_CACTUS)
+                        if (pTempTiles[c].m_Index == CBlockManager::CACTUS)
                         {
                             int indexT = (y+1)*pTmap->m_Width+x;
-                            if (pTempTiles[indexT].m_Index == BLOCK_CACTUS || pTempTiles[indexT].m_Index == BLOCK_ARENA || pTempTiles[indexT].m_Index == BLOCK_ARENAB)
+                            if (pTempTiles[indexT].m_Index == CBlockManager::CACTUS || pTempTiles[indexT].m_Index == CBlockManager::SAND)
                             {
                                 indexT = (y-1)*pTmap->m_Width+x;
                                 if (pTempTiles[indexT].m_Index == 0)
@@ -428,11 +434,11 @@ void CGameControllerMineTee::Tick()
                                     for(int u=1; u<=5; u++)
                                     {
                                         int indexA = (y+u)*pTmap->m_Width+x;
-                                        if (pTempTiles[indexA].m_Index == BLOCK_CACTUS)
+                                        if (pTempTiles[indexA].m_Index == CBlockManager::CACTUS)
                                             tam++;
                                         else
                                         {
-                                            if (pTempTiles[indexA].m_Index == BLOCK_ARENA || pTempTiles[indexA].m_Index == BLOCK_ARENAB)
+                                            if (pTempTiles[indexA].m_Index == CBlockManager::SAND)
                                                 canC = true;
                                             break;
                                         }
@@ -440,20 +446,20 @@ void CGameControllerMineTee::Tick()
 
                                     if ((rand()%10) == 7 && canC && tam < 8)
                                     {
-                                    	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y-1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_CACTUS, 0);
-                                        GameServer()->Collision()->CreateTile(vec2(x, y-1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_CACTUS, 0);
+                                    	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y-1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::CACTUS, 0);
+                                        GameServer()->Collision()->CreateTile(vec2(x, y-1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::CACTUS, 0);
                                     }
                                 }
                             }
                         }
-                        else if (pTempTiles[c].m_Index >= BLOCK_SEED1 && pTempTiles[c].m_Index < BLOCK_SEED8)
+                        else if (pTempTiles[c].m_Index >= CBlockManager::GRASS_A && pTempTiles[c].m_Index < CBlockManager::GRASS_G)
                         {
                             if ((rand()%1) == 0)
                             {
                                 int nindex = pTempTiles[c].m_Index+1;
                                 int cindex = (y+1)*pTmap->m_Width+x;
-                                if (pTempTiles[cindex].m_Index != BLOCK_APGRASS && nindex > BLOCK_SEED4)
-                                    nindex = BLOCK_SEED4;
+                                if (pTempTiles[cindex].m_Index != CBlockManager::GROUND_CULTIVATION_WET && nindex > CBlockManager::GRASS_D)
+                                    nindex = CBlockManager::GRASS_D;
 
                                 GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), nindex, 0);
                                 GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), nindex, 0);
@@ -461,7 +467,7 @@ void CGameControllerMineTee::Tick()
                         }
 
                         /** Creacion **/
-                        if ((rand()%100)==3 && (pTempTiles[c].m_Index == BLOCK_ARENA || pTempTiles[c].m_Index == BLOCK_ARENAB))
+                        if ((rand()%100)==3 && (pTempTiles[c].m_Index == CBlockManager::SAND))
                         {
                             int indexT = (y-1)*pTmap->m_Width+x;
                             if (pTempTiles[indexT].m_Index == 0)
@@ -471,7 +477,7 @@ void CGameControllerMineTee::Tick()
                                 for (int i=-4; i<5; i++)
                                 {
                                     int indexT = (y-1)*pTmap->m_Width+(x+i);
-                                    if (pTempTiles[indexT].m_Index == BLOCK_CACTUS)
+                                    if (pTempTiles[indexT].m_Index == CBlockManager::CACTUS)
                                     {
                                         found = true;
                                         break;
@@ -480,30 +486,39 @@ void CGameControllerMineTee::Tick()
 
                                 if (!found)
                                 {
-                                	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y-1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_CACTUS, 0);
-                                    GameServer()->Collision()->CreateTile(vec2(x, y-1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_CACTUS, 0);
+                                	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y-1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::CACTUS, 0);
+                                    GameServer()->Collision()->CreateTile(vec2(x, y-1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::CACTUS, 0);
                                 }
                             }
                         }
-                        else if ((rand()%100)==3 && pTempTiles[c].m_Index == BLOCK_SEED4)
+                        else if ((rand()%100)==3 && pTempTiles[c].m_Index == CBlockManager::GRASS_D)
                         {
                             int indexT = y*pTmap->m_Width+(x+1);
                             int indexE = (y+1)*pTmap->m_Width+(x+1);
-                            if (pTempTiles[indexT].m_Index == 0 && pTempTiles[indexE].m_Index == BLOCK_GRASSGROUND)
+                            if (pTempTiles[indexT].m_Index == 0 && pTempTiles[indexE].m_Index == CBlockManager::GRASS)
                             {
-                            	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x+1, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_SEED1, 0);
-                                GameServer()->Collision()->CreateTile(vec2(x+1, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_SEED1, 0);
+                            	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x+1, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::GRASS_A, 0);
+                                GameServer()->Collision()->CreateTile(vec2(x+1, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::LAVA_A, 0);
                             }
                         }
 
                         /** Muerte **/
-                        if (pTempTiles[c].m_Index == BLOCK_APGRASS)
+                        if (pTempTiles[c].m_Index == CBlockManager::GROUND_CULTIVATION_WET)
                         {
                             int indexT = (y-1)*pTmap->m_Width+x;
                             if (pTempTiles[indexT].m_Index == 0)
                             {
-                            	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_GROUND, 0);
-                                GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_GROUND, 0);
+                            	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::GROUND_CULTIVATION_DRY, 0);
+                                GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::GROUND_CULTIVATION_DRY, 0);
+                            }
+                        }
+                        else if (pTempTiles[c].m_Index == CBlockManager::GROUND_CULTIVATION_DRY)
+                        {
+                            int indexT = (y-1)*pTmap->m_Width+x;
+                            if (pTempTiles[indexT].m_Index == 0)
+                            {
+                            	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::DIRT, 0);
+                                GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::DIRT, 0);
                             }
                         }
                     }
@@ -512,54 +527,22 @@ void CGameControllerMineTee::Tick()
                     {
                         if (y > 0)
                         {
-                            if (pTempTiles[c].m_Index == BLOCK_HORNO_ON)
+                            if (pTempTiles[c].m_Index == CBlockManager::OVEN_ON)
                             {
                                 int indexT = (y-1)*pTmap->m_Width+x;
-                                if (pTempTiles[indexT].m_Index == BLOCK_ARENA || pTempTiles[indexT].m_Index == BLOCK_ARENAB)
+                                CBlockManager::CBlockInfo CookedBlock;
+                                if (GameServer()->m_BlockManager.GetBlockInfo(indexT, &CookedBlock))
                                 {
-                                	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y-1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
-                                    GameServer()->Collision()->CreateTile(vec2(x, y-1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
+                                    for (std::map<int, char>::iterator it = CookedBlock.m_vOnCook.begin(); it != CookedBlock.m_vOnCook.end(); it++)
+                                    {
+                                    	CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, it->first);
+                                    	pPickup->m_Pos = vec2(x*32.0f + 8.0f, (y-1)*32.0f + 8.0f);
+                                    	pPickup->m_Amount = it->second;
+                                    }
+                                }
 
-                                    CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, BLOCK_CRISTAL);
-                                    pPickup->m_Pos = vec2(x*32.0f + 8.0f, (y-1)*32.0f + 8.0f);
-                                }
-                                else if (pTempTiles[indexT].m_Index == BLOCK_STONE)
-                                {
-                                	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y-1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
-                                    GameServer()->Collision()->CreateTile(vec2(x, y-1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
-
-                                    CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, BLOCK_STONE2);
-                                    pPickup->m_Pos = vec2(x*32.0f + 8.0f, (y-1)*32.0f + 8.0f);
-                                }
-                                else if (pTempTiles[indexT].m_Index == BLOCK_UNDEF63)
-                                {
-                                	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y-1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
-                                    GameServer()->Collision()->CreateTile(vec2(x, y-1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
-
-                                    CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, BLOCK_TARENA);
-                                    pPickup->m_Pos = vec2(x*32.0f + 8.0f, (y-1)*32.0f + 8.0f);
-                                }
-                                else if (pTempTiles[indexT].m_Index == BLOCK_GOLD)
-                                {
-                                	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y-1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
-                                    GameServer()->Collision()->CreateTile(vec2(x, y-1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
-
-                                    CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, BLOCK_OROP);
-                                    pPickup->m_Pos = vec2(x*32.0f + 8.0f, (y-1)*32.0f + 8.0f);
-                                }
-                                else if (pTempTiles[indexT].m_Index == BLOCK_PLATA)
-                                {
-                                	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y-1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
-                                    GameServer()->Collision()->CreateTile(vec2(x, y-1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
-
-                                    CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, BLOCK_PLATAP);
-                                    pPickup->m_Pos = vec2(x*32.0f + 8.0f, (y-1)*32.0f + 8.0f);
-                                }
-                                else if (pTempTiles[indexT].m_Index != 0 && pTempTiles[indexT].m_Index != BLOCK_CRISTAL && pTempTiles[indexT].m_Index != BLOCK_STONE2)
-                                {
-                                	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y-1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
-                                    GameServer()->Collision()->CreateTile(vec2(x, y-1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
-                                }
+                            	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y-1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
+                                GameServer()->Collision()->CreateTile(vec2(x, y-1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
                             }
                         }
                     }
@@ -567,20 +550,20 @@ void CGameControllerMineTee::Tick()
                     if (Wear)
                     {
 
-                        if (pTempTiles[c].m_Index == BLOCK_HORNO_ON)
+                        if (pTempTiles[c].m_Index == CBlockManager::OVEN_ON)
                         {
-                        	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_HORNO_OFF, 0);
-                            GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_HORNO_OFF, 0);
+                        	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::OVEN_OFF, 0);
+                            GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::OVEN_OFF, 0);
                         }
-                        else if ((rand()%100) == 2 && pTempTiles[c].m_Index == BLOCK_STONE2)
+                        else if (!(rand()%100) && pTempTiles[c].m_Index == CBlockManager::STONE_BRICK)
                         {
-                        	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_STONE2BREAK, 0);
-                            GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_STONE2BREAK, 0);
+                        	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::STONE_BRICK_DIRTY, 0);
+                            GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::STONE_BRICK_DIRTY, 0);
                         }
-                        else if ((rand()%100) == 2 && pTempTiles[c].m_Index == BLOCK_STONE2BREAK)
+                        else if (!(rand()%100) && pTempTiles[c].m_Index == CBlockManager::STONE_BRICK_DIRTY)
                         {
-                        	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_STONE2MOO, 0);
-                            GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), BLOCK_STONE2MOO, 0);
+                        	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::STONE_BRICK_IVY, 0);
+                            GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::STONE_BRICK_IVY, 0);
                         }
                     }
                 }
@@ -601,8 +584,8 @@ void CGameControllerMineTee::OnCharacterSpawn(class CCharacter *pChr)
 	switch (pChr->GetPlayer()->GetTeam())
 	{
         case TEAM_ENEMY_TEEPER:
-            pChr->GiveBlock(BLOCK_TNT, 1);
-            pChr->SetWeapon(NUM_WEAPONS+BLOCK_TNT);
+            pChr->GiveBlock(CBlockManager::TNT, 1);
+            pChr->SetWeapon(NUM_WEAPONS+CBlockManager::TNT);
             break;
 
         case TEAM_ENEMY_ZOMBITEE:
@@ -620,8 +603,8 @@ void CGameControllerMineTee::OnCharacterSpawn(class CCharacter *pChr)
         	if (!pChr->GetPlayer()->IsBot())
         	{
 				pChr->GiveWeapon(WEAPON_HAMMER, -1);
-				pChr->GiveBlock(BLOCK_LUZ, 1);
-				pChr->SetWeapon(NUM_WEAPONS+BLOCK_LUZ);
+				pChr->GiveBlock(CBlockManager::TORCH, 1);
+				pChr->SetWeapon(NUM_WEAPONS+CBlockManager::TORCH);
         	}
 	}
 }
@@ -636,7 +619,7 @@ int CGameControllerMineTee::OnCharacterDeath(class CCharacter *pVictim, class CP
 		{
 			int Index = pVictim->m_Inventory.m_Items[i];
 
-			if (Index != NUM_WEAPONS+NUM_BLOCKS)
+			if (Index != NUM_WEAPONS+CBlockManager::MAX_BLOCKS)
 			{
 				if (Index >= NUM_WEAPONS)
 				{
@@ -661,7 +644,7 @@ int CGameControllerMineTee::OnCharacterDeath(class CCharacter *pVictim, class CP
     {
 		CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_FOOD, FOOD_COW);
 		pPickup->m_Pos = pVictim->m_Pos;
-        pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, BLOCK_CUERO);
+        pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, CBlockManager::COW_LEATHER);
 		pPickup->m_Pos = pVictim->m_Pos;
 
 		return 0;
@@ -674,13 +657,13 @@ int CGameControllerMineTee::OnCharacterDeath(class CCharacter *pVictim, class CP
     }
     else if (pVictim->GetPlayer()->GetTeam() == TEAM_ENEMY_TEEPER)
     {
-		CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, BLOCK_POLVORA);
+		CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, CBlockManager::GUNPOWDER);
 		pPickup->m_Pos = pVictim->m_Pos;
 		return 0;
     }
     else if (pVictim->GetPlayer()->GetTeam() == TEAM_ENEMY_SKELETEE)
     {
-		CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, BLOCK_HUESO);
+		CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, CBlockManager::BONE);
 		pPickup->m_Pos = pVictim->m_Pos;
 		return 0;
     }
@@ -793,7 +776,7 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
                     CCharacter *pChar = GameServer()->m_apPlayers[cid]->GetCharacter();
                     if (pChar)
                     {
-                        if (!pChar->m_aBlocks[BLOCK_CARBONP].m_Got || pChar->m_aBlocks[BLOCK_CARBONP].m_Amount <= 0 || !pChar->m_aBlocks[BLOCK_TRONCO1].m_Got || pChar->m_aBlocks[BLOCK_TRONCO1].m_Amount <= 0)
+                        if (!pChar->m_aBlocks[CBlockManager::COAL].m_Got || pChar->m_aBlocks[CBlockManager::COAL].m_Amount <= 0 || !pChar->m_aBlocks[CBlockManager::WOOD_BROWN].m_Got || pChar->m_aBlocks[CBlockManager::WOOD_BROWN].m_Amount <= 0)
                         {
                         	GameServer()->SendChatTarget(cid,"--------------------------- --------- --------");
                             GameServer()->SendChatTarget(cid, "- CRAFT: TORCH   [4 Units]");
@@ -806,10 +789,10 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
                         }
                         else
                         {
-                            pChar->m_aBlocks[BLOCK_CARBONP].m_Amount--;
-                            pChar->m_aBlocks[BLOCK_TRONCO1].m_Amount--;
-                            pChar->GiveBlock(BLOCK_LUZ, 4);
-                            pChar->SetWeapon(NUM_WEAPONS+BLOCK_LUZ);
+                            pChar->m_aBlocks[CBlockManager::COAL].m_Amount--;
+                            pChar->m_aBlocks[CBlockManager::WOOD_BROWN].m_Amount--;
+                            pChar->GiveBlock(CBlockManager::TORCH, 4);
+                            pChar->SetWeapon(NUM_WEAPONS+CBlockManager::TORCH);
 
                             GameServer()->SendChatTarget(cid,"** You have been added a Torch!");
                         }
@@ -822,7 +805,7 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
                     CCharacter *pChar = GameServer()->m_apPlayers[cid]->GetCharacter();
                     if (pChar)
                     {
-                        if (!pChar->m_aBlocks[BLOCK_STONE].m_Got || pChar->m_aBlocks[BLOCK_STONE].m_Amount < 20)
+                        if (!pChar->m_aBlocks[CBlockManager::STONE].m_Got || pChar->m_aBlocks[CBlockManager::STONE].m_Amount < 20)
                         {
                         	GameServer()->SendChatTarget(cid,"--------------------------- --------- --------");
                             GameServer()->SendChatTarget(cid, "- CRAFT: HORN   [1 Unit]");
@@ -834,9 +817,9 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
                         }
                         else
                         {
-                            pChar->m_aBlocks[BLOCK_STONE].m_Amount-=20;
-                            pChar->GiveBlock(BLOCK_HORNO_OFF, 1);
-                            pChar->SetWeapon(NUM_WEAPONS+BLOCK_HORNO_OFF);
+                            pChar->m_aBlocks[CBlockManager::STONE].m_Amount-=20;
+                            pChar->GiveBlock(CBlockManager::OVEN_OFF, 1);
+                            pChar->SetWeapon(NUM_WEAPONS+CBlockManager::OVEN_OFF);
 
                             GameServer()->SendChatTarget(cid,"** You have been added a Horn!");
                         }
@@ -849,7 +832,7 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
                     CCharacter *pChar = GameServer()->m_apPlayers[cid]->GetCharacter();
                     if (pChar)
                     {
-                        if (!pChar->m_aBlocks[BLOCK_TRONCO1].m_Got || pChar->m_aBlocks[BLOCK_TRONCO1].m_Amount < 4 || !pChar->m_aBlocks[BLOCK_CUERO].m_Got || pChar->m_aBlocks[BLOCK_CUERO].m_Amount < 2)
+                        if (!pChar->m_aBlocks[CBlockManager::WOOD_BROWN].m_Got || pChar->m_aBlocks[CBlockManager::WOOD_BROWN].m_Amount < 4 || !pChar->m_aBlocks[CBlockManager::COW_LEATHER].m_Got || pChar->m_aBlocks[CBlockManager::COW_LEATHER].m_Amount < 2)
                         {
                         	GameServer()->SendChatTarget(cid,"--------------------------- --------- --------");
                             GameServer()->SendChatTarget(cid, "- CRAFT: BED   [1 Unit]");
@@ -862,10 +845,10 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
                         }
                         else
                         {
-                            pChar->m_aBlocks[BLOCK_TRONCO1].m_Amount-=4;
-                            pChar->m_aBlocks[BLOCK_CUERO].m_Amount-=2;
-                            pChar->GiveBlock(BLOCK_BED, 1);
-                            pChar->SetWeapon(NUM_WEAPONS+BLOCK_BED);
+                            pChar->m_aBlocks[CBlockManager::WOOD_BROWN].m_Amount-=4;
+                            pChar->m_aBlocks[CBlockManager::COW_LEATHER].m_Amount-=2;
+                            pChar->GiveBlock(CBlockManager::BED, 1);
+                            pChar->SetWeapon(NUM_WEAPONS+CBlockManager::BED);
 
                             GameServer()->SendChatTarget(cid,"** You have been added a Bed!");
                         }
@@ -878,7 +861,7 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
                     CCharacter *pChar = GameServer()->m_apPlayers[cid]->GetCharacter();
                     if (pChar)
                     {
-                        if (!pChar->m_aBlocks[BLOCK_TRONCO1].m_Got || pChar->m_aBlocks[BLOCK_TRONCO1].m_Amount < 10)
+                        if (!pChar->m_aBlocks[CBlockManager::WOOD_BROWN].m_Got || pChar->m_aBlocks[CBlockManager::WOOD_BROWN].m_Amount < 10)
                         {
                         	GameServer()->SendChatTarget(cid,"--------------------------- --------- --------");
                             GameServer()->SendChatTarget(cid, "- CRAFT: CHEST   [1 Unit]");
@@ -890,9 +873,9 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
                         }
                         else
                         {
-                            pChar->m_aBlocks[BLOCK_TRONCO1].m_Amount-=10;
-                            pChar->GiveBlock(BLOCK_INVENTARY, 1);
-                            pChar->SetWeapon(NUM_WEAPONS+BLOCK_INVENTARY);
+                            pChar->m_aBlocks[CBlockManager::WOOD_BROWN].m_Amount-=10;
+                            pChar->GiveBlock(CBlockManager::CHEST, 1);
+                            pChar->SetWeapon(NUM_WEAPONS+CBlockManager::CHEST);
 
                             GameServer()->SendChatTarget(cid,"** You have been added a Chest!");
                         }
@@ -905,7 +888,7 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
                     CCharacter *pChar = GameServer()->m_apPlayers[cid]->GetCharacter();
                     if (pChar)
                     {
-                        if (!pChar->m_aBlocks[BLOCK_PLATAP].m_Got || pChar->m_aBlocks[BLOCK_PLATAP].m_Amount < 6)
+                        if (!pChar->m_aBlocks[CBlockManager::IRON_INGOT].m_Got || pChar->m_aBlocks[CBlockManager::IRON_INGOT].m_Amount < 6)
                         {
                         	GameServer()->SendChatTarget(cid,"--------------------------- --------- --------");
                             GameServer()->SendChatTarget(cid, "- CRAFT: GRILLE   [4 Units]");
@@ -917,9 +900,9 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
                         }
                         else
                         {
-                            pChar->m_aBlocks[BLOCK_PLATAP].m_Amount-=6;
-                            pChar->GiveBlock(BLOCK_UNDEF45, 4);
-                            pChar->SetWeapon(NUM_WEAPONS+BLOCK_UNDEF45);
+                            pChar->m_aBlocks[CBlockManager::IRON_INGOT].m_Amount-=6;
+                            pChar->GiveBlock(CBlockManager::IRON_FENCE, 4);
+                            pChar->SetWeapon(NUM_WEAPONS+CBlockManager::IRON_FENCE);
 
                             GameServer()->SendChatTarget(cid,"** You have been added a Grille!");
                         }
@@ -932,7 +915,7 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
                     CCharacter *pChar = GameServer()->m_apPlayers[cid]->GetCharacter();
                     if (pChar)
                     {
-                        if (!pChar->m_aBlocks[BLOCK_OROP].m_Got || pChar->m_aBlocks[BLOCK_OROP].m_Amount < 10)
+                        if (!pChar->m_aBlocks[CBlockManager::GOLD_INGOT].m_Got || pChar->m_aBlocks[CBlockManager::GOLD_INGOT].m_Amount < 10)
                         {
                         	GameServer()->SendChatTarget(cid,"--------------------------- --------- --------");
                             GameServer()->SendChatTarget(cid, "- CRAFT: GOLD BLOCK   [1 Unit]");
@@ -944,9 +927,9 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
                         }
                         else
                         {
-                            pChar->m_aBlocks[BLOCK_OROP].m_Amount-=10;
-                            pChar->GiveBlock(BLOCK_BGOLD, 1);
-                            pChar->SetWeapon(NUM_WEAPONS+BLOCK_BGOLD);
+                            pChar->m_aBlocks[CBlockManager::GOLD_INGOT].m_Amount-=10;
+                            pChar->GiveBlock(CBlockManager::GOLD_BLOCK, 1);
+                            pChar->SetWeapon(NUM_WEAPONS+CBlockManager::GOLD_BLOCK);
 
                             GameServer()->SendChatTarget(cid,"** You have been added a Gold Block!");
                         }
@@ -959,7 +942,7 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
                     CCharacter *pChar = GameServer()->m_apPlayers[cid]->GetCharacter();
                     if (pChar)
                     {
-                        if (!pChar->m_aBlocks[BLOCK_PLATAP].m_Got || pChar->m_aBlocks[BLOCK_PLATAP].m_Amount < 6)
+                        if (!pChar->m_aBlocks[CBlockManager::IRON_INGOT].m_Got || pChar->m_aBlocks[CBlockManager::IRON_INGOT].m_Amount < 6)
                         {
                         	GameServer()->SendChatTarget(cid,"--------------------------- --------- --------");
                             GameServer()->SendChatTarget(cid, "- CRAFT: IRON FENCE   [4 Units]");
@@ -971,9 +954,9 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
                         }
                         else
                         {
-                            pChar->m_aBlocks[BLOCK_PLATAP].m_Amount-=6;
-                            pChar->GiveBlock(BLOCK_MBALLA, 4);
-                            pChar->SetWeapon(NUM_WEAPONS+BLOCK_MBALLA);
+                            pChar->m_aBlocks[CBlockManager::IRON_INGOT].m_Amount-=6;
+                            pChar->GiveBlock(CBlockManager::IRON_FENCE, 4);
+                            pChar->SetWeapon(NUM_WEAPONS+CBlockManager::IRON_FENCE);
 
                             GameServer()->SendChatTarget(cid,"** You have been added a Iron Fence!");
                         }
@@ -986,7 +969,7 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
                     CCharacter *pChar = GameServer()->m_apPlayers[cid]->GetCharacter();
                     if (pChar)
                     {
-                        if (!pChar->m_aBlocks[BLOCK_PLATAP].m_Got || pChar->m_aBlocks[BLOCK_PLATAP].m_Amount < 6)
+                        if (!pChar->m_aBlocks[CBlockManager::IRON_INGOT].m_Got || pChar->m_aBlocks[CBlockManager::IRON_INGOT].m_Amount < 6)
                         {
                         	GameServer()->SendChatTarget(cid,"--------------------------- --------- --------");
                             GameServer()->SendChatTarget(cid, "- CRAFT: IRON WINDOW   [4 Units]");
@@ -998,9 +981,9 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
                         }
                         else
                         {
-                            pChar->m_aBlocks[BLOCK_PLATAP].m_Amount-=6;
-                            pChar->GiveBlock(BLOCK_MDOOR, 4);
-                            pChar->SetWeapon(NUM_WEAPONS+BLOCK_MDOOR);
+                            pChar->m_aBlocks[CBlockManager::IRON_INGOT].m_Amount-=6;
+                            pChar->GiveBlock(CBlockManager::IRON_WINDOW, 4);
+                            pChar->SetWeapon(NUM_WEAPONS+CBlockManager::IRON_WINDOW);
 
                             GameServer()->SendChatTarget(cid,"** You have been added a Iron Window!");
                         }
@@ -1013,7 +996,7 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
                     CCharacter *pChar = GameServer()->m_apPlayers[cid]->GetCharacter();
                     if (pChar)
                     {
-                        if (!pChar->m_aBlocks[BLOCK_TRONCO1].m_Got || pChar->m_aBlocks[BLOCK_TRONCO1].m_Amount < 6)
+                        if (!pChar->m_aBlocks[CBlockManager::WOOD_BROWN].m_Got || pChar->m_aBlocks[CBlockManager::WOOD_BROWN].m_Amount < 6)
                         {
                         	GameServer()->SendChatTarget(cid,"--------------------------- --------- --------");
                             GameServer()->SendChatTarget(cid, "- CRAFT: WOOD WINDOW   [4 Units]");
@@ -1025,9 +1008,9 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
                         }
                         else
                         {
-                            pChar->m_aBlocks[BLOCK_TRONCO1].m_Amount-=6;
-                            pChar->GiveBlock(BLOCK_WDOOR, 4);
-                            pChar->SetWeapon(NUM_WEAPONS+BLOCK_WDOOR);
+                            pChar->m_aBlocks[CBlockManager::WOOD_BROWN].m_Amount-=6;
+                            pChar->GiveBlock(CBlockManager::WOOD_BROWN, 4);
+                            pChar->SetWeapon(NUM_WEAPONS+CBlockManager::WOODEN_WINDOW_A);
 
                             GameServer()->SendChatTarget(cid,"** You have been added a Wood Window!");
                         }
@@ -1040,10 +1023,10 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
                     CCharacter *pChar = GameServer()->m_apPlayers[cid]->GetCharacter();
                     if (pChar)
                     {
-                        if (!pChar->m_aBlocks[BLOCK_TRONCO1].m_Got || pChar->m_aBlocks[BLOCK_TRONCO1].m_Amount < 6)
+                        if (!pChar->m_aBlocks[CBlockManager::WOOD_BROWN].m_Got || pChar->m_aBlocks[CBlockManager::WOOD_BROWN].m_Amount < 6)
                         {
                         	GameServer()->SendChatTarget(cid,"--------------------------- --------- --------");
-                            GameServer()->SendChatTarget(cid, "- CRAFT: WOOD WINDOW   [4 Units]");
+                            GameServer()->SendChatTarget(cid, "- CRAFT: WOOD FENCE  [4 Units]");
                             GameServer()->SendChatTarget(cid, "======================================");
                             GameServer()->SendChatTarget(cid, "You need the following items:");
                             GameServer()->SendChatTarget(cid, " ");
@@ -1052,38 +1035,11 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
                         }
                         else
                         {
-                            pChar->m_aBlocks[BLOCK_TRONCO1].m_Amount-=6;
-                            pChar->GiveBlock(BLOCK_UNDEF24, 4);
-                            pChar->SetWeapon(NUM_WEAPONS+BLOCK_UNDEF24);
+                            pChar->m_aBlocks[CBlockManager::WOOD_BROWN].m_Amount-=6;
+                            pChar->GiveBlock(CBlockManager::WOODEN_FENCE, 4);
+                            pChar->SetWeapon(NUM_WEAPONS+CBlockManager::WOODEN_FENCE);
 
                             GameServer()->SendChatTarget(cid,"** You have been added a Wood Fence!");
-                        }
-                    }
-
-					return false;
-				}
-				else if (str_comp_nocase(ptr, "Dust_A") == 0)
-				{
-                    CCharacter *pChar = GameServer()->m_apPlayers[cid]->GetCharacter();
-                    if (pChar)
-                    {
-                        if (!pChar->m_aBlocks[BLOCK_ARENA].m_Got || pChar->m_aBlocks[BLOCK_ARENA].m_Amount < 4)
-                        {
-                        	GameServer()->SendChatTarget(cid,"--------------------------- --------- --------");
-                            GameServer()->SendChatTarget(cid, "- CRAFT: DUST A   [1 Unit]");
-                            GameServer()->SendChatTarget(cid, "======================================");
-                            GameServer()->SendChatTarget(cid, "You need the following items:");
-                            GameServer()->SendChatTarget(cid, " ");
-                            GameServer()->SendChatTarget(cid, " - 4 Dust");
-                            GameServer()->SendChatTarget(cid, " ");
-                        }
-                        else
-                        {
-                            pChar->m_aBlocks[BLOCK_ARENA].m_Amount-=4;
-                            pChar->GiveBlock(BLOCK_TARENA, 1);
-                            pChar->SetWeapon(NUM_WEAPONS+BLOCK_TARENA);
-
-                            GameServer()->SendChatTarget(cid,"** You have been added a Dust A!");
                         }
                     }
 
@@ -1094,7 +1050,7 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
                     CCharacter *pChar = GameServer()->m_apPlayers[cid]->GetCharacter();
                     if (pChar)
                     {
-                        if (!pChar->m_aBlocks[BLOCK_POLVORA].m_Got || pChar->m_aBlocks[BLOCK_POLVORA].m_Amount < 12 || !pChar->m_aBlocks[BLOCK_TRONCO1].m_Got || pChar->m_aBlocks[BLOCK_TRONCO1].m_Amount < 7 || !pChar->m_aBlocks[BLOCK_PLATAP].m_Got || pChar->m_aBlocks[BLOCK_PLATAP].m_Amount < 4)
+                        if (!pChar->m_aBlocks[CBlockManager::GUNPOWDER].m_Got || pChar->m_aBlocks[CBlockManager::GUNPOWDER].m_Amount < 12 || !pChar->m_aBlocks[CBlockManager::WOOD_BROWN].m_Got || pChar->m_aBlocks[CBlockManager::WOOD_BROWN].m_Amount < 7 || !pChar->m_aBlocks[CBlockManager::IRON_INGOT].m_Got || pChar->m_aBlocks[CBlockManager::IRON_INGOT].m_Amount < 4)
                         {
                         	GameServer()->SendChatTarget(cid,"--------------------------- --------- --------");
                             GameServer()->SendChatTarget(cid, "- CRAFT: GLAUNCHER   [1 Unit]");
@@ -1108,9 +1064,9 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
                         }
                         else
                         {
-                            pChar->m_aBlocks[BLOCK_POLVORA].m_Amount-=12;
-                            pChar->m_aBlocks[BLOCK_TRONCO1].m_Amount-=7;
-                            pChar->m_aBlocks[BLOCK_PLATAP].m_Amount-=4;
+                            pChar->m_aBlocks[CBlockManager::GUNPOWDER].m_Amount-=12;
+                            pChar->m_aBlocks[CBlockManager::WOOD_BROWN].m_Amount-=7;
+                            pChar->m_aBlocks[CBlockManager::IRON_INGOT].m_Amount-=4;
                             pChar->GiveWeapon(WEAPON_GRENADE, 0);
                             pChar->SetWeapon(WEAPON_GRENADE);
 
@@ -1125,7 +1081,7 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
                     CCharacter *pChar = GameServer()->m_apPlayers[cid]->GetCharacter();
                     if (pChar)
                     {
-                        if (pChar->GetCurrentAmmo(WEAPON_GRENADE) <= 0 || !pChar->m_aBlocks[BLOCK_POLVORA].m_Got || pChar->m_aBlocks[BLOCK_POLVORA].m_Amount < 7 || !pChar->m_aBlocks[BLOCK_PLATAP].m_Got || pChar->m_aBlocks[BLOCK_PLATAP].m_Amount < 2)
+                        if (pChar->GetCurrentAmmo(WEAPON_GRENADE) <= 0 || !pChar->m_aBlocks[CBlockManager::GUNPOWDER].m_Got || pChar->m_aBlocks[CBlockManager::GUNPOWDER].m_Amount < 7 || !pChar->m_aBlocks[CBlockManager::IRON_INGOT].m_Got || pChar->m_aBlocks[CBlockManager::IRON_INGOT].m_Amount < 2)
                         {
                         	GameServer()->SendChatTarget(cid,"--------------------------- --------- --------");
                             GameServer()->SendChatTarget(cid, "- CRAFT: GRENADE   [5 Units]");
@@ -1139,8 +1095,8 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
                         }
                         else
                         {
-                            pChar->m_aBlocks[BLOCK_POLVORA].m_Amount-=7;
-                            pChar->m_aBlocks[BLOCK_PLATAP].m_Amount-=2;
+                            pChar->m_aBlocks[CBlockManager::GUNPOWDER].m_Amount-=7;
+                            pChar->m_aBlocks[CBlockManager::IRON_INGOT].m_Amount-=2;
 
                             pChar->GiveWeapon(WEAPON_GRENADE, pChar->GetCurrentAmmo(WEAPON_GRENADE)+5);
 
@@ -1155,7 +1111,7 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
                     CCharacter *pChar = GameServer()->m_apPlayers[cid]->GetCharacter();
                     if (pChar)
                     {
-                        if (!pChar->m_aBlocks[BLOCK_PLATAP].m_Got || pChar->m_aBlocks[BLOCK_PLATAP].m_Amount < 12 || !pChar->m_aBlocks[BLOCK_TRONCO1].m_Got || pChar->m_aBlocks[BLOCK_TRONCO1].m_Amount < 4)
+                        if (!pChar->m_aBlocks[CBlockManager::IRON_INGOT].m_Got || pChar->m_aBlocks[CBlockManager::IRON_INGOT].m_Amount < 12 || !pChar->m_aBlocks[CBlockManager::WOOD_BROWN].m_Got || pChar->m_aBlocks[CBlockManager::WOOD_BROWN].m_Amount < 4)
                         {
                         	GameServer()->SendChatTarget(cid,"--------------------------- --------- --------");
                             GameServer()->SendChatTarget(cid, "- CRAFT: GUN   [1 Unit]");
@@ -1168,8 +1124,8 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
                         }
                         else
                         {
-                            pChar->m_aBlocks[BLOCK_TRONCO1].m_Amount-=4;
-                            pChar->m_aBlocks[BLOCK_PLATAP].m_Amount-=12;
+                            pChar->m_aBlocks[CBlockManager::WOOD_BROWN].m_Amount-=4;
+                            pChar->m_aBlocks[CBlockManager::IRON_INGOT].m_Amount-=12;
                             pChar->GiveWeapon(WEAPON_GUN, 0);
                             pChar->SetWeapon(WEAPON_GUN);
 

@@ -2,6 +2,7 @@
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <game/generated/protocol.h>
 #include <game/server/gamecontext.h>
+#include <game/block_manager.h> // MineTee
 #include "pickup.h"
 
 CPickup::CPickup(CGameWorld *pGameWorld, int Type, int SubType)
@@ -91,7 +92,7 @@ void CPickup::Tick()
 		{
 			// MineTee
 			case POWERUP_DROPITEM:
-				if (m_Subtype >= NUM_WEAPONS-NUM_BLOCKS)
+				if (m_Subtype >= NUM_WEAPONS-CBlockManager::MAX_BLOCKS)
 				{
 					if (pChr->GiveBlock(m_Subtype, m_Amount))
 					{

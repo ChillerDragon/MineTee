@@ -13,6 +13,7 @@
 #include <game/collision.h>
 
 #include <game/generated/protocol.h> // MineTee
+#include <game/block_manager.h> // MineTee
 
 CCollision::CCollision()
 {
@@ -24,9 +25,10 @@ CCollision::CCollision()
 	m_pMineTeeTiles = 0x0; // MineTee
 }
 
-void CCollision::Init(class CLayers *pLayers)
+void CCollision::Init(class CLayers *pLayers, class CBlockManager *pBlockManager)
 {
 	m_pLayers = pLayers;
+	m_pBlockManager = pBlockManager;
 	m_Width = m_pLayers->GameLayer()->m_Width;
 	m_Height = m_pLayers->GameLayer()->m_Height;
 	m_pTiles = static_cast<CTile *>(m_pLayers->Map()->GetData(m_pLayers->GameLayer()->m_Data));
@@ -44,18 +46,16 @@ void CCollision::Init(class CLayers *pLayers)
 
 	for(int i = 0; i < m_Width*m_Height; i++)
 	{
-		int Index = m_pTiles[i].m_Index;
-
         // MineTee
         if (m_pMineTeeTiles && i < MineTeeLayerSize)
         {
-            Index = m_pMineTeeTiles[i].m_Index;
-            if (Index == BLOCK_DIRTYGRASS)
-                m_pTiles[i].m_Index = TILE_NOHOOK;
+            int MIndex = m_pMineTeeTiles[i].m_Index;
+            if (MIndex == CBlockManager::BEDROCK)
+                m_pTiles[i].m_Index = COLFLAG_SOLID|COLFLAG_NOHOOK;
         }
-        Index = m_pTiles[i].m_Index;
         //
 
+        int Index = m_pTiles[i].m_Index;
 		if(Index > 128)
 			continue;
 
@@ -91,9 +91,9 @@ bool CCollision::IsTileSolid(int x, int y, bool nocoll)
     {
     	int FluidType = 0;
     	int TileIndex = GetMineTeeTileAt(vec2(x,y));
-        if (((TileIndex >= BLOCK_UNDEF48 && TileIndex <= BLOCK_BED) ||
-        	TileIndex == BLOCK_RSETA || TileIndex == BLOCK_BSETA) ||
-        	TileIndex == BLOCK_TARTA1 || TileIndex == BLOCK_TARTA2)
+    	CBlockManager::CBlockInfo BlockInfo;
+    	m_pBlockManager->GetBlockInfo(TileIndex, &BlockInfo);
+    	if (BlockInfo.m_HalfTile)
         {
             int Nx = clamp(x/32, 0, m_Width-1);
             int Ny = clamp(y/32, 0, m_Height-1);
@@ -106,9 +106,7 @@ bool CCollision::IsTileSolid(int x, int y, bool nocoll)
         }
         else if (IsTileFluid(TileIndex, &FluidType))
         	return 0;
-        else if (nocoll && (TileIndex == BLOCK_AZUCAR ||
-        		TileIndex == BLOCK_ROSAR || TileIndex == BLOCK_ROSAY ||
-                (TileIndex >= BLOCK_SEED1 && TileIndex <= BLOCK_SEED8) || TileIndex == BLOCK_SETAR1 || TileIndex == BLOCK_SETAR2))
+        else if (nocoll && !BlockInfo.m_PlayerCollide)
             return 0;
     }
 
@@ -296,7 +294,7 @@ void CCollision::CreateTile(vec2 pos, int group, int layer, int index, int flags
     		m_pTiles[tpos].m_Index = 0;
     		m_pTiles[tpos].m_Flags = 0;
     	}
-    	else if (index != BLOCK_AZUCAR && !IsTileFluid(index, &FluidType))
+    	else if (!IsTileFluid(index, &FluidType))
     	{
     		m_pTiles[tpos].m_Index = COLFLAG_SOLID;
     		m_pTiles[tpos].m_Flags = 0;
@@ -334,9 +332,9 @@ void CCollision::CreateTile(vec2 pos, int group, int layer, int index, int flags
 bool CCollision::IsTileFluid(int TileIndex, int *pType)
 {
 	*pType = 0;
-	if (TileIndex >= BLOCK_UNDEF82 && TileIndex <= BLOCK_AGUA)
+	if (TileIndex >= CBlockManager::WATER_A && TileIndex <= CBlockManager::WATER_D)
 		*pType = FLUID_WATER;
-	else if (TileIndex>= BLOCK_UNDEF104 && TileIndex <= BLOCK_LAVA)
+	else if (TileIndex >= CBlockManager::LAVA_A && TileIndex <= CBlockManager::LAVA_D)
 		*pType = FLUID_LAVA;
 	else
 		return false;

@@ -1,0 +1,847 @@
+[
+    {
+        "name": "AIR",        
+    },
+    {
+        "name": "STONE",        
+    },
+    {
+        "name": "DIRT",
+    },
+    {
+        "name": "GRASS",
+        "onBreak": { "2":1 }
+    },
+    {
+        "name": "BROWN TABLE HORIZONTAL",
+    },
+    {
+        "name": "STONE CLEAN II",
+    },
+    {
+        "name": "STONE CLEAN",
+    },
+    {
+        "name": "BRICK",
+    },
+    {
+        "name": "TNT",
+    },
+    {
+        "name": "NOT USED 09",
+    },
+    {
+        "name": "NOT USED 10",
+    },
+    {
+        "name": "SPIDER WEB",
+        "playerCollide": false,
+    },
+    {
+        "name": "ROSE",
+        "playerCollide": false
+    },
+    {
+        "name": "DAISY",
+        "playerCollide": false
+    },
+    {
+        "name": "NOT USED 14",
+    },
+    {
+        "name": "BROWN TREE SAPLING",
+    },
+
+
+    {
+        "name": "STONE II",
+    },
+    {
+        "name": "NOT USED 17",
+    },
+    {
+        "name": "NOT USED 18",
+    },
+    {
+        "name": "BEDROCK",
+    },
+    {
+        "name": "WOOD BROWN",
+    },
+    {
+        "name": "NOT USED 21",
+    },
+    {
+        "name": "IRON BLOCK",
+        "onBreak": { "211":4 }
+    },
+    {
+        "name": "GOLDEN BLOCK",
+        "onBreak": { "212":4 }
+    },
+    {
+        "name": "DIAMOND BLOCK",
+        "onBreak": { "213":4 }
+    },
+    {
+        "name": "NOT USED 25",
+    },
+    {
+        "name": "NOT USED 26",
+    },
+    {
+        "name": "CHEST",
+    },
+    {
+        "name": "MUSHROOM RED",
+        "playerCollide": false
+    },
+    {
+        "name": "MUSHROOM BROWN",
+        "playerCollide": false
+    },
+    {
+        "name": "COAL",
+        "gravity": true
+    },
+    {
+        "name": "GUNPOWDER",
+    },
+
+
+    {
+        "name": "GOLD ORE",
+        "onCook": { "212":1 }
+    },
+    {
+        "name": "IRON ORE",
+        "onCook": { "211":1 }
+    },
+    {
+        "name": "COAL ORE",
+        "onBreak": { "29":1 }
+    },
+    {
+        "name": "LIBRARY",
+    },
+    {
+        "name": "NOT USED 36",
+    },
+    {
+        "name": "VIOLET BLOCK",
+    },
+    {
+        "name": "MIDDLE STONE TOP",
+    },
+    {
+        "name": "NOT USED 39",
+    },
+    {
+        "name": "NOT USED 40",
+    },
+    {
+        "name": "LARGE CHEST LEFT",
+        "onBreak": { "27":1 }
+    },
+    {
+        "name": "LARGE CHEST RIGHT",
+        "onBreak": { "27":1 }
+    },
+    {
+        "name": "NOT USED 43",
+    },
+    {
+        "name": "OVEN (OFF)",
+    },
+    {
+        "name": "NOT USED 45",
+    },
+    {
+        "name": "NOT USED 46",
+    },
+    {
+        "name": "WHEAT",
+    },
+
+
+    {
+        "name": "NOT USED 48",
+    },
+    {
+        "name": "GLASS",
+        "onBreak": { "0":0 }
+    },
+    {
+        "name": "DIAMOND ORE",
+        "onCook": { "213":1 }
+    },
+    {
+        "name": "REDSTONE ORE",
+    },
+    {
+        "name": "NOT USED 52",
+    },
+    {
+        "name": "NOT USED 53",
+    },
+    {
+        "name": "STONE BRICK",
+    },
+    {
+        "name": "NOT USED 55",
+    },
+    {
+        "name": "NOT USED 56",
+    },
+    {
+        "name": "NOT USED 57",
+    },
+    {
+        "name": "NOT USED 58",
+    },
+    {
+        "name": "NOT USED 59",
+    },
+    {
+        "name": "NOT USED 60",
+    },
+    {
+        "name": "OVEN (ON)",
+    },
+    {
+        "name": "NOT USED 62",
+    },
+    {
+        "name": "NOT USED 63",
+    },
+
+
+    {
+        "name": "WHITE WOOL",
+    },
+    {
+        "name": "MONSTER SPAWNER",
+    },
+    {
+        "name": "SNOW",
+        "gravity": true
+    },
+    {
+        "name": "GLASS BLUE",
+    },
+    {
+        "name": "DIRT SNOW",
+        "onBreak": { "2":1 }
+    },
+    {
+        "name": "LEAFS",
+    },
+    {
+        "name": "CACTUS",
+        "damage": true
+    },
+    {
+        "name": "NOT USED 71",
+    },
+    {
+        "name": "NOT USED 72",
+    },
+    {
+        "name": "SUGAR CANE",
+    },
+    {
+        "name": "NOT USED 74",
+    },
+    {
+        "name": "NOT USED 75",
+    },
+    {
+        "name": "NOT USED 76",
+    },
+    {
+        "name": "DIRT STONE",
+        "onBreak": { "2":1 }
+    },
+    {
+        "name": "DIRT STONE BLOCK",
+    },
+    {
+        "name": "BIRCH TREE SAPLING",
+    },
+
+
+    {
+        "name": "TORCH",
+    },
+    {
+        "name": "WOODEN WINDOW II",
+    },
+    {
+        "name": "IRON WINDOW",
+    },
+    {
+        "name": "WOODEN FENCE",
+    },
+    {
+        "name": "WOODEN WINDOW I",
+    },
+    {
+        "name": "IRON FENCE",
+    },
+    {
+        "name": "GROUND CULTIVATION (WET)",
+        "onBreak": { "2":1 }
+    },
+    {
+        "name": "GROUND CULTIVATION (DRY)",
+        "onBreak": { "2":1 }
+    },
+    {
+        "name": "GRASS I",
+        "onBreak": { "184":1 }
+    },
+    {
+        "name": "GRASS II",
+        "onBreak": { "184":1 }
+    },
+    {
+        "name": "GRASS III",
+        "onBreak": { "184":1 }
+    },
+    {
+        "name": "GRASS IV",
+        "onBreak": { "184":1 }
+    },
+    {
+        "name": "GRASS V",
+        "onBreak": { "184":1 }
+    },
+    {
+        "name": "GRASS VI",
+        "onBreak": { "184":1 }
+    },
+    {
+        "name": "GRASS VII",
+        "onBreak": { "184":1 }
+    },
+    {
+        "name": "WHEAT PLANT",
+        "onBreak": { "74":1 }
+    },
+
+
+    {
+        "name": "NOT USED 96",
+    },
+    {
+        "name": "BROWN TABLE VERTICAL",
+    },
+    {
+        "name": "NOT USED 98",
+    },
+    {
+        "name": "NOT USED 99",
+    },
+    {
+        "name": "STONE BRICK WITH IVY",
+        "onBreak": { "54":1 }
+    },
+    {
+        "name": "STONE BRICK DIRTY",
+        "onBreak": { "54":1 }
+    },
+    {
+        "name": "NOT USED 102",
+    },
+    {
+        "name": "NOT USED 103",
+    },
+    {
+        "name": "NOT USED 104",
+    },
+    {
+        "name": "NOT USED 105",
+    },
+    {
+        "name": "NOT USED 106",
+    },
+    {
+        "name": "NOT USED 107",
+    },
+    {
+        "name": "STONE WITH SMALL TABLE",
+    },
+    {
+        "name": "NOT USED 109",
+    },
+    {
+        "name": "NOT USED 110",
+    },
+    {
+        "name": "STONE STICK",
+    },
+
+
+    {
+        "name": "NOT USED 112",
+    },
+    {
+        "name": "DARK WOOL",
+    },
+    {
+        "name": "GRAY WOOL",
+    },
+    {
+        "name": "NOT USED 115",
+    },
+    {
+        "name": "NOT USED 116",
+    },
+    {
+        "name": "WOOD BIRCH",
+    },
+    {
+        "name": "PUMPKIN",
+    },
+    {
+        "name": "PUMPKIN ON",
+        "onBreak": { "120":1 }
+    },
+    {
+        "name": "PUMPKIN OFF",
+    },
+    {
+        "name": "NOT USED 121",
+    },
+    {
+        "name": "CAKE",
+        "onBreak": { "123":1 },
+        "halfTile": true
+    },
+    {
+        "name": "HALF CAKE",
+        "onBreak": { "0":0 },
+        "halfTile": true
+    },
+    {
+        "name": "NOT USED 124",
+    },
+    {
+        "name": "NOT USED 125",
+    },
+    {
+        "name": "NOT USED 126",
+    },
+    {
+        "name": "NOT USED 127",
+    },
+
+
+    {
+        "name": "NOT USED 128",
+    },
+    {
+        "name": "RED WOOL",
+    },
+    {
+        "name": "PINK WOOL",
+    },
+    {
+        "name": "NOT USED 131",
+    },
+    {
+        "name": "STONE WINDOW",
+    },
+    {
+        "name": "STONE WINDOW CLOSED",
+    },
+    {
+        "name": "RED BLOCK",
+    },
+    {
+        "name": "NOT USED 135",
+    },
+    {
+        "name": "MELON",
+    },
+    {
+        "name": "NOT USED 137",
+    },
+    {
+        "name": "EMPTY INDICATOR",
+    },
+    {
+        "name": "DARK GRAY BLOCK",
+    },
+    {
+        "name": "NOT USED 140",
+    },
+    {
+        "name": "NOT USED 141",
+    },
+    {
+        "name": "NOT USED 142",
+    },
+    {
+        "name": "IRON BARS 143",
+    },
+
+
+    {
+        "name": "LAPISLAZULIS",
+    },
+    {
+        "name": "DARK GREEN WOOL",
+    },
+    {
+        "name": "GREEN WOOL",
+    },
+    {
+        "name": "NOT USED 147",
+    },
+    {
+        "name": "LASER STICK",
+    },
+    {
+        "name": "CHAIR",
+        "halfTile": true
+    },
+    {
+        "name": "LARGE BED LEFT",
+        "onBreak": { "152":1 },
+        "halfTile": true
+    },
+    {
+        "name": "LARGE BED RIGHT",
+        "onBreak": { "152":1 },
+        "halfTile": true
+    },
+    {
+        "name": "BED",
+        "halfTile": true,
+    },
+    {
+        "name": "NOT USED 153",
+    },
+    {
+        "name": "SHADOW I",
+    },
+    {
+        "name": "NOT USED 155",
+    },
+    {
+        "name": "NOT USED 156",
+    },
+    {
+        "name": "BREWING STAND",
+    },
+    {
+        "name": "END PORTAL FRAME",
+    },
+    {
+        "name": "END PORTAL STONE",
+    },
+
+
+    {
+        "name": "LAPISLAZULIS ORE",
+    },
+    {
+        "name": "BROWN WOOL",
+    },
+    {
+        "name": "YELLOW WOOL",
+    },
+    {
+        "name": "NOT USED 163",
+    },
+    {
+        "name": "NOT USED 164",
+    },
+    {
+        "name": "IRON STICK HORIZONTAL",
+    },
+    {
+        "name": "ENCHANTING BLOCK",
+    },
+    {
+        "name": "OBSIDIAN II",
+    },
+    {
+        "name": "BONE",
+    },
+    {
+        "name": "NOT USED 169",
+    },
+    {
+        "name": "SHADOW II",
+    },
+    {
+        "name": "CAULDRON",
+    },
+    {
+        "name": "PAPER",
+    },
+    {
+        "name": "BOOK",
+    },
+    {
+        "name": "SPOT LIGHT",
+    },
+    {
+        "name": "END STONE",
+    },
+
+
+    {
+        "name": "SAND",
+        "gravity": true
+    },
+    {
+        "name": "DARK BLUE WOOL",
+    },
+    {
+        "name": "BLUE WOOL",
+    },
+    {
+        "name": "NOT USED 179",
+    },
+    {
+        "name": "NOT USED 180",
+    },
+    {
+        "name": "NOT USED 181",
+    },
+    {
+        "name": "ENCHANTING TABLE",
+    },
+    {
+        "name": "OBSIDIAN I",
+    },
+    {
+        "name": "SEED",
+        "onPut": 88
+    },
+    {
+        "name": "NOT USED 185",
+    },
+    {
+        "name": "SHADOW III",
+    },
+    {
+        "name": "COW LEATHER",
+    },
+    {
+        "name": "NOT USED 188",
+    },
+    {
+        "name": "NOT USED 189",
+    },
+    {
+        "name": "NOT USED 190",
+    },
+    {
+        "name": "NOT USED 191",
+    },
+
+
+    {
+        "name": "SANDSTONE",
+        "onBreak": { "176":2 }
+    },
+    {
+        "name": "DARK MAGENTA WOOL",
+    },
+    {
+        "name": "MAGENTA WOOL",
+    },
+    {
+        "name": "NOT USED 195",
+    },
+    {
+        "name": "NOT USED 196",
+    },
+    {
+        "name": "NOT USED 197",
+    },
+    {
+        "name": "NOT USED 198",
+    },
+    {
+        "name": "NOT USED 199",
+    },
+    {
+        "name": "NOT USED 200",
+    },
+    {
+        "name": "NOT USED 201",
+    },
+    {
+        "name": "SADHOW IV",
+    },
+    {
+        "name": "NOT USED 203",
+    },
+    {
+        "name": "WATER IV",
+    },
+    {
+        "name": "WATER III",
+    },
+    {
+        "name": "WATER II",
+    },
+    {
+        "name": "WATER I",
+    },
+
+
+    {
+        "name": "NOT USED 208",
+    },
+    {
+        "name": "CYAN WOOL",
+    },
+    {
+        "name": "ORANGE WOOL",
+    },
+    {
+        "name": "IRON INGOT",
+    },
+    {
+        "name": "GOLD INGOT",
+    },
+    {
+        "name": "DIAMOND",
+    },
+    {
+        "name": "NOT USED 214",
+    },
+    {
+        "name": "NOT USED 215",
+    },
+    {
+        "name": "NOT USED 216",
+    },
+    {
+        "name": "NOT USED 217",
+    },
+    {
+        "name": "NOT USED 218",
+    },
+    {
+        "name": "NOT USED 219",
+    },
+    {
+        "name": "NOT USED 220",
+    },
+    {
+        "name": "NOT USED 221",
+    },
+    {
+        "name": "NOT USED 222",
+    },
+    {
+        "name": "NOT USED 223",
+    },
+
+
+    {
+        "name": "DARK BRICK",
+    },
+    {
+        "name": "GRAY WOOL",
+    },
+    {
+        "name": "RED MUSHROOM I",
+    },
+    {
+        "name": "RED MUSHROOM II",
+    },
+    {
+        "name": "RED MUSHROOM III",
+    },
+    {
+        "name": "NOT USED 229",
+    },
+    {
+        "name": "NOT USED 230",
+    },
+    {
+        "name": "NOT USED 231",
+    },
+    {
+        "name": "NOT USED 232",
+    },
+    {
+        "name": "NOT USED 233",
+    },
+    {
+        "name": "NOT USED 234",
+    },
+    {
+        "name": "NOT USED 235",
+    },
+    {
+        "name": "LAVA IV",
+    },
+    {
+        "name": "LAVA III",
+    },
+    {
+        "name": "LAVA II",
+    },
+    {
+        "name": "LAVA I",
+    },
+
+
+    {
+        "name": "NOT USED 240",
+    },
+    {
+        "name": "NOT USED 241",
+    },
+    {
+        "name": "NOT USED 242",
+    },
+    {
+        "name": "NOT USED 243",
+    },
+    {
+        "name": "NOT USED 244",
+    },
+    {
+        "name": "NOT USED 245",
+    },
+    {
+        "name": "NOT USED 246",
+    },
+    {
+        "name": "NOT USED 247",
+    },
+    {
+        "name": "NOT USED 248",
+    },
+    {
+        "name": "NOT USED 249",
+    },
+    {
+        "name": "NOT USED 250",
+    },
+    {
+        "name": "NOT USED 251",
+    },
+    {
+        "name": "NOT USED 252",
+    },
+    {
+        "name": "NOT USED 253",
+    },
+    {
+        "name": "NOT USED 254",
+    },
+    {
+        "name": "NOT USED 255",
+    },
+]

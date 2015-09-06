@@ -516,13 +516,22 @@ void CHud::RenderInventoryHud()
     if (m_pClient->m_pChat->IsActive() || !m_pClient->m_Snap.m_aCharacters[LocalID].m_Active)
         return;
 
-    Graphics()->TextureSet(-1);
-    Graphics()->QuadsBegin();
-
     //draw outbox
     const float outboxSize = 250.0f;
+    CUIRect Outbox = { (m_Width/2-outboxSize/2)+2.5f, m_Height-33.0f, outboxSize-10.0f, 30.0f };
     //Graphics()->SetColor(0.0f, 0.0f, 0.0f, 0.6f);
     //RenderTools()->DrawRoundRectExt(m_Width/2-outboxSize/2, m_Height-30.f, outboxSize, 50.0f, 5.0f, CUI::CORNER_ALL);
+
+    // Item Name
+    if (m_pClient->m_Inventory.m_aSelectedName[0] != 0)
+	{
+		float TWidth = TextRender()->TextWidth(0, 4.0f, m_pClient->m_Inventory.m_aSelectedName, -1);
+		TextRender()->TextColor(1.0f, 1.0f, 1.0f, 0.85f);
+		TextRender()->Text(0x0, (m_Width/2-TWidth/2), Outbox.y - 8.0f, 4.0f, m_pClient->m_Inventory.m_aSelectedName, -1);
+    }
+
+    Graphics()->TextureSet(-1);
+    Graphics()->QuadsBegin();
 
     //draw outbox
     CNetObj_Character LocalNetChar = m_pClient->m_Snap.m_aCharacters[LocalID].m_Cur;
@@ -532,7 +541,7 @@ void CHud::RenderInventoryHud()
         Graphics()->SetColor(0.25f, 0.5f, 1.0f, 0.6f);
     else
         Graphics()->SetColor(0.0f, 0.0f, 0.0f, 0.6f);
-    RenderTools()->DrawRoundRectExt((m_Width/2-outboxSize/2)+2.5f, m_Height-33.0f, outboxSize-10.0f, 30.0f, 5.0f, CUI::CORNER_ALL);
+    RenderTools()->DrawRoundRectExt(Outbox.x, Outbox.y, Outbox.w, Outbox.h, 5.0f, CUI::CORNER_ALL);
 
     //draw cells
     const float cellSize = (outboxSize-9.0f-35.0f)/9.0f;
@@ -565,7 +574,7 @@ void CHud::RenderInventoryHud()
 		{
 			int item = m_pClient->m_Inventory.m_Items[i];
 			int ammo = m_pClient->m_Inventory.m_Ammo[i];
-			if (item == NUM_WEAPONS+NUM_BLOCKS)
+			if (item == NUM_WEAPONS+CBlockManager::MAX_BLOCKS)
 				continue;
 
 			float x = (m_Width/2-outboxSize/2)+5.0f+3.0f+(i*cellSize)+(3.0f*i);
@@ -574,7 +583,7 @@ void CHud::RenderInventoryHud()
 			if (item >= NUM_WEAPONS)
 			{
 				Graphics()->TextureSet(m_pClient->m_pMapimages->Get(Layers()->MineTeeLayer()->m_Image));
-				RenderTools()->RenderTile((item-NUM_WEAPONS)%NUM_BLOCKS, vec2(x+7.5f, y+3.5f), 8.0f);
+				RenderTools()->RenderTile((item-NUM_WEAPONS)%CBlockManager::MAX_BLOCKS, vec2(x+7.5f, y+3.5f), 8.0f);
 			}
 			else
 			{

@@ -12,6 +12,7 @@ class CCollision
 	int m_Width;
 	int m_Height;
 	class CLayers *m_pLayers;
+	class CBlockManager *m_pBlockManager; // MineTee
 
 	class CMapGen *m_pMapGen;
 
@@ -31,7 +32,7 @@ public:
 	};
 
 	CCollision();
-	void Init(class CLayers *pLayers);
+	void Init(class CLayers *pLayers, class CBlockManager *pBlockManager); // MineTee
 	bool CheckPoint(float x, float y, bool nocoll = true) { return IsTileSolid(round(x), round(y), nocoll); } // MineTee
 	bool CheckPoint(vec2 Pos, bool nocoll = true) { return CheckPoint(Pos.x, Pos.y, nocoll); } // MineTee
 	int GetCollisionAt(float x, float y) { return GetTile(round(x), round(y)); }

@@ -258,18 +258,18 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
                 {
                     CEffects *pEff = static_cast<CEffects*>(pEffects);
 
-                    if (Index == BLOCK_LUZ)
+                    if (Index == CBlockManager::TORCH)
                         pEff->LightFlame(vec2(x*Scale+16.0f, y*Scale));
                     if (my>0)
                     {
                         int tu = mx + (my-1)*w;
-                        if (Index == BLOCK_LAVA && pTiles[tu].m_Index == 0)
+                        if (Index == CBlockManager::LAVA_D && pTiles[tu].m_Index == 0)
                         {
                             int rnd = rand()%512;
                             if (rnd == 2)
                                 pEff->FireSplit(vec2((x<<5)+16.0f,(y<<5)+16.0f), vec2(0,-1));
                         }
-                        else if (Index == BLOCK_HORNO_ON)
+                        else if (Index == CBlockManager::OVEN_ON)
                         {
                             int rnd = rand()%215;
                             if (rnd == 2)
@@ -343,11 +343,9 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
  					}
 
                     // MineTee
-                    if (TileMineTee == 1 && ((Index >= BLOCK_UNDEF82 && Index <= BLOCK_AGUA) || (Index >= BLOCK_UNDEF104 && Index <= BLOCK_LAVA)))
-                    {
+                    if (TileMineTee == 1 && ((Index >= CBlockManager::WATER_A && Index <= CBlockManager::WATER_D) || (Index >= CBlockManager::LAVA_A && Index <= CBlockManager::LAVA_D)))
                         continue;
-                    }
-                    if (TileMineTee == 2)
+                    else if (TileMineTee == 2)
                         Graphics()->SetColor(0.35f, 0.35f, 0.35f, Color.a*a);
 
                     Graphics()->QuadsSetSubsetFree(x0, y0, x1, y1, x2, y2, x3, y3);
@@ -358,17 +356,17 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
 				else if (TileMineTee == 1 && Animated)
 				{
                     // MineTee
-                    if ((Index < BLOCK_UNDEF82 || Index > BLOCK_AGUA) && (Index < BLOCK_UNDEF104 || Index > BLOCK_LAVA))
+                    if ((Index < CBlockManager::WATER_A || Index > CBlockManager::WATER_D) && (Index < CBlockManager::LAVA_A || Index > CBlockManager::LAVA_D))
                     {
                         continue;
                     }
-                    if (Index >= BLOCK_UNDEF82 && Index <= BLOCK_AGUA)
+                    if (Index >= CBlockManager::WATER_A && Index <= CBlockManager::WATER_D)
                     {
                         Graphics()->TextureSet(g_pData->m_aImages[IMAGE_MINETEE_FX_WATER].m_Id);
                         Graphics()->QuadsBegin();
                         Graphics()->QuadsSetSubsetFree(0,0+TexTileOffset.y, 0,1+TexTileOffset.y, 1,1+TexTileOffset.y, 1,0+TexTileOffset.y);
                     }
-                    else if (Index >= BLOCK_UNDEF104 && Index <= BLOCK_LAVA)
+                    else if (Index >= CBlockManager::LAVA_A && Index <= CBlockManager::LAVA_D)
                     {
                         Graphics()->TextureSet(g_pData->m_aImages[IMAGE_MINETEE_FX_LAVA].m_Id);
                         Graphics()->QuadsBegin();
@@ -376,9 +374,9 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
                     }
 
                     IGraphics::CQuadItem QuadItem(x*Scale, y*Scale, Scale, Scale);
-                    if (Index == BLOCK_UNDEF82 || Index == BLOCK_UNDEF104)
+                    if (Index == CBlockManager::WATER_A || CBlockManager::LAVA_A)
                         QuadItem = IGraphics::CQuadItem(x*Scale, y*Scale+(Scale-Scale/4), Scale, Scale/4);
-                    else if (Index == BLOCK_UNDEF83 || Index == BLOCK_UNDEF105)
+                    else if (Index == CBlockManager::WATER_B || Index == CBlockManager::LAVA_B)
                         QuadItem = IGraphics::CQuadItem(x*Scale, y*Scale+Scale/2, Scale, Scale/2);
 
                     Graphics()->QuadsDrawTL(&QuadItem, 1);
@@ -599,7 +597,7 @@ void CRenderTools::UpdateLights(CCollision *pCollision, CTile *pTiles, CTile *pL
 		{
             int c = x + y*w;
 
-            if (pTiles[c].m_Index == BLOCK_LUZ)
+            if (pTiles[c].m_Index == CBlockManager::TORCH)
             {
                 for (int e=0; e<=LightSize; e++)
                 {
@@ -617,7 +615,7 @@ void CRenderTools::UpdateLights(CCollision *pCollision, CTile *pTiles, CTile *pL
                 pLightsTemp[c].m_Index = 0;
                 x += pTiles[c].m_Skip;
             }
-            if (pTiles[c].m_Index == BLOCK_CALABAZA_ON)
+            if (pTiles[c].m_Index == CBlockManager::PUMPKIN_ON)
             {
                 const int calabazaLight = 10;
                 for (int e=0; e<=calabazaLight; e++)
@@ -636,9 +634,9 @@ void CRenderTools::UpdateLights(CCollision *pCollision, CTile *pTiles, CTile *pL
                 pLightsTemp[c].m_Index = 0;
                 x += pTiles[c].m_Skip;
             }
-            else if (pTiles[c].m_Index >= BLOCK_UNDEF104 && pTiles[c].m_Index <= BLOCK_LAVA)
+            else if (pTiles[c].m_Index >= CBlockManager::LAVA_A && pTiles[c].m_Index <= CBlockManager::LAVA_D)
                 pLightsTemp[c].m_Index = 0;
-            else if (pTiles[c].m_Index == BLOCK_HORNO_ON)
+            else if (pTiles[c].m_Index == CBlockManager::OVEN_ON)
                 pLightsTemp[c].m_Index = 0;
 		}
 

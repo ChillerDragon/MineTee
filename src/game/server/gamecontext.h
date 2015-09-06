@@ -16,6 +16,7 @@
 #include "gamecontroller.h"
 #include "gameworld.h"
 #include "player.h"
+#include "../block_manager.h" // MineTee
 
 /*
 	Tick
@@ -94,6 +95,7 @@ public:
 
 	IGameController *m_pController;
 	CGameWorld m_World;
+	CBlockManager m_BlockManager;
 
 	// helper functions
 	class CCharacter *GetPlayerChar(int ClientID);

@@ -74,13 +74,13 @@ void CCharacter::Reset()
 bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 {
 	// MineTee
-	for (int i=0; i<NUM_BLOCKS; i++)
+	for (int i=0; i<CBlockManager::MAX_BLOCKS; i++)
 	{
 	    m_aBlocks[i].m_Got = false;
 	    m_aBlocks[i].m_Amount = 0;
 	}
 
-	for (int i=0; i<NUM_ITEMS_INVENTORY; m_Inventory.m_Items[i++]=NUM_WEAPONS+NUM_BLOCKS);
+	for (int i=0; i<NUM_ITEMS_INVENTORY; m_Inventory.m_Items[i++]=NUM_WEAPONS+CBlockManager::MAX_BLOCKS);
     m_Inventory.m_Selected=0;
     //
 
@@ -127,7 +127,7 @@ void CCharacter::SetWeapon(int W)
 	m_ActiveWeapon = W;
 	GameServer()->CreateSound(m_Pos, SOUND_WEAPON_SWITCH);
 
-	if(m_ActiveWeapon < 0 || m_ActiveWeapon >= NUM_WEAPONS+NUM_BLOCKS) // MineTee
+	if(m_ActiveWeapon < 0 || m_ActiveWeapon >= NUM_WEAPONS+CBlockManager::MAX_BLOCKS) // MineTee
 		m_ActiveWeapon = 0;
 
     // MineTee
@@ -260,7 +260,7 @@ void CCharacter::HandleWeaponSwitch()
 		    {
 		        WantedWeapon = (m_Inventory.m_Selected+1>8)?0:m_Inventory.m_Selected+1;
 
-		        if (m_Inventory.m_Items[WantedWeapon] != NUM_WEAPONS+NUM_BLOCKS)
+		        if (m_Inventory.m_Items[WantedWeapon] != NUM_WEAPONS+CBlockManager::MAX_BLOCKS)
 		        {
 		            m_Inventory.m_Selected = WantedWeapon;
 		            WantedWeapon = m_Inventory.m_Items[WantedWeapon];
@@ -288,7 +288,7 @@ void CCharacter::HandleWeaponSwitch()
 		    {
 		        WantedWeapon = (m_Inventory.m_Selected-1<0)?8:m_Inventory.m_Selected-1;
 
-		        if (m_Inventory.m_Items[WantedWeapon] != NUM_WEAPONS+NUM_BLOCKS)
+		        if (m_Inventory.m_Items[WantedWeapon] != NUM_WEAPONS+CBlockManager::MAX_BLOCKS)
 		        {
 		            m_Inventory.m_Selected = WantedWeapon;
 		            WantedWeapon = m_Inventory.m_Items[WantedWeapon];
@@ -313,7 +313,7 @@ void CCharacter::HandleWeaponSwitch()
 		WantedWeapon = m_Input.m_WantedWeapon-1;
 
 	// check for insane values
-	if(WantedWeapon >= 0 && WantedWeapon < NUM_WEAPONS+NUM_BLOCKS && WantedWeapon != m_ActiveWeapon && ((WantedWeapon < NUM_WEAPONS && m_aWeapons[WantedWeapon].m_Got) || (WantedWeapon >= NUM_WEAPONS && m_aBlocks[WantedWeapon-NUM_WEAPONS].m_Got))) // MineTee
+	if(WantedWeapon >= 0 && WantedWeapon < NUM_WEAPONS+CBlockManager::MAX_BLOCKS && WantedWeapon != m_ActiveWeapon && ((WantedWeapon < NUM_WEAPONS && m_aWeapons[WantedWeapon].m_Got) || (WantedWeapon >= NUM_WEAPONS && m_aBlocks[WantedWeapon-NUM_WEAPONS].m_Got))) // MineTee
 		m_QueuedWeapon = WantedWeapon;
 
 	DoWeaponSwitch();
@@ -327,7 +327,7 @@ void CCharacter::Construct()
 		return;
 
     bool Builded = false;
-    int ActiveBlock = (m_ActiveWeapon - NUM_WEAPONS) % NUM_BLOCKS;
+    int ActiveBlock = (m_ActiveWeapon - NUM_WEAPONS) % CBlockManager::MAX_BLOCKS;
 
     DoWeaponSwitch();
 	vec2 Direction = normalize(vec2(m_LatestInput.m_TargetX, m_LatestInput.m_TargetY));
@@ -386,7 +386,9 @@ void CCharacter::Construct()
         if (GameServer()->Collision()->GetCollisionAt(finishPosPost.x, finishPosPost.y) != CCollision::COLFLAG_SOLID)
         {
             vec2 TilePos = vec2(static_cast<int>(finishPosPost.x/32.0f), static_cast<int>(finishPosPost.y/32.0f));
-            int TileIndex = (ActiveBlock == BLOCK_SEEDM)?BLOCK_SEED1:ActiveBlock;
+            CBlockManager::CBlockInfo BlockInfo;
+            GameServer()->m_BlockManager.GetBlockInfo(ActiveBlock, &BlockInfo);
+            int TileIndex = BlockInfo.m_OnPut;
 
             //Check player stuck
             for (int i=0; i<MAX_CLIENTS; i++)
@@ -403,7 +405,7 @@ void CCharacter::Construct()
             }
 
             //check blocks
-            unsigned char DenyBlocks[] = { BLOCK_LUZ };
+            unsigned char DenyBlocks[] = { CBlockManager::TORCH };
             CTile *pMTTiles = (CTile *)GameServer()->Layers()->Map()->GetData(GameServer()->Layers()->MineTeeLayer()->m_Data);
             for (size_t i=0; i<sizeof(DenyBlocks); i++)
             {
@@ -543,30 +545,37 @@ void CCharacter::FireWeapon()
                             GameServer()->Collision()->CreateTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
 							GameServer()->CreateSound(m_Pos, SOUND_DESTROY_BLOCK);
 
-							if (TIndex == BLOCK_TNT)
+							if (TIndex == CBlockManager::TNT)
 							{
 								GameServer()->CreateExplosion(finishPosPost, GetPlayer()->GetCID(), WEAPON_WORLD, false);
 								GameServer()->CreateSound(finishPosPost, SOUND_GRENADE_EXPLODE);
 							}
 							else
 							{
-								if (TIndex >= BLOCK_UNDEF47 && TIndex < BLOCK_BED)
-									TIndex = BLOCK_BED;
-								else if (TIndex == BLOCK_GRASSGROUND || TIndex == BLOCK_BNGRASS)
-									TIndex = BLOCK_GROUND;
-								else if (TIndex >= BLOCK_SEED1 && TIndex <= BLOCK_SEED7)
-									TIndex = BLOCK_SEEDM;
-								else if (TIndex == BLOCK_SEED8)
-									TIndex = BLOCK_TRIGO;
-								else if (TIndex >= BLOCK_INVTA && TIndex <= BLOCK_INVTB)
-									TIndex = BLOCK_INVENTARY;
-								else if (TIndex == BLOCK_CARBON)
-									TIndex = BLOCK_CARBONP;
-								else if (TIndex == BLOCK_DIAMOND)
-									TIndex = BLOCK_DIAMANTEP;
+								CBlockManager::CBlockInfo BlockInfo;
+								if (GameServer()->m_BlockManager.GetBlockInfo(TIndex, &BlockInfo))
+								{
+									if (BlockInfo.m_vOnBreak.size() > 0)
+									{
+										for (std::map<int, char>::iterator it = BlockInfo.m_vOnBreak.begin(); it != BlockInfo.m_vOnBreak.end(); it++)
+										{
+											if (it->first == 0)
+											{
+												++it;
+												continue;
+											}
 
-								CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, TIndex);
-								pPickup->m_Pos = vec2(TilePos.x*32.0f + 8.0f, TilePos.y*32.0f + 8.0f);
+											CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, it->first);
+											pPickup->m_Pos = vec2(TilePos.x*32.0f + 8.0f, (TilePos.y-1)*32.0f + 8.0f);
+											pPickup->m_Amount = it->second;
+										}
+									}
+									else
+									{
+										CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, TIndex);
+										pPickup->m_Pos = vec2(TilePos.x*32.0f + 8.0f, TilePos.y*32.0f + 8.0f);
+									}
+								}
 							}
 						}
 
@@ -871,7 +880,7 @@ void CCharacter::Tick()
 
 	// Fluid Damages
 	int BlockID = GameServer()->Collision()->GetMineTeeTileAt(vec2(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f));
-	if (Server()->Tick() - TimerFluidDamage >= Server()->TickSpeed()/2 && (BlockID >= BLOCK_UNDEF104 && BlockID <= BLOCK_LAVA))
+	if (Server()->Tick() - TimerFluidDamage >= Server()->TickSpeed()/2 && (BlockID >= CBlockManager::LAVA_A && BlockID <= CBlockManager::LAVA_D))
 	{
 	    TakeDamage(vec2(0.0f,-1.0f), 1, m_pPlayer->GetCID(), WEAPON_WORLD);
 	    TimerFluidDamage = Server()->Tick();
@@ -879,7 +888,7 @@ void CCharacter::Tick()
 
 	if (!inWater)
 	{
-        if ((BlockID >= BLOCK_UNDEF82 && BlockID <= BLOCK_AGUA) && (Server()->Tick() - TimerFluidDamage >= Server()->TickSpeed()*8))
+        if ((BlockID >= CBlockManager::WATER_A && BlockID <= CBlockManager::WATER_D) && (Server()->Tick() - TimerFluidDamage >= Server()->TickSpeed()*8))
         {
             inWater = true;
             TimerFluidDamage = Server()->Tick();
@@ -887,7 +896,7 @@ void CCharacter::Tick()
     }
 	else
 	{
-	    if (BlockID < BLOCK_UNDEF82 || BlockID > BLOCK_AGUA)
+	    if (BlockID < CBlockManager::WATER_A || BlockID > CBlockManager::WATER_D)
 	    {
             inWater = false;
             TimerFluidDamage = Server()->Tick();
@@ -1257,7 +1266,7 @@ void CCharacter::Snap(int SnappingClient)
 		int TileIndexD = GameServer()->Collision()->GetMineTeeTileAt(vec2(m_Pos.x, m_Pos.y+16.0f));
 		int TileIndex = GameServer()->Collision()->GetMineTeeTileAt(vec2(m_Pos.x, m_Pos.y));
 		int FluidType = 0;
-		if (!m_Jumped && TileIndexD >= BLOCK_UNDEF47 && TileIndexD <= BLOCK_BED)
+		if (!m_Jumped && ((TileIndexD >= CBlockManager::LARGE_BED_LEFT && TileIndexD <= CBlockManager::LARGE_BED_RIGHT) || TileIndexD == CBlockManager::BED))
 			pCharacter->m_Emote = EMOTE_BLINK;
 		else if (GameServer()->Collision()->IsTileFluid(TileIndex, &FluidType))
 		{
@@ -1274,16 +1283,7 @@ void CCharacter::Snap(int SnappingClient)
 				return;
 
 			//TODO: Ugly
-			pClientInventory->m_Item1 = m_Inventory.m_Items[0];
-			pClientInventory->m_Item2 = m_Inventory.m_Items[1];
-			pClientInventory->m_Item3 = m_Inventory.m_Items[2];
-			pClientInventory->m_Item4 = m_Inventory.m_Items[3];
-			pClientInventory->m_Item5 = m_Inventory.m_Items[4];
-			pClientInventory->m_Item6 = m_Inventory.m_Items[5];
-			pClientInventory->m_Item7 = m_Inventory.m_Items[6];
-			pClientInventory->m_Item8 = m_Inventory.m_Items[7];
-			pClientInventory->m_Item9 = m_Inventory.m_Items[8];
-
+			mem_copy(&pClientInventory->m_Item1, m_Inventory.m_Items, sizeof(int)*NUM_ITEMS_INVENTORY);
 			pClientInventory->m_Ammo1 = GetCurrentAmmo(pClientInventory->m_Item1);
 			pClientInventory->m_Ammo2 = GetCurrentAmmo(pClientInventory->m_Item2);
 			pClientInventory->m_Ammo3 = GetCurrentAmmo(pClientInventory->m_Item3);
@@ -1295,6 +1295,14 @@ void CCharacter::Snap(int SnappingClient)
 			pClientInventory->m_Ammo9 = GetCurrentAmmo(pClientInventory->m_Item9);
 
 			pClientInventory->m_Selected = m_Inventory.m_Selected;
+			if (m_Inventory.m_Items[m_Inventory.m_Selected] >= NUM_WEAPONS)
+			{
+				CBlockManager::CBlockInfo BlockInfo;
+				GameServer()->m_BlockManager.GetBlockInfo(m_Inventory.m_Items[m_Inventory.m_Selected]-NUM_WEAPONS, &BlockInfo);
+				StrToInts(&pClientInventory->m_SelectedName0, 6, BlockInfo.m_aName);
+			}
+			else
+				StrToInts(&pClientInventory->m_SelectedName0, 6, "");
 			m_NeedSendInventory = false;
 		}
 	}
@@ -1306,7 +1314,7 @@ bool CCharacter::GiveBlock(int Block, int Amount)
     if (str_find_nocase(GameServer()->GameType(), "minetee") && IsInventoryFull() && !m_aBlocks[Block].m_Got)
         return false;
 
-    if (Block >= NUM_BLOCKS || Block < 0)
+    if (Block >= CBlockManager::MAX_BLOCKS || Block < 0)
         return false;
 
     if (!m_aBlocks[Block].m_Got)
@@ -1331,7 +1339,7 @@ bool CCharacter::GiveBlock(int Block, int Amount)
 
 void CCharacter::UpdateInventory(int item)
 {
-	if (item != NUM_WEAPONS+NUM_BLOCKS && IsInventoryFull())
+	if (item != NUM_WEAPONS+CBlockManager::MAX_BLOCKS && IsInventoryFull())
 	{
 		vec2 Direction = normalize(vec2(m_LatestInput.m_TargetX, m_LatestInput.m_TargetY));
         CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_DROPITEM, item-NUM_WEAPONS);
@@ -1344,9 +1352,9 @@ void CCharacter::UpdateInventory(int item)
 
     for (int i=0; i<NUM_ITEMS_INVENTORY; i++)
     {
-        if (item != NUM_WEAPONS+NUM_BLOCKS)
+        if (item != NUM_WEAPONS+CBlockManager::MAX_BLOCKS)
         {
-            if (m_Inventory.m_Items[i] == NUM_WEAPONS+NUM_BLOCKS)
+            if (m_Inventory.m_Items[i] == NUM_WEAPONS+CBlockManager::MAX_BLOCKS)
             {
                 m_Inventory.m_Items[i] = item;
                 break;
@@ -1355,15 +1363,15 @@ void CCharacter::UpdateInventory(int item)
         else
         {
             int Index = m_Inventory.m_Items[i];
-            if (Index != NUM_WEAPONS+NUM_BLOCKS)
+            if (Index != NUM_WEAPONS+CBlockManager::MAX_BLOCKS)
             {
                 if (Index >= NUM_WEAPONS)
                 {
                     if (!m_aBlocks[Index-NUM_WEAPONS].m_Got)
-                        m_Inventory.m_Items[i] = NUM_WEAPONS+NUM_BLOCKS;
+                        m_Inventory.m_Items[i] = NUM_WEAPONS+CBlockManager::MAX_BLOCKS;
                 }
                 else if (!m_aWeapons[Index].m_Got)
-                    m_Inventory.m_Items[i] = NUM_WEAPONS+NUM_BLOCKS;
+                    m_Inventory.m_Items[i] = NUM_WEAPONS+CBlockManager::MAX_BLOCKS;
             }
         }
     }
@@ -1375,7 +1383,7 @@ bool CCharacter::IsInventoryFull()
 {
     for (int i=0; i<NUM_ITEMS_INVENTORY; i++)
     {
-        if (m_Inventory.m_Items[i] == NUM_WEAPONS+NUM_BLOCKS)
+        if (m_Inventory.m_Items[i] == NUM_WEAPONS+CBlockManager::MAX_BLOCKS)
             return false;
     }
 
@@ -1632,7 +1640,7 @@ void CCharacter::BotIA()
 
 int CCharacter::GetCurrentAmmo(int wid)
 {
-    if (wid < 0 || wid >= NUM_WEAPONS+NUM_BLOCKS)
+    if (wid < 0 || wid >= NUM_WEAPONS+CBlockManager::MAX_BLOCKS)
         return 0;
 
     if (wid >= NUM_WEAPONS)
@@ -1653,7 +1661,7 @@ void CCharacter::DropItem(int ItemID)
 
     bool dropped = false;
     int Index = m_Inventory.m_Items[ItemID];
-    if (Index != NUM_WEAPONS+NUM_BLOCKS)
+    if (Index != NUM_WEAPONS+CBlockManager::MAX_BLOCKS)
     {
         vec2 Direction = normalize(vec2(m_LatestInput.m_TargetX, m_LatestInput.m_TargetY));
 
@@ -1661,7 +1669,7 @@ void CCharacter::DropItem(int ItemID)
         {
             if (m_aBlocks[Index-NUM_WEAPONS].m_Got)
             {
-                m_Inventory.m_Items[ItemID] = NUM_WEAPONS+NUM_BLOCKS;
+                m_Inventory.m_Items[ItemID] = NUM_WEAPONS+CBlockManager::MAX_BLOCKS;
                 m_aBlocks[Index-NUM_WEAPONS].m_Got = false;
                 CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_DROPITEM, Index-NUM_WEAPONS);
                 pPickup->m_Pos = m_Pos;
@@ -1678,7 +1686,7 @@ void CCharacter::DropItem(int ItemID)
             int ActiveItem = 0;
             for (int i=m_Inventory.m_Selected-1; i>=0; i--)
             {
-                if (m_Inventory.m_Items[i] != NUM_WEAPONS+NUM_BLOCKS)
+                if (m_Inventory.m_Items[i] != NUM_WEAPONS+CBlockManager::MAX_BLOCKS)
                 {
                     ActiveItem = m_Inventory.m_Items[i];
                     m_Inventory.m_Selected = i;

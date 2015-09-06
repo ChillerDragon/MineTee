@@ -395,7 +395,7 @@ void CPlayers::RenderPlayer(
         MousePos.x /= 32;
         MousePos.y /= 32;
 
-        RenderTools()->RenderTile(BLOCK_UNDEF41, vec2(MousePos.x*32.0f, MousePos.y*32.0f), 32.0f, 0.5f);
+        RenderTools()->RenderTile(CBlockManager::EMPTY_INDICATOR, vec2(MousePos.x*32.0f, MousePos.y*32.0f), 32.0f, 0.5f);
     }
 	else if (pInfo.m_Team <= TEAM_BLUE || pInfo.m_Team == TEAM_ENEMY_SKELETEE)
 	{
@@ -570,12 +570,12 @@ void CPlayers::RenderPlayer(
 	// MineTee
 	if (str_find_nocase(SInfo.m_aGameType, "minetee"))
 	{
-        if (!m_pClient->m_aClients[pInfo.m_ClientID].m_InWater && Collision()->GetMineTeeTileAt(Position) == BLOCK_AGUA)
+        if (!m_pClient->m_aClients[pInfo.m_ClientID].m_InWater && Collision()->GetMineTeeTileAt(Position) == CBlockManager::WATER_D)
         {
             m_pClient->m_aClients[pInfo.m_ClientID].m_InWater  = true;
             m_pClient->m_pEffects->WaterSplit(Position, vec2(0,-1));
         }
-        else if (m_pClient->m_aClients[pInfo.m_ClientID].m_InWater  && Collision()->GetMineTeeTileAt(Position) != BLOCK_AGUA)
+        else if (m_pClient->m_aClients[pInfo.m_ClientID].m_InWater  && Collision()->GetMineTeeTileAt(Position) != CBlockManager::WATER_D)
         {
             m_pClient->m_aClients[pInfo.m_ClientID].m_InWater  = false;
             m_pClient->m_pEffects->WaterSplit(Position, vec2(0,-1));
@@ -639,7 +639,7 @@ void CPlayers::RenderPlayer(
         int my = clamp(static_cast<int>(Position.y/32), 0, h-1);
         int c = mx + my*w;
 
-        if (pPlayerChar->m_Weapon-NUM_WEAPONS == BLOCK_LUZ)
+        if (pPlayerChar->m_Weapon-NUM_WEAPONS == CBlockManager::TORCH)
         {
             for (int e=0; e<=LightSize; e++)
             {

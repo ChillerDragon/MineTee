@@ -178,39 +178,43 @@ void CGameContext::CreateExplosion(vec2 Pos, int Owner, int Weapon, bool NoDamag
             if (Collision()->GetCollisionAt(finishPosPost.x, finishPosPost.y) == CCollision::COLFLAG_SOLID)
             {
                 int BIndex = Collision()->GetMineTeeTileAt(finishPosPost);
-                if (BIndex <=0 || BIndex == BLOCK_AGUA || BIndex == BLOCK_LAVA)
+                if (BIndex <= 0)
                     continue;
 
                 vec2 TilePos = vec2(static_cast<int>(finishPosPost.x/32.0f), static_cast<int>(finishPosPost.y/32.0f));
                 SendTileModif(ALL_PLAYERS, TilePos, Layers()->GetMineTeeGroupIndex(),  Layers()->GetMineTeeLayerIndex(), 0, 0);
                 Collision()->CreateTile(TilePos, Layers()->GetMineTeeGroupIndex(),  Layers()->GetMineTeeLayerIndex(), 0, 0);
 
-				if (str_comp_nocase(GameType(), "MineTee") == 0)
+				if (BIndex == CBlockManager::TNT)
 				{
-					if (BIndex == BLOCK_TNT)
+					CreateExplosion(finishPosPost, Owner, WEAPON_WORLD, false);
+					CreateSound(finishPosPost, SOUND_GRENADE_EXPLODE);
+				}
+				else
+				{
+					CBlockManager::CBlockInfo BlockInfo;
+					if (m_BlockManager.GetBlockInfo(BIndex, &BlockInfo))
 					{
-						CreateExplosion(finishPosPost, Owner, WEAPON_WORLD, false);
-						CreateSound(finishPosPost, SOUND_GRENADE_EXPLODE);
-					}
-					else
-					{
-						if (BIndex >= BLOCK_UNDEF47 && BIndex < BLOCK_BED)
-							BIndex = BLOCK_BED;
-						else if (BIndex == BLOCK_GRASSGROUND || BIndex == BLOCK_BNGRASS)
-							BIndex = BLOCK_GROUND;
-						else if (BIndex > BLOCK_SEED1 && BIndex <= BLOCK_SEED7)
-							BIndex = BLOCK_SEEDM;
-						else if (BIndex == BLOCK_SEED8)
-							BIndex = BLOCK_TRIGO;
-						else if (BIndex >= BLOCK_INVTA && BIndex <= BLOCK_INVTB)
-							BIndex = BLOCK_INVENTARY;
-						else if (BIndex == BLOCK_CARBON)
-							BIndex = BLOCK_CARBONP;
-						else if (BIndex == BLOCK_DIAMOND)
-							BIndex = BLOCK_DIAMANTEP;
+						if (BlockInfo.m_vOnBreak.size() > 0)
+						{
+							for (std::map<int, char>::iterator it = BlockInfo.m_vOnBreak.begin(); it != BlockInfo.m_vOnBreak.end(); it++)
+							{
+								if (it->first == 0)
+								{
+									++it;
+									continue;
+								}
 
-						CPickup *pPickup = new CPickup(&m_World, POWERUP_BLOCK, BIndex);
-						pPickup->m_Pos = vec2(TilePos.x*32.0f + 8.0f, TilePos.y*32.0f + 8.0f);
+								CPickup *pPickup = new CPickup(&m_World, POWERUP_BLOCK, it->first);
+								pPickup->m_Pos = vec2(TilePos.x*32.0f + 8.0f, (TilePos.y-1)*32.0f + 8.0f);
+								pPickup->m_Amount = it->second;
+							}
+						}
+						else
+						{
+							CPickup *pPickup = new CPickup(&m_World, POWERUP_BLOCK, BIndex);
+							pPickup->m_Pos = vec2(TilePos.x*32.0f + 8.0f, TilePos.y*32.0f + 8.0f);
+						}
 					}
 				}
 
@@ -1576,6 +1580,8 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 	m_World.SetGameServer(this);
 	m_Events.SetGameServer(this);
 
+	dbg_assert(m_BlockManager.Init(), "Can't read information about blocks! (blocks.json)"); // MineTee
+
 	//if(!data) // only load once
 		//data = load_data_from_memory(internal_data);
 
@@ -1583,7 +1589,7 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 		Server()->SnapSetStaticsize(i, m_NetObjHandler.GetObjSize(i));
 
 	m_Layers.Init(Kernel());
-	m_Collision.Init(&m_Layers);
+	m_Collision.Init(&m_Layers, &m_BlockManager);
 
 	m_pMapGen = new CMapGen(&m_World);
 
@@ -1633,7 +1639,6 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 
 			if(Index >= ENTITY_OFFSET)
 			{
-				dbg_msg("NIUT", "Index: %d", Index);
 				vec2 Pos(x*32.0f+16.0f, y*32.0f+16.0f);
 				m_pController->OnEntity(Index-ENTITY_OFFSET, Pos);
 			}

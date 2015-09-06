@@ -9,28 +9,10 @@ Emoticons = ["OOP", "EXCLAMATION", "HEARTS", "DROP", "DOTDOT", "MUSIC", "SORRY",
 
 Powerups = ["HEALTH", "ARMOR", "WEAPON", "NINJA", "BLOCK", "FOOD", "DROPITEM"]
 
-Blocks = [
-		"NONE", "STONE", "GROUND", "GRASSGROUND", "MWOOD", "MSTONE", "FLATSTONE", "LADRILLO", "TNT", "UNDEF1", "UNDEF2", "TELARARACNIDA", "ROSAR", "ROSAY", "UNDEF3", "RTREE",
-		"NSTONE", "ENDERA", "ARENA", "GRAVA", "TRONCO1", "TRONCO2", "BPLATA", "BGOLD", "BDIAMOND", "UNDEF4", "UNDEF5", "INVENTARY", "RSETA", "BSETA", "CARBONP", "POLVORA",
-		"GOLD", "PLATA", "CARBON", "LIBRERIA", "STONEMOO", "RUDINIUM", "UNDEF9", "UNDEF10", "GRAVA2", "INVTA", "INVTB", "GAMETABLE", "HORNO_OFF", "UNDEF13", "DISPENSADOR", "TRIGO",
-		"POMEZ","CRISTAL", "DIAMOND", "REDSTONE", "HOJA_ARBOL1", "HOJA_ARBOL2", "STONE2", "RAIZ", "PLUMA", "UNDEF15", "UNDEF16", "UNDEF17", "CRAFT", "HORNO_ON", "UNDEF18", "RAIZ2",
-		"WLANA", "ESPAWN", "NIEVE", "AGUA_HELADA", "BNGRASS", "UNDEF19", "CACTUS", "UNDEF20", "CSTONE", "AZUCAR", "CAJA_SONORA", "CAJA_VINILOS", "UNDEF21", "UNDEF22", "UNDEF23", "RAIZ3",
-		"LUZ", "WDOOR", "MDOOR", "UNDEF24", "MWOOD1", "MBALLA", "APGRASS", "AGRASS", "SEED1", "SEED2", "SEED3", "SEED4", "SEED5", "SEED6", "SEED7", "SEED8",
-		"PALANCA", "UNDEF25", "UNDEF26", "POWER_ON", "STONE2MOO", "STONE2BREAK", "UNDEF27", "FIRESTONE", "DIRTYGRASS", "LIGHTSTONE", "UNDEF28", "UNDEF29", "WOODSTONE", "DIRTYSTONE", "BUTTONSTONE", "RAIZ4",
-		"UNDEF30", "BLANA", "GRLANA", "POWER_OFF", "DIRTYWOOD", "TRONCO3", "UNDEF31", "CALABAZA_OFF", "CALABAZA_ON", "UNDEF32", "TARTA1", "TARTA2", "UNDEF33", "UNDEF34", "UNDEF35", "UNDEF36",
-		"UNDEF37", "RLANA", "PLANA", "SWITCH_OFF", "UNDEF38", "UNDEF39", "RBLOCK", "UNDEF40", "CACTUSA", "CACTUSB", "UNDEF41", "BBLOCK", "UNDEF42", "UNDEF43", "UNDEF44", "UNDEF45",
-		"DBBLOCK", "DGLANA", "GLANA", "SWITCH_ON", "UNDEF46", "UNDEF47", "UNDEF48", "UNDEF49", "BED", "L1A", "L1B", "UNDEF50", "UNDEF51", "UNDEF52", "ENDERB", "UNDEF5123",
-		"BDIAMONDB", "BRLANA", "YLANA", "UNDEF53", "UNDEF54", "UNDEF55", "UNDEF56", "UNDEF57", "HUESO", "L2A", "L2B", "YUNKE", "HOJA", "LIBRO", "UNDEF62", "UNDEF63",
-		"ARENAB", "DBLLANA", "BLLANA", "UNDEF64", "UNDEF65", "UNDEF66", "UNDEF67", "UNDEF68", "SEEDM", "L3A", "L3B", "CUERO", "UNDEF71", "UNDEF72", "UNDEF73", "UNDEF74",
-		"TARENA", "MLANA", "NLANA", "UNDEF75", "UNDEF76", "UNDEF77", "UNDEF78", "UNDEF79", "UNDEF80", "L4A", "L4B", "UNDEF81", "UNDEF82", "UNDEF83", "UNDEF84", "AGUA",
-		"UNDEF86", "AZLANA", "RRLANA", "PLATAP", "OROP", "DIAMANTEP", "UNDEF90", "UNDEF91", "UNDEF92", "L5A", "L5B", "UNDEF93", "UNDEF94", "UNDEF95", "UNDEF96", "UNDEF85",
-		"DLADRILLO", "LGRLANA", "SETAR1", "SETAR2", "SETAR3", "UNDEF97", "UNDEF98", "UNDEF99", "UNDEF100", "UNDEF101", "UNDEF102", "UNDEF103", "UNDEF104", "UNDEF105", "UNDEF106", "LAVA",
-		"UNDEF107", "UNDEF108", "UNDEF109", "UNDEF110", "UNDEF111", "UNDEF112", "UNDEF113", "UNDEF114", "UNDEF115", "UNDEF116", "UNDEF117", "UNDEF118", "UNDEF119", "UNDEF120", "UNDEF121", "UNDEF122"
-		] # MineTee
-
 RawHeader = '''
 
 #include <engine/message.h>
+#include <game/block_manager.h>
 
 enum
 {
@@ -74,7 +56,6 @@ Enums = [
 	Enum("EMOTE", Emotes),
 	Enum("POWERUP", Powerups),
 	Enum("EMOTICON", Emoticons),
-	Enum("BLOCK", Blocks) # MineTee
 ]
 
 Flags = [
@@ -182,7 +163,7 @@ Objects = [
 		NetIntRange("m_Health", 0, 10),
 		NetIntRange("m_Armor", 0, 10),
 		NetIntRange("m_AmmoCount", 0, 10),
-		NetIntRange("m_Weapon", 0, 'NUM_WEAPONS+NUM_BLOCKS-1'), # MineTee
+		NetIntRange("m_Weapon", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'), # MineTee
 		NetIntRange("m_Emote", 0, len(Emotes)),
 		NetIntRange("m_AttackTick", 0, 'max_int'),
 	]),
@@ -224,16 +205,30 @@ Objects = [
 		
 	# MineTee
 	NetObject("Inventory", [
-		NetIntRange("m_Item1", 0, 'NUM_WEAPONS+NUM_BLOCKS'), NetIntRange("m_Ammo1", 0, 64),
-		NetIntRange("m_Item2", 0, 'NUM_WEAPONS+NUM_BLOCKS'), NetIntRange("m_Ammo2", 0, 64),
-		NetIntRange("m_Item3", 0, 'NUM_WEAPONS+NUM_BLOCKS'), NetIntRange("m_Ammo3", 0, 64),
-		NetIntRange("m_Item4", 0, 'NUM_WEAPONS+NUM_BLOCKS'), NetIntRange("m_Ammo4", 0, 64),
-		NetIntRange("m_Item5", 0, 'NUM_WEAPONS+NUM_BLOCKS'), NetIntRange("m_Ammo5", 0, 64),
-		NetIntRange("m_Item6", 0, 'NUM_WEAPONS+NUM_BLOCKS'), NetIntRange("m_Ammo6", 0, 64),
-		NetIntRange("m_Item7", 0, 'NUM_WEAPONS+NUM_BLOCKS'), NetIntRange("m_Ammo7", 0, 64),
-		NetIntRange("m_Item8", 0, 'NUM_WEAPONS+NUM_BLOCKS'), NetIntRange("m_Ammo8", 0, 64),
-		NetIntRange("m_Item9", 0, 'NUM_WEAPONS+NUM_BLOCKS'), NetIntRange("m_Ammo9", 0, 64),
+		NetIntRange("m_Item1", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'),
+		NetIntRange("m_Item2", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'),
+		NetIntRange("m_Item3", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'),
+		NetIntRange("m_Item4", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'),
+		NetIntRange("m_Item5", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'),
+		NetIntRange("m_Item6", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'),
+		NetIntRange("m_Item7", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'),
+		NetIntRange("m_Item8", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'),
+		NetIntRange("m_Item9", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'),
+		
+		NetIntRange("m_Ammo1", 0, 255),
+		NetIntRange("m_Ammo2", 0, 255),
+		NetIntRange("m_Ammo3", 0, 255),
+		NetIntRange("m_Ammo4", 0, 255),
+		NetIntRange("m_Ammo5", 0, 255),
+		NetIntRange("m_Ammo6", 0, 255),
+		NetIntRange("m_Ammo7", 0, 255),
+		NetIntRange("m_Ammo8", 0, 255),
+		NetIntRange("m_Ammo9", 0, 255),
 		NetIntRange("m_Selected", 0, 8),
+		
+		# 4*6 = 24 charachters
+		NetIntAny("m_SelectedName0"), NetIntAny("m_SelectedName1"), NetIntAny("m_SelectedName2"),
+		NetIntAny("m_SelectedName3"), NetIntAny("m_SelectedName4"), NetIntAny("m_SelectedName5"),
 	]),
 
 	## Events
@@ -301,7 +296,7 @@ Messages = [
 	NetMessage("Sv_ReadyToEnter", []),
 
 	NetMessage("Sv_WeaponPickup", [
-		NetIntRange("m_Weapon", 0, 'NUM_WEAPONS+NUM_BLOCKS-1'), # MineTee
+		NetIntRange("m_Weapon", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS-1'), # MineTee
 	]),
 
 	NetMessage("Sv_Emoticon", [

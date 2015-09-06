@@ -6,6 +6,7 @@
 #include <game/server/entity.h>
 #include <game/generated/server_data.h>
 #include <game/generated/protocol.h>
+#include <game/block_manager.h> // MineTee
 
 #include <game/gamecore.h>
 
@@ -77,9 +78,9 @@ public:
 	{
 	    int m_Amount;
 	    bool m_Got;
-	} m_aBlocks[NUM_BLOCKS];
+	} m_aBlocks[CBlockManager::MAX_BLOCKS];
 
-	void UpdateInventory(int item = NUM_WEAPONS+NUM_BLOCKS);
+	void UpdateInventory(int item = NUM_WEAPONS+CBlockManager::MAX_BLOCKS);
 	bool IsInventoryFull();
 	bool GiveBlock(int Block, int Amount);
     int GetCurrentAmmo(int wid);
