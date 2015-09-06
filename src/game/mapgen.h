@@ -16,6 +16,8 @@ class CMapGen
 {
 	class CGameWorld *m_pGameWorld;
 	class CGameContext *GameServer() { return m_pGameWorld->GameServer(); }
+
+	void GenerateTrees();
 public:
 	CMapGen(CGameWorld *pGameWorld);
 
