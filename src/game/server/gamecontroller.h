@@ -3,7 +3,9 @@
 #ifndef GAME_SERVER_GAMECONTROLLER_H
 #define GAME_SERVER_GAMECONTROLLER_H
 
+#include <base/math.h>
 #include <base/vmath.h>
+#include <base/system.h>
 
 /*
 	Class: Game Controller
@@ -148,6 +150,7 @@ public:
 
 	// MineTee
 	int GetRoundStartTick() const { return m_RoundStartTick; }
+	void AdvanceRoundStartTick(int amount) { m_RoundStartTick = max(m_RoundStartTick+amount, 0); }
 	virtual bool OnChat(int cid, int team, const char *msg) { return true; };
 };
 

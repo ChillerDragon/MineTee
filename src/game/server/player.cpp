@@ -287,13 +287,11 @@ void CPlayer::TryRespawn()
 	// MineTee
     if (str_find_nocase(GameServer()->GameType(),"minetee") && IsBot())
     {
-        int Time = -1;
-        Time = (Server()->Tick()-GameServer()->m_pController->GetRoundStartTick()) / (float)Server()->TickSpeed();
-        bool MineTeeIsDay = (static_cast<int>(Time/300)%2)?false:true;
-        if (300 < 0)
-            MineTeeIsDay = true;
+        int64 Time = -1;
+        bool IsDay = false;
+        GameServer()->GetServerTime(&IsDay, &Time);
 
-        if (!MineTeeIsDay)
+        if (!IsDay)
         {
             int Teams[2] = { TEAM_ANIMAL_TEECOW, TEAM_ANIMAL_TEEPIG };
             m_Team = Teams[rand()%2];

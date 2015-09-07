@@ -271,6 +271,7 @@ public:
 	} m_Inventory;
 	int m_PaintMode;
 	void SendDropItem(int Index);
+	virtual void GetServerTime(bool *pIsNight, int64 *pTime);
 };
 
 

@@ -1888,11 +1888,22 @@ void CGameContext::GiveItem(int ClientID, int ItemID, int ammo)
 		return;
 
 	if (ItemID >= NUM_WEAPONS)
-		pChar->GiveBlock(ItemID, ammo);
+	{
+		ItemID -= NUM_WEAPONS;
+		CBlockManager::CBlockInfo BlockInfo;
+		if (m_BlockManager.GetBlockInfo(ItemID, &BlockInfo))
+		{
+			pChar->GiveBlock(ItemID, ammo);
+			char aBuf[128];
+			str_format(aBuf, sizeof(aBuf), "Admin give you a '%s'! revise your inventory :)", BlockInfo.m_aName);
+			SendChatTarget(ClientID, aBuf);
+		}
+	}
 	else
+	{
 		pChar->GiveWeapon(ItemID, ammo);
-
-	SendChatTarget(ClientID, "Admin give you a new item! revise your inventory :)");
+		SendChatTarget(ClientID, "Admin give you a new weapon! revise your inventory :)");
+	}
 }
 
 void CGameContext::Teleport(int ClientID, int ToID)
@@ -1908,4 +1919,15 @@ void CGameContext::Teleport(int ClientID, int ToID)
 	pCharFrom->GetCore()->m_Pos = pCharTo->GetCore()->m_Pos;
 
 	SendChatTarget(ClientID, "Admin teleported you to here!)");
+}
+
+void CGameContext::AdvanceTime(int amount)
+{
+	m_pController->AdvanceRoundStartTick(amount);
+}
+
+void CGameContext::GetServerTime(bool *pIsDay, int64 *pTime)
+{
+    *pTime = (Server()->Tick()-m_pController->GetRoundStartTick()) / (float)Server()->TickSpeed();
+    *pIsDay = (*pTime%static_cast<int>(m_Tuning.m_DayNightDuration) < m_Tuning.m_DayNightDuration/2.0f);
 }

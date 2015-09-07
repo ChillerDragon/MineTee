@@ -509,12 +509,14 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker)
 		// unpack the new tuning
 		CTuningParams NewTuning;
 		int *pParams = (int *)&NewTuning;
-		for(unsigned i = 0; i < sizeof(CTuningParams)/sizeof(int); i++)
-			pParams[i] = pUnpacker->GetInt();
+		for(unsigned i = 0; i < sizeof(CTuningParams)/sizeof(int); i++) // MineTee
+		{
+			int value = pUnpacker->GetInt();
+			if(pUnpacker->Error())
+				break;
 
-		// check for unpacking errors
-		if(pUnpacker->Error())
-			return;
+			pParams[i] = value;
+		}
 
 		m_ServerMode = SERVERMODE_PURE;
 
@@ -1224,4 +1226,14 @@ void CGameClient::ConDropItem(IConsole::IResult *pResult, void *pUserData)
 
 	// send chat message
 	((CGameClient *)pUserData)->SendDropItem(ItemID);
+}
+
+// MineTee
+void CGameClient::GetServerTime(bool *pIsDay, int64 *pTime)
+{
+    *pTime = 0;
+    if (m_Snap.m_pGameInfoObj)
+        *pTime = (Client()->GameTick()-m_Snap.m_pGameInfoObj->m_RoundStartTick) / (float)Client()->GameTickSpeed();
+
+    *pIsDay = (*pTime%static_cast<int>(m_Tuning.m_DayNightDuration) < m_Tuning.m_DayNightDuration/2.0f);
 }

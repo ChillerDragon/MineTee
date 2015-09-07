@@ -12,8 +12,6 @@ class CMapLayers : public CComponent
 	int m_LastLocalTick;
 	bool m_EnvelopeUpdate;
 
-	bool m_MineTeeIsDay; // MineTee
-
 	void MapScreenToGroup(float CenterX, float CenterY, CMapItemGroup *pGroup);
 	static void EnvelopeEval(float TimeOffset, int Env, float *pChannels, void *pUser);
 public:
@@ -28,8 +26,6 @@ public:
 	virtual void OnRender();
 
 	void EnvelopeUpdate();
-
-	bool MineTeeIsDay() const { return m_MineTeeIsDay; } // MineTee
 };
 
 #endif

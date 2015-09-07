@@ -1659,6 +1659,7 @@ void CServer::RegisterCommands()
 	Console()->Register("give", "iii", CFGFLAG_SERVER, ConGive, this, "Give ID item with indicate ammo");
 	Console()->Register("save_map", "?s", CFGFLAG_SERVER, ConMapSave, this, "Save the map");
 	Console()->Register("tp", "ii", CFGFLAG_SERVER, ConTeleport, this, "Teleport a player to other player");
+	Console()->Register("adv_time", "i", CFGFLAG_SERVER, ConAdvanceTime, this, "Advance time");
 	//
 
 	Console()->Chain("sv_name", ConchainSpecialInfoupdate, this);
@@ -1819,5 +1820,10 @@ void CServer::ConMapSave(IConsole::IResult *pResult, void *pUser)
 void CServer::ConTeleport(IConsole::IResult *pResult, void *pUser)
 {
 	if (pResult->NumArguments() > 1)
-		((CServer *)pUser)->m_pGameServer->Teleport(pResult->GetInteger(0), pResult->GetInteger(0));
+		((CServer *)pUser)->m_pGameServer->Teleport(pResult->GetInteger(0), pResult->GetInteger(1));
+}
+void CServer::ConAdvanceTime(IConsole::IResult *pResult, void *pUser)
+{
+	if (pResult->NumArguments() == 1)
+		((CServer *)pUser)->m_pGameServer->AdvanceTime(pResult->GetInteger(0));
 }

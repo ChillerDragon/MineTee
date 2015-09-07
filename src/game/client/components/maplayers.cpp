@@ -275,31 +275,25 @@ void CMapLayers::OnRender()
     {
         //CTile *pMTLTiles = 0x0;
         static int s_LightLevel = 0;
+		int64 Time = -1;
+		bool IsDay = false;
 
-        if (300 < 0)
-            s_LightLevel = 0;
-        else
-        {
-            int Time = -1;
-            if (m_pClient->m_Snap.m_pGameInfoObj)
-                Time = (Client()->GameTick()-m_pClient->m_Snap.m_pGameInfoObj->m_RoundStartTick) / (float)Client()->GameTickSpeed();
-            m_MineTeeIsDay = (static_cast<int>(Time/300)%2)?false:true;
+		m_pClient->GetServerTime(&IsDay, &Time);
 
-            float tt = Time;
-            int itt = tt/300;
-            tt/=300;
+		float tt = Time;
+		int itt = tt/m_pClient->m_Tuning.m_DayNightDuration;
+		tt/=m_pClient->m_Tuning.m_DayNightDuration;
 
-            if (tt-itt < 0.02)
-                s_LightLevel=(m_MineTeeIsDay)?0:3;
-            else if (tt-itt < 0.025)
-                s_LightLevel=(m_MineTeeIsDay)?1:2;
-            else if (tt-itt < 0.035)
-                s_LightLevel=(m_MineTeeIsDay)?2:1;
-            else if (tt-itt < 0.045)
-                s_LightLevel=(m_MineTeeIsDay)?3:0;
-            else
-                s_LightLevel=(m_MineTeeIsDay)?4:0;
-        }
+		if (tt-itt < 0.02)
+			s_LightLevel=(IsDay)?0:3;
+		else if (tt-itt < 0.025)
+			s_LightLevel=(IsDay)?1:2;
+		else if (tt-itt < 0.035)
+			s_LightLevel=(IsDay)?2:1;
+		else if (tt-itt < 0.045)
+			s_LightLevel=(IsDay)?3:0;
+		else
+			s_LightLevel=(IsDay)?4:0;
 
 
         if (s_LightLevel >= 0)

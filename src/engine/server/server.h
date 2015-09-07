@@ -243,6 +243,7 @@ public:
 	static void ConGive(IConsole::IResult *pResult, void *pUser);
 	static void ConMapSave(IConsole::IResult *pResult, void *pUser);
 	static void ConTeleport(IConsole::IResult *pResult, void *pUser);
+	static void ConAdvanceTime(IConsole::IResult *pResult, void *pUser);
 	//
 };
 

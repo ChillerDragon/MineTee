@@ -163,6 +163,7 @@ public:
 	virtual const char *Version() = 0;
 	virtual const char *NetVersion() = 0;
 
+	virtual void GetServerTime(bool *pIsDay, int64 *pTime) = 0; // MineTee
 };
 
 extern IGameClient *CreateGameClient();
