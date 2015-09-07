@@ -157,7 +157,7 @@ void CGameControllerMineTee::Tick()
                         if (y>0)
                         {
                         	// Dirt -> Grass
-                            if (pTempTiles[c].m_Index == CBlockManager::DIRT)
+                            if (pTempTiles[c].m_Index == CBlockManager::DIRT && !(rand()%20))
                             {
                                 bool found = false;
                                 for (int o=y-1; o>=0; o--)
@@ -177,7 +177,7 @@ void CGameControllerMineTee::Tick()
                                 }
                             }
                             // Grass -> Dirt or Snow
-                            else if (pTempTiles[c].m_Index == CBlockManager::GRASS)
+                            else if (pTempTiles[c].m_Index == CBlockManager::GRASS && !(rand()%20))
                             {
                                 int indexT = (y-1)*pTmap->m_Width+x;
                                 if (pTempTiles[indexT].m_Index != 0 && (pTempTiles[indexT].m_Index < CBlockManager::GRASS_A || pTempTiles[indexT].m_Index > CBlockManager::GRASS_F))
