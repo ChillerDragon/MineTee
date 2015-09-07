@@ -47,8 +47,15 @@ void CMapLayers::EnvelopeUpdate()
 void CMapLayers::MapScreenToGroup(float CenterX, float CenterY, CMapItemGroup *pGroup)
 {
 	float Points[4];
+	float Zoom = 1.0f;
+
+	CServerInfo ServerInfo;
+	Client()->GetServerInfo(&ServerInfo);
+	if (str_find_nocase(ServerInfo.m_aGameType, "minetee"))
+		Zoom = 1.35f;
+
 	RenderTools()->MapscreenToWorld(CenterX, CenterY, pGroup->m_ParallaxX/100.0f, pGroup->m_ParallaxY/100.0f,
-		pGroup->m_OffsetX, pGroup->m_OffsetY, Graphics()->ScreenAspect(), 1.0f, Points);
+		pGroup->m_OffsetX, pGroup->m_OffsetY, Graphics()->ScreenAspect(), Zoom, Points);
 	Graphics()->MapScreen(Points[0], Points[1], Points[2], Points[3]);
 }
 

@@ -410,7 +410,7 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
 
 
 // MineTee
-// FIXME: 5-phase seems very ugly and slow... :(
+// FIXME: 6-phase seems very ugly and slow... :(
 void CRenderTools::UpdateLights(CTile *pTiles, CTile *pLights, int w, int h, int DarknessLevel)
 {
 	if (!m_pCollision || !pTiles || !pLights)
@@ -513,8 +513,6 @@ void CRenderTools::UpdateLights(CTile *pTiles, CTile *pLights, int w, int h, int
 						}
 					}
 				}
-
-				x += pTiles[c].m_Skip;
 			}
 
 		if (DarknessLevel == 0)
@@ -631,7 +629,6 @@ void CRenderTools::UpdateLights(CTile *pTiles, CTile *pLights, int w, int h, int
                 }
 
                 pLightsTemp[c].m_Index = 0;
-                x += pTiles[c].m_Skip;
             }
             else if (BlockInfo.m_LightSize == 1)
             	pLightsTemp[c].m_Index = 0;
