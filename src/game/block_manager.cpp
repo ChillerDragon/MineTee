@@ -9,7 +9,8 @@ CBlockManager::CBlockManager()
 }
 CBlockManager::~CBlockManager()
 {
-	json_value_free_ex(&m_JsonSettings, m_pJsonData);
+	json_value_free(m_pJsonData);
+	//json_value_free_ex(&m_JsonSettings, m_pJsonData);
 }
 
 bool CBlockManager::Init()
