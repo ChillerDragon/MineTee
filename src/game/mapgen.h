@@ -24,6 +24,8 @@ class CMapGen
 	void GenerateCaves();
 	void GenerateTrees();
 
+	void GenerateBorder();
+
 public:
 	CMapGen(CGameWorld *pGameWorld);
 

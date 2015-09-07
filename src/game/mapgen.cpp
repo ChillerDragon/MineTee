@@ -31,10 +31,12 @@ void CMapGen::GenerateMap()
 		GameServer()->Collision()->CreateTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeBGLayerIndex(), 0, 0);
 	}
 
-	// generate the world
+	/* ~~~ Generate the world ~~~ */
 	GenerateBasicTerrain();
 	GenerateCaves();
 	GenerateTrees();
+
+	GenerateBorder(); // as long as there are no infinite (chunked) maps
 }
 
 void CMapGen::GenerateBasicTerrain()
@@ -145,5 +147,27 @@ void CMapGen::GenerateTrees()
 			}
 
 		}
+	}
+}
+
+void CMapGen::GenerateBorder()
+{
+	// draw a boarder all around the map
+	for(int i = 0; i < GameServer()->Layers()->MineTeeLayer()->m_Width; i++)
+	{
+		// top border
+		//GameServer()->Collision()->CreateTile(vec2(i, 0), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::BEDROCK, 0);
+		
+		// bottom border
+		GameServer()->Collision()->CreateTile(vec2(i, GameServer()->Layers()->MineTeeLayer()->m_Height-1), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::BEDROCK, 0);
+	}
+
+	for(int i = 0; i < GameServer()->Layers()->MineTeeLayer()->m_Height; i++)
+	{
+		// left border
+		GameServer()->Collision()->CreateTile(vec2(0, i), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::BEDROCK, 0);
+		
+		// right border
+		GameServer()->Collision()->CreateTile(vec2(GameServer()->Layers()->MineTeeLayer()->m_Width-1, i), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::BEDROCK, 0);
 	}
 }
