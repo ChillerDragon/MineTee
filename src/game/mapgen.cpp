@@ -9,21 +9,21 @@
 CMapGen::CMapGen(CGameWorld *pGameWorld)
 {
 	m_pGameWorld = pGameWorld;
-	m_pNoise = new PerlinOctave(3); // TODO: Add a seed
+	m_pNoise = new CPerlinOctave(3); // TODO: Add a seed
 }
 
 void CMapGen::GenerateMap()
 {
-	int MineTeeLayerSize = 0;
-	if (GameServer()->Layers()->MineTeeLayer())
-	{
-        MineTeeLayerSize = GameServer()->Layers()->MineTeeLayer()->m_Width*GameServer()->Layers()->MineTeeLayer()->m_Height;
-	}
+	if (!GameServer()->Layers()->MineTeeLayer())
+		return;
+
+	int MineTeeLayerSize = GameServer()->Layers()->MineTeeLayer()->m_Width*GameServer()->Layers()->MineTeeLayer()->m_Height;
 
 	// clear map, but keep background, envelopes etc
 	for(int i = 0; i < MineTeeLayerSize; i++)
 	{
-		vec2 TilePos = vec2(i%GameServer()->Layers()->MineTeeLayer()->m_Width, (i-(i%GameServer()->Layers()->MineTeeLayer()->m_Width))/GameServer()->Layers()->MineTeeLayer()->m_Width);
+		int x = i%GameServer()->Layers()->MineTeeLayer()->m_Width;
+		vec2 TilePos = vec2(x, (i-x)/GameServer()->Layers()->MineTeeLayer()->m_Width);
 		
 		// clear the different layers
 		GameServer()->Collision()->ModifTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
@@ -53,7 +53,7 @@ void CMapGen::GenerateBasicTerrain()
 			TilePosY -= (rand()%3)-1;*/
 		
 		float frequency = 25.0f / (float)GameServer()->Layers()->MineTeeLayer()->m_Width;
-		TilePosY = m_pNoise->noise((float) TilePosX * frequency) * (GameServer()->Layers()->MineTeeLayer()->m_Height/6) + DIRT_LEVEL;
+		TilePosY = m_pNoise->Noise((float) TilePosX * frequency) * (GameServer()->Layers()->MineTeeLayer()->m_Height/6) + DIRT_LEVEL;
 
 		GameServer()->Collision()->ModifTile(vec2(TilePosX, TilePosY), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::GRASS, 0);
 		
@@ -97,7 +97,7 @@ void CMapGen::GenerateCaves()
 		for(int y = STONE_LEVEL; y < GameServer()->Layers()->MineTeeLayer()->m_Height; y++)
 		{
 			float frequency = 28.0f / (float)GameServer()->Layers()->MineTeeLayer()->m_Width;
-			float noise = m_pNoise->noise((float)x * frequency, (float)y * frequency);
+			float noise = m_pNoise->Noise((float)x * frequency, (float)y * frequency);
 	
 			if(noise > 0.5f)
 				GameServer()->Collision()->ModifTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::AIR, 0);

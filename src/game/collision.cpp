@@ -93,21 +93,25 @@ bool CCollision::IsTileSolid(int x, int y, bool nocoll)
     	int Ny = clamp(y/32, 0, m_Height-1);
 
     	int Index = Nx + Ny*m_Width;
-    	int TIndex = Nx + (Ny-1)*m_Width;
     	int TileIndex = m_pMineTeeTiles[Index].m_Index;
-    	int TileIndexTop =  m_pMineTeeTiles[TIndex].m_Index;
-    	CBlockManager::CBlockInfo BlockInfo;
-    	m_pBlockManager->GetBlockInfo(TileIndex, &BlockInfo);
-    	if (BlockInfo.m_HalfTile)
-        {
-            Nx *= 32; Ny *= 32;
+		CBlockManager::CBlockInfo BlockInfo;
+		m_pBlockManager->GetBlockInfo(TileIndex, &BlockInfo);
 
-            if ((!TileIndexTop && y >= Ny+16.0f) || (TileIndexTop && y <= Ny+16.0f))
-                return 1;
+    	if (Ny > 0)
+    	{
+    		int TIndex = Nx + (Ny-1)*m_Width;
+			int TileIndexTop =  m_pMineTeeTiles[TIndex].m_Index;
+			if (BlockInfo.m_HalfTile)
+			{
+				Nx *= 32; Ny *= 32;
 
-            return 0;
-        }
-        else if (m_pBlockManager->IsFluid(TileIndex))
+				if ((!TileIndexTop && y >= Ny+16.0f) || (TileIndexTop && y <= Ny+16.0f))
+					return 1;
+
+				return 0;
+			}
+    	}
+        if (m_pBlockManager->IsFluid(TileIndex))
         	return 0;
         else if (nocoll && !BlockInfo.m_PlayerCollide)
             return 0;

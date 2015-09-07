@@ -18,7 +18,7 @@ class CMapGen
 {
 	class CGameWorld *m_pGameWorld;
 	class CGameContext *GameServer() { return m_pGameWorld->GameServer(); }
-	class PerlinOctave *m_pNoise;
+	class CPerlinOctave *m_pNoise;
 
 	void GenerateBasicTerrain();
 	void GenerateCaves();
