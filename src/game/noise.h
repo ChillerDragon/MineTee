@@ -1,10 +1,8 @@
 #ifndef NOISE_H
 #define NOISE_H
 
-#include <random>
+//#include <random>
 #include <array>
-
-namespace noise {
 
 class Perlin {
 public:
@@ -30,7 +28,5 @@ private:
     Perlin perlin_;
     int octaves_;
 };
-
-}
 
 #endif // NOISE_H

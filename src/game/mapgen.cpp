@@ -9,6 +9,7 @@
 CMapGen::CMapGen(CGameWorld *pGameWorld)
 {
 	m_pGameWorld = pGameWorld;
+	m_pNoise = new PerlinOctave(3); // TODO: Add a seed
 }
 
 void CMapGen::GenerateMap()
@@ -30,10 +31,6 @@ void CMapGen::GenerateMap()
 		GameServer()->Collision()->CreateTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeBGLayerIndex(), 0, 0);
 	}
 
-	/*float x     = 0.123f;                   // Define a float coordinate
-    float noise = SimplexNoise::noise(x);   // Get the noise value for the coordinate
-    dbg_msg("ss", "%f", noise);*/
-
 	// generate the world
 	GenerateBasicTerrain();
 	GenerateTrees();
@@ -47,13 +44,11 @@ void CMapGen::GenerateBasicTerrain()
 	for(int i = 0; i < GameServer()->Layers()->MineTeeLayer()->m_Width; i++)
 	{
 		TilePosX = i;
-		if(i%2 || !rand()%3)
-			TilePosY -= (rand()%3)-1;
-
-		if(TilePosY - DIRT_LEVEL < LEVEL_TOLERANCE*-1*1.5f)
-			TilePosY++;
-		else if(TilePosY - DIRT_LEVEL > LEVEL_TOLERANCE*1.5f)
-			TilePosY--;
+		/*if(i%2 || !rand()%3)
+			TilePosY -= (rand()%3)-1;*/
+		
+		float frequency = 25.0f / (float)GameServer()->Layers()->MineTeeLayer()->m_Width;
+		TilePosY = m_pNoise->noise((float) TilePosX * frequency) * (GameServer()->Layers()->MineTeeLayer()->m_Height/6) + DIRT_LEVEL;
 
 		GameServer()->Collision()->CreateTile(vec2(TilePosX, TilePosY), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::GRASS, 0);
 		

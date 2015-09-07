@@ -2,8 +2,6 @@
 
 #include "noise.h"
 
-namespace noise {
-
 double fade(double t) {
     return t * t * t * (t * (t * 6 - 15) + 10);
 }
@@ -98,6 +96,4 @@ double PerlinOctave::noise(double x, double y, double z) const {
     }
 
     return result;
-}
-
 }
