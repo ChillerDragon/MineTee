@@ -34,6 +34,8 @@ void CMapGen::GenerateMap()
 	/* ~~~ Generate the world ~~~ */
 	GenerateBasicTerrain();
 	GenerateCaves();
+	GenerateFlowers();
+	GenerateMushrooms();
 	GenerateTrees();
 
 	GenerateBorder(); // as long as there are no infinite (chunked) maps
@@ -99,6 +101,58 @@ void CMapGen::GenerateCaves()
 	
 			if(noise > 0.5f)
 				GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::AIR, 0);
+		}
+	}
+}
+
+void CMapGen::GenerateFlowers()
+{
+	for(int x = 1; x < GameServer()->Layers()->MineTeeLayer()->m_Width-1; x++)
+	{
+		if(rand()%32 == 0)
+		{
+			int FieldSize = 2+(rand()%3);
+			for(int f = x; f - x <= FieldSize; f++)
+			{
+				int y = 0;
+				while(GameServer()->Collision()->GetMineTeeTileAt(vec2(f*32, (y+1)*32)) != CBlockManager::GRASS && y < GameServer()->Layers()->MineTeeLayer()->m_Height)
+				{
+					y++;
+				}
+
+				if(y >= GameServer()->Layers()->MineTeeLayer()->m_Height)
+					return;
+
+				GameServer()->Collision()->CreateTile(vec2(f, y), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::ROSE + rand()%2, 0);
+			}
+
+			x += FieldSize;
+		}
+	}
+}
+
+void CMapGen::GenerateMushrooms()
+{
+	for(int x = 1; x < GameServer()->Layers()->MineTeeLayer()->m_Width-1; x++)
+	{
+		if(rand()%256 == 0)
+		{
+			int FieldSize = 5+(rand()%8);
+			for(int f = x; f - x <= FieldSize; f++)
+			{
+				int y = 0;
+				while(GameServer()->Collision()->GetMineTeeTileAt(vec2(f*32, (y+1)*32)) != CBlockManager::GRASS && y < GameServer()->Layers()->MineTeeLayer()->m_Height)
+				{
+					y++;
+				}
+
+				if(y >= GameServer()->Layers()->MineTeeLayer()->m_Height)
+					return;
+
+				GameServer()->Collision()->CreateTile(vec2(f, y), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::MUSHROOM_RED + rand()%2, 0);
+			}
+
+			x += FieldSize;
 		}
 	}
 }

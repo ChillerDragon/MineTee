@@ -22,6 +22,8 @@ class CMapGen
 
 	void GenerateBasicTerrain();
 	void GenerateCaves();
+	void GenerateFlowers();
+	void GenerateMushrooms();
 	void GenerateTrees();
 
 	void GenerateBorder();
