@@ -1550,10 +1550,10 @@ void CCharacter::BotIA()
         m_Input.m_TargetX = m_BotDir;
         m_Input.m_TargetY = 0;
     }
-    else if (m_pPlayer->GetTeam() < TEAM_ANIMAL_TEECOW && m_BotClientIDFix != -1 && GameServer()->m_apPlayers[m_BotClientIDFix])
+    else if (m_pPlayer->GetTeam() < TEAM_ANIMAL_TEECOW && m_BotClientIDFix != -1)
     {
     	CPlayer *pPlayer = GameServer()->m_apPlayers[m_BotClientIDFix];
-    	if (m_Pos.y < pPlayer->GetCharacter()->m_Pos.y) // Jump to player
+    	if (pPlayer && pPlayer->GetCharacter() && m_Pos.y > pPlayer->GetCharacter()->m_Pos.y) // Jump to player
     		m_Input.m_Jump = 1;
     }
 
@@ -1605,8 +1605,19 @@ void CCharacter::BotIA()
         m_BotTimeGrounded = Server()->Tick();
 
     //Falls
-    if (m_pPlayer->GetTeam() != TEAM_ENEMY_ZOMBITEE && m_pPlayer->GetTeam() != TEAM_ANIMAL_TEECOW  && m_pPlayer->GetTeam() != TEAM_ANIMAL_TEEPIG && PlayerFound && m_Core.m_Vel.y > GameServer()->Tuning()->m_Gravity)
-        m_Input.m_Jump = 1;
+    if (m_pPlayer->GetTeam() != TEAM_ENEMY_ZOMBITEE && m_pPlayer->GetTeam() != TEAM_ANIMAL_TEECOW  && m_pPlayer->GetTeam() != TEAM_ANIMAL_TEEPIG && m_Core.m_Vel.y > GameServer()->Tuning()->m_Gravity)
+    {
+    	if (m_BotClientIDFix != -1)
+    	{
+    		CPlayer *pPlayer = GameServer()->m_apPlayers[m_BotClientIDFix];
+    		if (pPlayer && pPlayer->GetCharacter() && m_Pos.y > pPlayer->GetCharacter()->m_Pos.y)
+    			m_Input.m_Jump = 1;
+    		else
+    			m_Input.m_Jump = 0;
+    	}
+    	else
+    		m_Input.m_Jump = 1;
+    }
 
     // Fluids
     if (GameServer()->m_BlockManager.IsFluid(GameServer()->Collision()->GetMineTeeTileAt(m_Pos)))
