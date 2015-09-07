@@ -117,7 +117,7 @@ void CGameControllerMineTee::Tick()
                             }
                         }
                         // Rose & Daisy Generates a Ground Cultivate Dry
-                        else if (pTempTiles[c].m_Index == CBlockManager::ROSE || pTempTiles[c].m_Index == CBlockManager::DAISY)
+                        /*else if (pTempTiles[c].m_Index == CBlockManager::ROSE || pTempTiles[c].m_Index == CBlockManager::DAISY)
                         {
                             int indexT = (y+1)*pTmap->m_Width+x;
                             if (pTempTiles[indexT].m_Index == CBlockManager::DIRT)
@@ -125,7 +125,7 @@ void CGameControllerMineTee::Tick()
                             	GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y+1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::GROUND_CULTIVATION_DRY, 0);
                                 GameServer()->Collision()->ModifTile(vec2(x, y+1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::GROUND_CULTIVATION_DRY, 0);
                             }
-                        }
+                        }*/
                         // Two Beds = One Large Bed
                         else if (pTempTiles[c].m_Index == CBlockManager::BED)
                         {
@@ -180,7 +180,11 @@ void CGameControllerMineTee::Tick()
                             else if (pTempTiles[c].m_Index == CBlockManager::GRASS && !(rand()%20))
                             {
                                 int indexT = (y-1)*pTmap->m_Width+x;
-                                if (pTempTiles[indexT].m_Index != 0 && (pTempTiles[indexT].m_Index < CBlockManager::GRASS_A || pTempTiles[indexT].m_Index > CBlockManager::GRASS_F))
+                                if (pTempTiles[indexT].m_Index != 0 && (pTempTiles[indexT].m_Index < CBlockManager::GRASS_A || pTempTiles[indexT].m_Index > CBlockManager::GRASS_F)
+                                    && pTempTiles[indexT].m_Index != CBlockManager::ROSE
+                                    && pTempTiles[indexT].m_Index != CBlockManager::DAISY
+                                    && pTempTiles[indexT].m_Index != CBlockManager::MUSHROOM_RED
+                                    && pTempTiles[indexT].m_Index != CBlockManager:: MUSHROOM_BROWN)
                                 {
                                     int TileIndex = (pTempTiles[indexT].m_Index == CBlockManager::SNOW)?CBlockManager::DIRT_SNOW:CBlockManager::DIRT;
 
