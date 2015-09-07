@@ -14,8 +14,6 @@ class CCollision
 	class CLayers *m_pLayers;
 	class CBlockManager *m_pBlockManager; // MineTee
 
-	class CMapGen *m_pMapGen;
-
 	bool IsTileSolid(int x, int y, bool nocoll = true); // MineTee
 	int GetTile(int x, int y);
 

@@ -628,7 +628,7 @@ void CGameContext::OnClientEnter(int ClientID)
         SendChatTarget(ClientID, " ");
         SendChatTarget(ClientID, " ");
         SendChatTarget(ClientID, " ");
-        SendChatTarget(ClientID, "-- WELCOME TO MINETEE v"MINETEE_VERSION);
+        SendChatTarget(ClientID, "-- WELCOME TO MINETEE v" MINETEE_VERSION);
         SendChatTarget(ClientID, "=================================");
         SendChatTarget(ClientID, " Say '/help' or '/cmdlist' to view available commands.");
         SendChatTarget(ClientID, " Say '/info craft' to view info about crafting");

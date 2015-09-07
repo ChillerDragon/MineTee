@@ -143,6 +143,9 @@ function build(settings)
 	--settings.objdir = Path("objs")
 	settings.cc.Output = Intermediate_Output
 
+	-- c++11 support \o/
+	settings.cc.flags:Add("-std=c++11")
+
 	if config.compiler.driver == "cl" then
 		settings.cc.flags:Add("/wd4244")
 	else
