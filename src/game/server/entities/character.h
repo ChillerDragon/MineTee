@@ -171,7 +171,7 @@ private:
 	float TimerFluidDamage;
 	bool inWater;
 	void Construct();
-	void BotIA();
+	void TickBotAI();
 	//
 };
 

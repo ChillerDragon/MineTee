@@ -264,11 +264,11 @@ function build(settings)
 	end
 
 	-- build client, server, version server and master server
-	client_exe = Link(client_settings, "teeworlds", game_shared, game_client,
+	client_exe = Link(client_settings, "tw_minetee", game_shared, game_client,
 		engine, client, game_editor, zlib, pnglite, wavpack, jsonparser,
 		client_link_other, client_osxlaunch)
 
-	server_exe = Link(server_settings, "teeworlds_srv", engine, server,
+	server_exe = Link(server_settings, "tw_minetee_srv", engine, server,
 		game_shared, game_server, zlib, jsonparser, server_link_other)
 
 	serverlaunch = {}

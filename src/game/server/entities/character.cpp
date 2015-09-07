@@ -864,7 +864,7 @@ void CCharacter::Tick()
 {
 	// MineTee
 	if (m_pPlayer->IsBot())
-        BotIA();
+		TickBotAI();
 
 	if(m_pPlayer->m_ForceBalanced)
 	{
@@ -1048,11 +1048,9 @@ bool CCharacter::IncreaseArmor(int Amount)
 
 void CCharacter::Die(int Killer, int Weapon)
 {
-	// we got to wait 0.5 secs before respawning
-	if (m_pPlayer->IsBot()) // MineTee
-        m_pPlayer->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*20;
-	else
-        m_pPlayer->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()/2;
+	// we got to wait 0.5 secs or 20 if bot before respawning
+	float RespawnTick = (m_pPlayer->IsBot())?Server()->TickSpeed()*20:Server()->TickSpeed()/2; // MineTee
+    m_pPlayer->m_RespawnTick = Server()->Tick()+RespawnTick;
 	int ModeSpecial = GameServer()->m_pController->OnCharacterDeath(this, GameServer()->m_apPlayers[Killer], Weapon);
 
 	char aBuf[256];
@@ -1390,7 +1388,7 @@ bool CCharacter::IsInventoryFull()
     return true;
 }
 
-void CCharacter::BotIA()
+void CCharacter::TickBotAI()
 {
     //Sounds
     if (Server()->Tick() - m_BotTimeLastSound > Server()->TickSpeed()*5.0f)
