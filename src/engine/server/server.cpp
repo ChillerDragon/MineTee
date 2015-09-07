@@ -739,24 +739,31 @@ int CServer::DelClientCallback(int ClientID, const char *pReason, void *pUser)
 
 void CServer::SendMap(int ClientID)
 {
-	if (ClientID >= MAX_CLIENTS-MAX_BOTS) // MinTee
+	// MineTee
+	if (ClientID >= MAX_CLIENTS-MAX_BOTS)
 		return;
 
-    if (!GameServer()->OnSendMap(ClientID)) // MineTee
-    {
-        m_aClientsMapInfo[ClientID].m_CurrentMapCrc = m_CurrentMapCrc;
-        m_aClientsMapInfo[ClientID].m_CurrentMapSize = m_CurrentMapSize;
-        mem_free(m_aClientsMapInfo[ClientID].m_pCurrentMapData);
-
-        m_aClientsMapInfo[ClientID].m_pCurrentMapData = (unsigned char *)mem_alloc(m_CurrentMapSize, 1);
-        mem_copy(m_aClientsMapInfo[ClientID].m_pCurrentMapData, m_pCurrentMapData, m_CurrentMapSize);
-    }
-
-	CMsgPacker Msg(NETMSG_MAP_CHANGE);
-	Msg.AddString(GetMapName(), 0);
-	Msg.AddInt(m_aClientsMapInfo[ClientID].m_CurrentMapCrc); // MineTee
-	Msg.AddInt(m_aClientsMapInfo[ClientID].m_CurrentMapSize); // MineTee
-	SendMsgEx(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH, ClientID, true);
+	if (str_find_nocase(GameServer()->GameType(), "minetee"))
+	{
+		if (GameServer()->OnSendMap(ClientID))
+		{
+			CMsgPacker Msg(NETMSG_MAP_CHANGE);
+			Msg.AddString(GetMapName(), 0);
+			Msg.AddInt(m_aClientsMapInfo[ClientID].m_CurrentMapCrc);
+			Msg.AddInt(m_aClientsMapInfo[ClientID].m_CurrentMapSize);
+			SendMsgEx(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH, ClientID, true);
+		}
+		else
+			m_NetServer.Drop(ClientID, "Ooops! Internal Server Fail!");
+	}
+	else
+	{
+		CMsgPacker Msg(NETMSG_MAP_CHANGE);
+		Msg.AddString(GetMapName(), 0);
+		Msg.AddInt(m_CurrentMapCrc);
+		Msg.AddInt(m_CurrentMapSize);
+		SendMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH, ClientID);
+	}
 }
 
 void CServer::SendConnectionReady(int ClientID)

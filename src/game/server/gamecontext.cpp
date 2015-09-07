@@ -1788,7 +1788,10 @@ bool CGameContext::OnSendMap(int ClientID) // MineTee
         CDataFileWriter fileWrite;
         char aMapFile[255];
         str_format(aMapFile, sizeof(aMapFile), "maps/%s_tmp.map", Server()->GetMapName());
-        fileWrite.SaveMap(pStorage, pMap->GetFileReader(), aMapFile);
+        if (!fileWrite.SaveMap(pStorage, pMap->GetFileReader(), aMapFile))
+		{
+			return false;
+		}
 
 		IOHANDLE File = Storage()->OpenFile(aMapFile, IOFLAG_READ, IStorage::TYPE_ALL);
         // take the CRC of the file and store it
@@ -1818,8 +1821,8 @@ bool CGameContext::OnSendMap(int ClientID) // MineTee
 		mem_free(Server()->m_aClientsMapInfo[ClientID].m_pCurrentMapData);
 		Server()->m_aClientsMapInfo[ClientID].m_pCurrentMapData = (unsigned char *)mem_alloc(Server()->m_aClientsMapInfo[ClientID].m_CurrentMapSize, 1);
 		io_read(File, Server()->m_aClientsMapInfo[ClientID].m_pCurrentMapData, Server()->m_aClientsMapInfo[ClientID].m_CurrentMapSize);
-		io_close(File);
 
+		io_close(File);
 		fs_remove(aMapFile);
 	}
 
