@@ -751,6 +751,7 @@ void CServer::SendMap(int ClientID)
 			Msg.AddString(GetMapName(), 0);
 			Msg.AddInt(m_aClientsMapInfo[ClientID].m_CurrentMapCrc);
 			Msg.AddInt(m_aClientsMapInfo[ClientID].m_CurrentMapSize);
+			Msg.AddInt(1);
 			SendMsgEx(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH, ClientID, true);
 		}
 		else

@@ -1032,6 +1032,7 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 			const char *pMap = Unpacker.GetString(CUnpacker::SANITIZE_CC|CUnpacker::SKIP_START_WHITESPACES);
 			int MapCrc = Unpacker.GetInt();
 			int MapSize = Unpacker.GetInt();
+			int IsMineTee = Unpacker.GetInt(); // MineTee
 			const char *pError = 0;
 
 			if(Unpacker.Error())
@@ -1063,7 +1064,10 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 				}
 				else
 				{
-					str_format(m_aMapdownloadFilename, sizeof(m_aMapdownloadFilename), "downloadedmaps/%s_%08x.map", pMap, MapCrc);
+					if (IsMineTee)
+						str_format(m_aMapdownloadFilename, sizeof(m_aMapdownloadFilename), "downloadedmaps/mt_%s.map", pMap);
+					else
+						str_format(m_aMapdownloadFilename, sizeof(m_aMapdownloadFilename), "downloadedmaps/%s_%08x.map", pMap, MapCrc);
 
 					char aBuf[256];
 					str_format(aBuf, sizeof(aBuf), "starting to download map to '%s'", m_aMapdownloadFilename);
