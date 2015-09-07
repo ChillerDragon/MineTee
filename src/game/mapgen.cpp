@@ -137,7 +137,7 @@ void CMapGen::GenerateTrees()
 			{
 				for(int w = 0; w < TreeWidth; w++)
 				{
-					if(GameServer()->Collision()->GetMineTeeTileAt(vec2((i-(w-(TreeWidth/2)))*32, (TempTileY-(TreeHeight-(TreeHeight/2.5f)+h))*32)) == CBlockManager::WOOD_BROWN)
+					if(GameServer()->Collision()->GetMineTeeTileAt(vec2((i-(w-(TreeWidth/2)))*32, (TempTileY-(TreeHeight-(TreeHeight/2.5f)+h))*32)) != CBlockManager::AIR)
 						continue;
 
 					GameServer()->Collision()->CreateTile(vec2(i-(w-(TreeWidth/2)), TempTileY-(TreeHeight-(TreeHeight/2.5f)+h)), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::LEAFS, 0);
