@@ -19,6 +19,7 @@ class CMapGen
 
 	void GenerateBasicTerrain();
 	void GenerateTrees();
+
 public:
 	CMapGen(CGameWorld *pGameWorld);
 

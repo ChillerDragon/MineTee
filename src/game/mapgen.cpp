@@ -30,6 +30,10 @@ void CMapGen::GenerateMap()
 		GameServer()->Collision()->CreateTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeBGLayerIndex(), 0, 0);
 	}
 
+	/*float x     = 0.123f;                   // Define a float coordinate
+    float noise = SimplexNoise::noise(x);   // Get the noise value for the coordinate
+    dbg_msg("ss", "%f", noise);*/
+
 	// generate the world
 	GenerateBasicTerrain();
 	GenerateTrees();
@@ -43,16 +47,17 @@ void CMapGen::GenerateBasicTerrain()
 	for(int i = 0; i < GameServer()->Layers()->MineTeeLayer()->m_Width; i++)
 	{
 		TilePosX = i;
-		TilePosY -= (rand()%3)-1;
+		if(i%2 || !rand()%3)
+			TilePosY -= (rand()%3)-1;
 
-		if(TilePosY - DIRT_LEVEL < LEVEL_TOLERANCE*-1)
+		if(TilePosY - DIRT_LEVEL < LEVEL_TOLERANCE*-1*1.5f)
 			TilePosY++;
-		else if(TilePosY - DIRT_LEVEL > LEVEL_TOLERANCE)
+		else if(TilePosY - DIRT_LEVEL > LEVEL_TOLERANCE*1.5f)
 			TilePosY--;
 
 		GameServer()->Collision()->CreateTile(vec2(TilePosX, TilePosY), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::GRASS, 0);
 		
-		// fill the tiles under the random tile
+		// fill the tiles under the defined tile
 		int TempTileY = TilePosY+1;
 		while(TempTileY < GameServer()->Layers()->MineTeeLayer()->m_Height)
 		{
