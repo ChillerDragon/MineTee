@@ -33,12 +33,13 @@ void CMapGen::GenerateMap()
 
 	// generate the world
 	GenerateBasicTerrain();
+	GenerateCaves();
 	GenerateTrees();
 }
 
 void CMapGen::GenerateBasicTerrain()
 {
-	// initial Y
+	// generate the surface, 1d noise
 	int TilePosY = DIRT_LEVEL;
 	int TilePosX = 0;
 	for(int i = 0; i < GameServer()->Layers()->MineTeeLayer()->m_Width; i++)
@@ -61,8 +62,7 @@ void CMapGen::GenerateBasicTerrain()
 		}
 	}
 
-	// initial Y
-	TilePosY = STONE_LEVEL;
+	// fill the underground with stones
 	for(int i = 0; i < GameServer()->Layers()->MineTeeLayer()->m_Width; i++)
 	{
 		TilePosX = i;
@@ -85,12 +85,29 @@ void CMapGen::GenerateBasicTerrain()
 	}
 }
 
+void CMapGen::GenerateCaves()
+{
+	// cut in the caves with a 2d perlin noise
+	for(int x = 0; x < GameServer()->Layers()->MineTeeLayer()->m_Width; x++)
+	{
+		for(int y = STONE_LEVEL; y < GameServer()->Layers()->MineTeeLayer()->m_Height; y++)
+		{
+			float frequency = 28.0f / (float)GameServer()->Layers()->MineTeeLayer()->m_Width;
+			float noise = m_pNoise->noise((float)x * frequency, (float)y * frequency);
+	
+			if(noise > 0.5f)
+				GameServer()->Collision()->CreateTile(vec2(x, y), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::AIR, 0);
+		}
+	}
+}
+
 void CMapGen::GenerateTrees()
 {
 	int LastTreeX = 0;
 
 	for(int i = 10; i < GameServer()->Layers()->MineTeeLayer()->m_Width-10; i++)
 	{
+		// trees like to spawn in groups
 		if((rand()%64 == 0 && abs(LastTreeX - i) >= 8) || (abs(LastTreeX - i) <= 8 && abs(LastTreeX - i) >= 3 && rand()%8 == 0))
 		{
 			int TempTileY = 0;

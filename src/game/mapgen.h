@@ -21,6 +21,7 @@ class CMapGen
 	class PerlinOctave *m_pNoise;
 
 	void GenerateBasicTerrain();
+	void GenerateCaves();
 	void GenerateTrees();
 
 public:
