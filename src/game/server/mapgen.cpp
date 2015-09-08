@@ -53,6 +53,7 @@ void CMapGen::GenerateMap()
 	// terrain
 	GenerateBasicTerrain();
 	GenerateCaves();
+	GenerateWater();
 
 	// vegetation
 	GenerateFlowers();
@@ -116,11 +117,25 @@ void CMapGen::GenerateCaves()
 	{
 		for(int y = STONE_LEVEL; y < m_pLayers->MineTeeLayer()->m_Height; y++)
 		{
-			float frequency = 28.0f / (float)m_pLayers->MineTeeLayer()->m_Width;
+			float frequency = 32.0f / (float)m_pLayers->MineTeeLayer()->m_Width;
 			float noise = m_pNoise->Noise((float)x * frequency, (float)y * frequency);
 	
-			if(noise > 0.5f)
+			if(noise > 0.4f)
 				m_pCollision->ModifTile(vec2(x, y), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::AIR, 0);
+		}
+	}
+}
+
+void CMapGen::GenerateWater()
+{
+	for(int x = 0; x < m_pLayers->MineTeeLayer()->m_Width; x++)
+	{
+		for(int y = WATER_LEVEL_MAX; y <= WATER_LEVEL_MIN; y++)
+		{
+			if(m_pCollision->GetMineTeeTileAt(vec2(x*32, y*32)) == CBlockManager::AIR)
+			{
+				m_pCollision->ModifTile(vec2(x, y), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::WATER_D, 0);
+			}
 		}
 	}
 }

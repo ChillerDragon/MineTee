@@ -8,6 +8,8 @@
 enum
 {
 	DIRT_LEVEL = 60,
+	WATER_LEVEL_MAX = 75,
+	WATER_LEVEL_MIN = 90,
 	STONE_LEVEL = 90,
 
 	LEVEL_TOLERANCE = 10
@@ -21,6 +23,7 @@ class CMapGen
 
 	void GenerateBasicTerrain();
 	void GenerateCaves();
+	void GenerateWater();
 	void GenerateFlowers();
 	void GenerateMushrooms();
 	void GenerateTrees();
