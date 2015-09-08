@@ -52,6 +52,12 @@ void CMapGen::GenerateMap()
 
 	// terrain
 	GenerateBasicTerrain();
+	// ores
+	GenerateOre(CBlockManager::COAL_ORE, 256.0f, COAL_LEVEL, 10);
+	//GenerateOre(CBlockManager::IRON_ORE, 512.0f, 0.5f);
+	//GenerateOre(CBlockManager::GOLD_ORE, 540.0f, 0.8f);
+	//GenerateOre(CBlockManager::DIAMOND_ORE, 1024.0f, 0.5f);
+	// /ores
 	GenerateCaves();
 	GenerateWater();
 
@@ -110,6 +116,23 @@ void CMapGen::GenerateBasicTerrain()
 	}
 }
 
+void CMapGen::GenerateOre(int Type, float F, int Level, int Radius)
+{
+	for(int x = 0; x < m_pLayers->MineTeeLayer()->m_Width; x++)
+	{
+		for(int y = STONE_LEVEL; y < m_pLayers->MineTeeLayer()->m_Height; y++)
+		{
+			float frequency = F / (float)m_pLayers->MineTeeLayer()->m_Width;
+			float noise = m_pNoise->Noise((float)x * frequency, (float)y * frequency);
+
+			float Threshold = 1.0f / ((abs(y - Level) / Radius));
+
+			if(noise < Threshold)
+				m_pCollision->ModifTile(vec2(x, y), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), Type, 0);
+		}
+	}
+}
+
 void CMapGen::GenerateCaves()
 {
 	// cut in the caves with a 2d perlin noise
@@ -134,7 +157,7 @@ void CMapGen::GenerateWater()
 		{
 			if(m_pCollision->GetMineTeeTileAt(vec2(x*32, y*32)) == CBlockManager::AIR)
 			{
-				m_pCollision->ModifTile(vec2(x, y), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::WATER_D, 0);
+				m_pCollision->ModifTile(vec2(x, y), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::WATER_A, 0);
 			}
 		}
 	}
