@@ -1,7 +1,7 @@
 #include <algorithm>
+#include <ctime> // time()
 
 #include "noise.h"
-#include <ctime> // time()
 
 double fade(double t)
 {

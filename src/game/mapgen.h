@@ -2,9 +2,8 @@
 #define GAME_MAPGEN_H
 
 #include <base/vmath.h>
+#include <engine/shared/noise.h>
 #include <game/server/gameworld.h>
-
-#include "noise.h"
 
 enum
 {
