@@ -202,35 +202,6 @@ Objects = [
 		NetIntAny("m_X"),
 		NetIntAny("m_Y"),
 	]),
-		
-	# MineTee
-	NetObject("Inventory", [
-		NetIntRange("m_Item1", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'),
-		NetIntRange("m_Item2", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'),
-		NetIntRange("m_Item3", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'),
-		NetIntRange("m_Item4", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'),
-		NetIntRange("m_Item5", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'),
-		NetIntRange("m_Item6", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'),
-		NetIntRange("m_Item7", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'),
-		NetIntRange("m_Item8", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'),
-		NetIntRange("m_Item9", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'),
-		
-		NetIntRange("m_Ammo1", 0, 255),
-		NetIntRange("m_Ammo2", 0, 255),
-		NetIntRange("m_Ammo3", 0, 255),
-		NetIntRange("m_Ammo4", 0, 255),
-		NetIntRange("m_Ammo5", 0, 255),
-		NetIntRange("m_Ammo6", 0, 255),
-		NetIntRange("m_Ammo7", 0, 255),
-		NetIntRange("m_Ammo8", 0, 255),
-		NetIntRange("m_Ammo9", 0, 255),
-		NetIntRange("m_Selected", 0, 8),
-		
-		# 4*6 = 24 charachters
-		NetIntAny("m_SelectedName0"), NetIntAny("m_SelectedName1"), NetIntAny("m_SelectedName2"),
-		NetIntAny("m_SelectedName3"), NetIntAny("m_SelectedName4"), NetIntAny("m_SelectedName5"),
-	]),
-
 	## Events
 
 	NetEvent("Common", [
@@ -261,6 +232,33 @@ Objects = [
 		
 	# MineTee
 	NetEvent("Tombstone:Common", []),
+	
+	NetObject("Inventory", [
+		NetIntRange("m_Item1", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'),
+		NetIntRange("m_Item2", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'),
+		NetIntRange("m_Item3", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'),
+		NetIntRange("m_Item4", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'),
+		NetIntRange("m_Item5", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'),
+		NetIntRange("m_Item6", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'),
+		NetIntRange("m_Item7", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'),
+		NetIntRange("m_Item8", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'),
+		NetIntRange("m_Item9", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'),
+		
+		NetIntRange("m_Ammo1", 0, 255),
+		NetIntRange("m_Ammo2", 0, 255),
+		NetIntRange("m_Ammo3", 0, 255),
+		NetIntRange("m_Ammo4", 0, 255),
+		NetIntRange("m_Ammo5", 0, 255),
+		NetIntRange("m_Ammo6", 0, 255),
+		NetIntRange("m_Ammo7", 0, 255),
+		NetIntRange("m_Ammo8", 0, 255),
+		NetIntRange("m_Ammo9", 0, 255),
+		NetIntRange("m_Selected", 0, 8),
+		
+		# 4*6 = 24 charachters
+		NetIntAny("m_SelectedName0"), NetIntAny("m_SelectedName1"), NetIntAny("m_SelectedName2"),
+		NetIntAny("m_SelectedName3"), NetIntAny("m_SelectedName4"), NetIntAny("m_SelectedName5"),
+	]),
 ]
 
 Messages = [
