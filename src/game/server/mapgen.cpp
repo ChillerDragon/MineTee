@@ -46,13 +46,20 @@ void CMapGen::GenerateMap()
 		m_pCollision->ModifTile(TilePos, m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeBGLayerIndex(), 0, 0);
 	}
 
+	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	/* ~~~ Generate the world ~~~ */
+	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+	// terrain
 	GenerateBasicTerrain();
 	GenerateCaves();
+
+	// vegetation
 	GenerateFlowers();
 	GenerateMushrooms();
 	GenerateTrees();
 
+	// misc
 	GenerateBorder(); // as long as there are no infinite (chunked) maps
 }
 
@@ -61,11 +68,9 @@ void CMapGen::GenerateBasicTerrain()
 	// generate the surface, 1d noise
 	int TilePosY = DIRT_LEVEL;
 	int TilePosX = 0;
-	for(int i = 0; i < m_pLayers->MineTeeLayer()->m_Width; i++)
+	for(int x = 0; x < m_pLayers->MineTeeLayer()->m_Width; x++)
 	{
-		TilePosX = i;
-		/*if(i%2 || !rand()%3)
-			TilePosY -= (rand()%3)-1;*/
+		TilePosX = x;
 		
 		float frequency = 25.0f / (float)m_pLayers->MineTeeLayer()->m_Width;
 		TilePosY = m_pNoise->Noise((float) TilePosX * frequency) * (m_pLayers->MineTeeLayer()->m_Height/6) + DIRT_LEVEL;
@@ -82,9 +87,9 @@ void CMapGen::GenerateBasicTerrain()
 	}
 
 	// fill the underground with stones
-	for(int i = 0; i < m_pLayers->MineTeeLayer()->m_Width; i++)
+	for(int x = 0; x < m_pLayers->MineTeeLayer()->m_Width; x++)
 	{
-		TilePosX = i;
+		TilePosX = x;
 		TilePosY -= (rand()%3)-1;
 		
 		if(TilePosY - STONE_LEVEL < LEVEL_TOLERANCE*-1)
@@ -176,13 +181,13 @@ void CMapGen::GenerateTrees()
 {
 	int LastTreeX = 0;
 
-	for(int i = 10; i < m_pLayers->MineTeeLayer()->m_Width-10; i++)
+	for(int x = 10; x < m_pLayers->MineTeeLayer()->m_Width-10; x++)
 	{
 		// trees like to spawn in groups
-		if((rand()%64 == 0 && abs(LastTreeX - i) >= 8) || (abs(LastTreeX - i) <= 8 && abs(LastTreeX - i) >= 3 && rand()%8 == 0))
+		if((rand()%64 == 0 && abs(LastTreeX - x) >= 8) || (abs(LastTreeX - x) <= 8 && abs(LastTreeX - x) >= 3 && rand()%8 == 0))
 		{
 			int TempTileY = 0;
-			while(m_pCollision->GetMineTeeTileAt(vec2(i*32, (TempTileY+1)*32)) != CBlockManager::GRASS && TempTileY < m_pLayers->MineTeeLayer()->m_Height)
+			while(m_pCollision->GetMineTeeTileAt(vec2(x*32, (TempTileY+1)*32)) != CBlockManager::GRASS && TempTileY < m_pLayers->MineTeeLayer()->m_Height)
 			{
 				TempTileY++;
 			}
@@ -190,16 +195,16 @@ void CMapGen::GenerateTrees()
 			if(TempTileY >= m_pLayers->MineTeeLayer()->m_Height)
 				return;
 
-			LastTreeX = i;
+			LastTreeX = x;
 
 			// plant the tree \o/
 			int TreeHeight = 4 + (rand()%5);
 			for(int h = 0; h <= TreeHeight; h++)
-				m_pCollision->ModifTile(vec2(i, TempTileY-h), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::WOOD_BROWN, 0);
+				m_pCollision->ModifTile(vec2(x, TempTileY-h), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::WOOD_BROWN, 0);
 		
 			// add the leafs
 			for(int l = 0; l <= TreeHeight/2.5f; l++)
-				m_pCollision->ModifTile(vec2(i, TempTileY - TreeHeight - l), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::LEAFS, 0);
+				m_pCollision->ModifTile(vec2(x, TempTileY - TreeHeight - l), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::LEAFS, 0);
 		
 			int TreeWidth = TreeHeight/1.2f;
 			if(!(TreeWidth%2)) // odd numbers please
@@ -208,10 +213,10 @@ void CMapGen::GenerateTrees()
 			{
 				for(int w = 0; w < TreeWidth; w++)
 				{
-					if(m_pCollision->GetMineTeeTileAt(vec2((i-(w-(TreeWidth/2)))*32, (TempTileY-(TreeHeight-(TreeHeight/2.5f)+h))*32)) != CBlockManager::AIR)
+					if(m_pCollision->GetMineTeeTileAt(vec2((x-(w-(TreeWidth/2)))*32, (TempTileY-(TreeHeight-(TreeHeight/2.5f)+h))*32)) != CBlockManager::AIR)
 						continue;
 
-					m_pCollision->ModifTile(vec2(i-(w-(TreeWidth/2)), TempTileY-(TreeHeight-(TreeHeight/2.5f)+h)), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::LEAFS, 0);
+					m_pCollision->ModifTile(vec2(x-(w-(TreeWidth/2)), TempTileY-(TreeHeight-(TreeHeight/2.5f)+h)), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::LEAFS, 0);
 				}
 			}
 
@@ -224,9 +229,6 @@ void CMapGen::GenerateBorder()
 	// draw a boarder all around the map
 	for(int i = 0; i < m_pLayers->MineTeeLayer()->m_Width; i++)
 	{
-		// top border
-		//GameServer()->Collision()->ModifTile(vec2(i, 0), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::BEDROCK, 0);
-		
 		// bottom border
 		m_pCollision->ModifTile(vec2(i, m_pLayers->MineTeeLayer()->m_Height-1), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::BEDROCK, 0);
 	}
