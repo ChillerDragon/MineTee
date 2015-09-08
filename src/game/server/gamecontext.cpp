@@ -1587,8 +1587,9 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 
 	m_Layers.Init(Kernel());
 	m_Collision.Init(&m_Layers, &m_BlockManager);
-
-	m_pMapGen = new CMapGen(&m_World);
+	m_MapGen.Init(&m_Layers, &m_Collision); // MineTee
+	if (g_Config.m_SvMapGeneration) // generate a random world if wanted
+		m_MapGen.GenerateMap();
 
 	// reset everything here
 	//world = new GAMEWORLD;
@@ -1609,19 +1610,11 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 	CMapItemLayerTilemap *pTileMap = m_Layers.GameLayer();
 	CTile *pTiles = (CTile *)Kernel()->RequestInterface<IMap>()->GetData(pTileMap->m_Data);
 
-
-
-
 	/*
 	num_spawn_points[0] = 0;
 	num_spawn_points[1] = 0;
 	num_spawn_points[2] = 0;
 	*/
-
-	// generate a random world if wanted
-	if(g_Config.m_SvMapGeneration)
-		m_pMapGen->GenerateMap();
-
 
 	for(int y = 0; y < pTileMap->m_Height; y++)
 	{

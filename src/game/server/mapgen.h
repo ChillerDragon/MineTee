@@ -1,9 +1,9 @@
 #ifndef GAME_MAPGEN_H
 #define GAME_MAPGEN_H
 
-#include <base/vmath.h>
 #include <engine/shared/noise.h>
-#include <game/server/gameworld.h>
+#include <game/layers.h>
+#include <game/collision.h>
 
 enum
 {
@@ -15,8 +15,8 @@ enum
 
 class CMapGen
 {
-	class CGameWorld *m_pGameWorld;
-	class CGameContext *GameServer() { return m_pGameWorld->GameServer(); }
+	class CLayers *m_pLayers;
+	CCollision *m_pCollision;
 	class CPerlinOctave *m_pNoise;
 
 	void GenerateBasicTerrain();
@@ -28,9 +28,11 @@ class CMapGen
 	void GenerateBorder();
 
 public:
-	CMapGen(CGameWorld *pGameWorld);
+	CMapGen();
+	~CMapGen();
 
 	void GenerateMap();
+	void Init(CLayers *pLayers, CCollision *pCollision);
 };
 
 #endif

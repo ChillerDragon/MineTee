@@ -10,12 +10,12 @@
 
 #include <game/layers.h>
 #include <game/voting.h>
-#include <game/mapgen.h>
 
 #include "eventhandler.h"
 #include "gamecontroller.h"
 #include "gameworld.h"
 #include "player.h"
+#include "mapgen.h" // MineTee
 #include "../block_manager.h" // MineTee
 
 /*
@@ -45,11 +45,10 @@ class CGameContext : public IGameServer
 	class IConsole *m_pConsole;
 	CLayers m_Layers;
 	CCollision m_Collision;
+	CMapGen m_MapGen; // MineTee
 	CNetObjHandler m_NetObjHandler;
 	CTuningParams m_Tuning;
 	IStorage *m_pStorage; // MineTee
-
-	CMapGen *m_pMapGen;
 
 	static void ConTuneParam(IConsole::IResult *pResult, void *pUserData);
 	static void ConTuneReset(IConsole::IResult *pResult, void *pUserData);
@@ -82,8 +81,7 @@ public:
 	CTuningParams *Tuning() { return &m_Tuning; }
 	CLayers *Layers() { return &m_Layers; } // MineTee
 	IStorage *Storage() const { return m_pStorage; } // MineTee
-
-	CMapGen *MapGen() { return m_pMapGen; }
+	CMapGen *MapGen() { return &m_MapGen; } // MineTee
 
 	CGameContext();
 	~CGameContext();
