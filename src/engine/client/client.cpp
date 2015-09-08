@@ -1032,11 +1032,14 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 			const char *pMap = Unpacker.GetString(CUnpacker::SANITIZE_CC|CUnpacker::SKIP_START_WHITESPACES);
 			int MapCrc = Unpacker.GetInt();
 			int MapSize = Unpacker.GetInt();
-			int IsMineTee = Unpacker.GetInt(); // MineTee
 			const char *pError = 0;
 
 			if(Unpacker.Error())
 				return;
+
+			int IsMineTee = Unpacker.GetInt(); // MineTee
+			if(Unpacker.Error())
+				IsMineTee = 0;
 
 			// check for valid standard map
 			if(!m_MapChecker.IsMapValid(pMap, MapCrc, MapSize))

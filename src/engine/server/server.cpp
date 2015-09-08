@@ -743,28 +743,17 @@ void CServer::SendMap(int ClientID)
 	if (ClientID >= MAX_CLIENTS-MAX_BOTS)
 		return;
 
-	if (str_find_nocase(GameServer()->GameType(), "minetee"))
-	{
-		if (GameServer()->OnSendMap(ClientID))
-		{
-			CMsgPacker Msg(NETMSG_MAP_CHANGE);
-			Msg.AddString(GetMapName(), 0);
-			Msg.AddInt(m_aClientsMapInfo[ClientID].m_CurrentMapCrc);
-			Msg.AddInt(m_aClientsMapInfo[ClientID].m_CurrentMapSize);
-			Msg.AddInt(1);
-			SendMsgEx(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH, ClientID, true);
-		}
-		else
-			m_NetServer.Drop(ClientID, "Ooops! Internal Server Fail!");
-	}
-	else
+	if (GameServer()->OnSendMap(ClientID))
 	{
 		CMsgPacker Msg(NETMSG_MAP_CHANGE);
 		Msg.AddString(GetMapName(), 0);
-		Msg.AddInt(m_CurrentMapCrc);
-		Msg.AddInt(m_CurrentMapSize);
-		SendMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH, ClientID);
+		Msg.AddInt(m_aClientsMapInfo[ClientID].m_CurrentMapCrc);
+		Msg.AddInt(m_aClientsMapInfo[ClientID].m_CurrentMapSize);
+		Msg.AddInt(1);
+		SendMsgEx(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH, ClientID, true);
 	}
+	else
+		m_NetServer.Drop(ClientID, "Ooops! Internal Server Fail!");
 }
 
 void CServer::SendConnectionReady(int ClientID)
@@ -1361,21 +1350,28 @@ int CServer::Run()
 				{
 					// new map loaded
 					GameServer()->OnShutdown();
-
-					for(int c = 0; c < MAX_CLIENTS; c++)
-					{
-						if(m_aClients[c].m_State <= CClient::STATE_AUTH)
-							continue;
-
-						SendMap(c);
-						m_aClients[c].Reset();
-						m_aClients[c].m_State = CClient::STATE_CONNECTING;
-					}
-
 					m_GameStartTime = time_get();
 					m_CurrentGameTick = 0;
 					Kernel()->ReregisterInterface(GameServer());
 					GameServer()->OnInit();
+
+					for(int c = 0; c < MAX_CLIENTS; c++)
+					{
+						// MineTee: Broke Vanilla Performance! MineTee need resend the map to ALL users
+						// FIXME: This isn't good for all other gamemodes.
+						if (m_aClients[c].m_State == CClient::STATE_EMPTY)
+							continue;
+
+						if (c >= MAX_CLIENTS-MAX_BOTS)
+							m_aClients[c].Reset();
+						else
+						{
+							SendMap(c);
+							m_aClients[c].Reset();
+							m_aClients[c].m_State = CClient::STATE_CONNECTING;
+						}
+					}
+
 					UpdateServerInfo();
 				}
 				else

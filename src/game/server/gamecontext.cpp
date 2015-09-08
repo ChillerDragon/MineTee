@@ -11,9 +11,6 @@
 #include <game/version.h>
 #include <game/collision.h>
 #include <game/gamecore.h>
-#include "gamemodes/dm.h"
-#include "gamemodes/tdm.h"
-#include "gamemodes/ctf.h"
 #include "gamemodes/mod.h"
 #include "gamemodes/minetee.h" // MineTee
 #include "entities/pickup.h" // MineTee
@@ -1598,16 +1595,11 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 	//players = new CPlayer[MAX_CLIENTS];
 
 	// select gametype
+	// MineTee: Removed other gamemodes!
 	if(str_comp(g_Config.m_SvGametype, "mod") == 0)
 		m_pController = new CGameControllerMOD(this);
-	else if(str_comp(g_Config.m_SvGametype, "ctf") == 0)
-		m_pController = new CGameControllerCTF(this);
-	else if(str_comp(g_Config.m_SvGametype, "tdm") == 0)
-		m_pController = new CGameControllerTDM(this);
-    else if(str_comp_nocase(g_Config.m_SvGametype, "MineTee") == 0) // MineTee
-        m_pController = new CGameControllerMineTee(this);
 	else
-		m_pController = new CGameControllerDM(this);
+		m_pController = new CGameControllerMineTee(this);
 
 	// setup core world
 	//for(int i = 0; i < MAX_CLIENTS; i++)
