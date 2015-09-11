@@ -78,7 +78,7 @@ void CGameControllerMineTee::Tick()
                             int tc = (y+1)*pTmap->m_Width+x;
                             if (pTempTiles[tc].m_Index == 0 || (pTempTiles[tc].m_Index >= CBlockManager::WATER_A && pTempTiles[tc].m_Index < CBlockManager::WATER_C) || (pTempTiles[tc].m_Index >= CBlockManager::LAVA_A && pTempTiles[tc].m_Index < CBlockManager::LAVA_C))
                             {
-                                int TileIndex = (pTempTiles[c].m_Index >= CBlockManager::WATER_A && pTempTiles[c].m_Index <= CBlockManager::WATER_D)?CBlockManager::WATER_A:CBlockManager::LAVA_A;
+                                int TileIndex = (pTempTiles[c].m_Index >= CBlockManager::WATER_A && pTempTiles[c].m_Index <= CBlockManager::WATER_D)?CBlockManager::WATER_C:CBlockManager::LAVA_C;
 
                                 GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y+1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0);
                                 GameServer()->Collision()->ModifTile(vec2(x, y+1), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0);

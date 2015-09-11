@@ -388,7 +388,7 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
                     }
 
                     IGraphics::CQuadItem QuadItem(x*Scale, y*Scale, Scale, Scale);
-                    if (Index == CBlockManager::WATER_A || CBlockManager::LAVA_A)
+                    if (Index == CBlockManager::WATER_A || Index == CBlockManager::LAVA_A)
                         QuadItem = IGraphics::CQuadItem(x*Scale, y*Scale+(Scale-Scale/4), Scale, Scale/4);
                     else if (Index == CBlockManager::WATER_B || Index == CBlockManager::LAVA_B)
                         QuadItem = IGraphics::CQuadItem(x*Scale, y*Scale+Scale/2, Scale, Scale/2);
