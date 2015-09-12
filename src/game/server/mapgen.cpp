@@ -53,11 +53,11 @@ void CMapGen::GenerateMap()
 	// terrain
 	GenerateBasicTerrain();
 	// ores
-	GenerateOre(CBlockManager::COAL_ORE, 256.0f, COAL_LEVEL, 10);
-	//GenerateOre(CBlockManager::IRON_ORE, 512.0f, 0.5f);
-	//GenerateOre(CBlockManager::GOLD_ORE, 540.0f, 0.8f);
-	//GenerateOre(CBlockManager::DIAMOND_ORE, 1024.0f, 0.5f);
-	// /ores
+	GenerateOre(CBlockManager::COAL_ORE, 200.0f, COAL_LEVEL, 50, 4);
+	GenerateOre(CBlockManager::IRON_ORE, 320.0f, IRON_LEVEL, 30, 2);
+	GenerateOre(CBlockManager::GOLD_ORE, 350.0f, GOLD_LEVEL, 15, 2);
+	GenerateOre(CBlockManager::DIAMOND_ORE, 680.0f, DIAMOND_LEVEL, 15, 1);
+	// /ores1
 	GenerateCaves();
 	GenerateWater();
 
@@ -116,19 +116,32 @@ void CMapGen::GenerateBasicTerrain()
 	}
 }
 
-void CMapGen::GenerateOre(int Type, float F, int Level, int Radius)
+void CMapGen::GenerateOre(int Type, float F, int Level, int Radius, int ClusterSize)
 {
 	for(int x = 0; x < m_pLayers->MineTeeLayer()->m_Width; x++)
 	{
-		for(int y = STONE_LEVEL; y < m_pLayers->MineTeeLayer()->m_Height; y++)
+		for(int y = Level; y < Level + Radius; y++)
 		{
 			float frequency = F / (float)m_pLayers->MineTeeLayer()->m_Width;
 			float noise = m_pNoise->Noise((float)x * frequency, (float)y * frequency);
 
-			float Threshold = 1.0f / ((abs(y - Level) / Radius));
-
-			if(noise < Threshold)
+			if(noise > 0.85f)
+			{
+				// place the "entry point"-tile
 				m_pCollision->ModifTile(vec2(x, y), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), Type, 0);
+
+				// generate a cluster
+				int CS = ClusterSize + rand()%4;
+
+				for(int cx = x-CS/2; cx < x+CS/2; cx++)
+				{
+					for(int cy = y-CS/2; cy < y+CS/2; cy++)
+					{
+						if(!(rand()%3))
+							m_pCollision->ModifTile(vec2(cx, cy), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), Type, 0);
+					}
+				}
+			}
 		}
 	}
 }

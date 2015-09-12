@@ -13,9 +13,9 @@ enum
 	WATER_LEVEL_MAX = 75,
 	WATER_LEVEL_MIN = 90,
 
-	COAL_LEVEL = 105,
-	IRON_LEVEL = 120,
-	GOLD_LEVEL = 145,
+	COAL_LEVEL = 115,
+	IRON_LEVEL = 125,
+	GOLD_LEVEL = 140,
 	DIAMOND_LEVEL = 160,
 
 	LEVEL_TOLERANCE = 10
@@ -28,7 +28,7 @@ class CMapGen
 	class CPerlinOctave *m_pNoise;
 
 	void GenerateBasicTerrain();
-	void GenerateOre(int Type, float F, int Level, int Radius);
+	void GenerateOre(int Type, float F, int Level, int Radius, int ClusterSize);
 	void GenerateCaves();
 	void GenerateWater();
 	void GenerateFlowers();
