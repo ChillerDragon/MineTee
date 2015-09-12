@@ -22,7 +22,8 @@ bool CBlockManager::Init()
 		long size = io_tell(fileBlocks);
 		io_seek(fileBlocks, 0, IOSEEK_START);
 
-		char aFileBuff[size]={0};
+		char aFileBuff[size];
+		mem_zero(&aFileBuff, sizeof(aFileBuff));
 		if (io_read(fileBlocks, aFileBuff, size))
 		{
 			char aError[256];
