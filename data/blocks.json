@@ -705,10 +705,10 @@
         "name": "NOT USED 203",
     },
     {
-        "name": "WATER IV",
+        "name": "WATER IV"
     },
     {
-        "name": "WATER III",
+        "name": "WATER III"
     },
     {
         "name": "WATER II",
@@ -806,11 +806,11 @@
     },
     {
         "name": "LAVA IV",
-        "lightSize": 1,
+        "lightSize": 1
     },
     {
         "name": "LAVA III",
-        "lightSize": 1,
+        "lightSize": 1
     },
     {
         "name": "LAVA II",
