@@ -51,7 +51,7 @@ void CCollision::Init(class CLayers *pLayers, class CBlockManager *pBlockManager
         {
             int MIndex = m_pMineTeeTiles[i].m_Index;
             if (MIndex == CBlockManager::BEDROCK)
-                m_pTiles[i].m_Index = COLFLAG_SOLID|COLFLAG_NOHOOK;
+                m_pTiles[i].m_Index = TILE_NOHOOK;
         }
         //
 
@@ -299,6 +299,11 @@ void CCollision::ModifTile(vec2 pos, int group, int layer, int index, int flags)
     	{
     		m_pTiles[tpos].m_Index = 0;
     		m_pTiles[tpos].m_Flags = 0;
+    	}
+    	else if (index == CBlockManager::BEDROCK)
+    	{
+            m_pTiles[tpos].m_Index = COLFLAG_SOLID|COLFLAG_NOHOOK;
+            m_pTiles[tpos].m_Flags = 0;
     	}
     	else if (!m_pBlockManager->IsFluid(index))
     	{
