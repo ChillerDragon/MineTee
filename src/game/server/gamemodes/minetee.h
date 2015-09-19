@@ -4,7 +4,6 @@
 #define GAME_SERVER_GAMEMODES_MINETEE_H
 #include <game/server/gamecontroller.h>
 
-#define MAP_CHUNK	32*24
 
 class CGameControllerMineTee : public IGameController
 {
@@ -22,8 +21,8 @@ class CGameControllerMineTee : public IGameController
 		NUM_TILE_POS
 	};
 
-	void ModifTile(vec2 MapPos, int TileIndex);
-	void ModifTile(int x, int y, int TileIndex) { ModifTile(vec2(x, y), TileIndex); }
+	void ModifTile(ivec2 MapPos, int TileIndex);
+	void ModifTile(int x, int y, int TileIndex) { ModifTile(ivec2(x, y), TileIndex); }
 	void GetPlayerArea(int ClientID, int *pStartX, int *pEndX, int *pStartY, int *pEndY);
 
 public:

@@ -2,6 +2,7 @@
 #define ENGINE_SHARED_BLOCK_PROVIDER_H
 #include <engine/external/json-parser/json.h>
 #include <map>
+#include <base/vmath.h>
 #include <base/tl/array.h>
 
 
@@ -168,6 +169,7 @@ public:
     		mem_zero(m_aName, sizeof(m_aName));
     		m_Health = 1;
     		m_LightSize = 0;
+    		m_LightColor = vec3(1.0f, 1.0f, 1.0f);
     		m_CraftNum = 1;
     		m_Gravity = false;
     		m_Damage = false;
@@ -182,6 +184,7 @@ public:
 		char m_aName[24];
 		int m_Health;
 		int m_LightSize;
+		vec3 m_LightColor;
 		int m_CraftNum;
 		bool m_Gravity;
 		bool m_Damage;
@@ -196,7 +199,7 @@ public:
 	CBlockManager();
 	~CBlockManager();
 
-	bool Init();
+	bool Init(char *pBlocksData, int BlocksDataSize);
 
 	bool GetBlockInfo(unsigned char BlockID, CBlockInfo *pBlockInfo);
 	bool IsFluid(int BlockID, int *pType = 0x0);

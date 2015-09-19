@@ -354,8 +354,8 @@ void CCharacter::Construct()
             if (pMTTiles[Index].m_Index != 0 || pMTBGTiles[Index].m_Index == ActiveBlock)
                 return;
 
-        	GameServer()->SendTileModif(ALL_PLAYERS, vec2(TilePos.x, TilePos.y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeBGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0);
-            GameServer()->Collision()->ModifTile(vec2(TilePos.x, TilePos.y), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeBGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0);
+        	GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeBGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0);
+            GameServer()->Collision()->ModifTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeBGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0);
             GameServer()->CreateSound(m_Pos, SOUND_DESTROY_BLOCK);
 
             Builded = true;
@@ -372,8 +372,8 @@ void CCharacter::Construct()
             if (pMTTiles[Index].m_Index != 0 || pMTFGTiles[Index].m_Index == ActiveBlock)
                 return;
 
-        	GameServer()->SendTileModif(ALL_PLAYERS, vec2(TilePos.x, TilePos.y), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeFGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0);
-            GameServer()->Collision()->ModifTile(vec2(TilePos.x, TilePos.y), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeFGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0);
+        	GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeFGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0);
+            GameServer()->Collision()->ModifTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeFGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0);
             GameServer()->CreateSound(m_Pos, SOUND_DESTROY_BLOCK);
 
             Builded = true;
@@ -385,7 +385,7 @@ void CCharacter::Construct()
         vec2 finishPosPost = colTilePos-Direction * 8.0f;
         if (GameServer()->Collision()->GetCollisionAt(finishPosPost.x, finishPosPost.y) != CCollision::COLFLAG_SOLID)
         {
-            vec2 TilePos = vec2(static_cast<int>(finishPosPost.x/32.0f), static_cast<int>(finishPosPost.y/32.0f));
+            ivec2 TilePos(finishPosPost.x/32, finishPosPost.y/32);
             CBlockManager::CBlockInfo BlockInfo;
             GameServer()->m_BlockManager.GetBlockInfo(ActiveBlock, &BlockInfo);
             int TileIndex = BlockInfo.m_OnPut;
@@ -400,7 +400,7 @@ void CCharacter::Construct()
                 if (!pChar || !pChar->IsAlive())
                     continue;
 
-                if (distance(vec2(static_cast<int>(pChar->m_Pos.x/32), static_cast<int>(pChar->m_Pos.y/32)), TilePos) < 2)
+                if (distance(ivec2(pChar->m_Pos.x/32, pChar->m_Pos.y/32), TilePos) < 2)
                     return;
             }
 
@@ -540,7 +540,7 @@ void CCharacter::FireWeapon()
 						int TIndex = -1;
 						if ((TIndex = GameServer()->Collision()->GetMineTeeTileAt(finishPosPost)) > 0)
 						{
-							vec2 TilePos = vec2(static_cast<int>(finishPosPost.x/32.0f), static_cast<int>(finishPosPost.y/32.0f));
+							ivec2 TilePos = ivec2(finishPosPost.x/32, finishPosPost.y/32);
                         	GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
                             GameServer()->Collision()->ModifTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
 							GameServer()->CreateSound(m_Pos, SOUND_DESTROY_BLOCK);
@@ -1291,16 +1291,8 @@ void CCharacter::Snap(int SnappingClient)
 			pClientInventory->m_Ammo7 = GetCurrentAmmo(pClientInventory->m_Item7);
 			pClientInventory->m_Ammo8 = GetCurrentAmmo(pClientInventory->m_Item8);
 			pClientInventory->m_Ammo9 = GetCurrentAmmo(pClientInventory->m_Item9);
-
 			pClientInventory->m_Selected = m_Inventory.m_Selected;
-			if (m_Inventory.m_Items[m_Inventory.m_Selected] >= NUM_WEAPONS)
-			{
-				CBlockManager::CBlockInfo BlockInfo;
-				GameServer()->m_BlockManager.GetBlockInfo(m_Inventory.m_Items[m_Inventory.m_Selected]-NUM_WEAPONS, &BlockInfo);
-				StrToInts(&pClientInventory->m_SelectedName0, 6, BlockInfo.m_aName);
-			}
-			else
-				StrToInts(&pClientInventory->m_SelectedName0, 6, "");
+
 			m_NeedSendInventory = false;
 		}
 	}

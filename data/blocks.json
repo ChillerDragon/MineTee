@@ -121,10 +121,11 @@
     },
     {
         "name": "COAL ORE",
-        "onBreak": { "29":1 }
+        "onBreak": { "30":1 }
     },
     {
         "name": "LIBRARY",
+        "onBreak": { "173": 4 }
     },
     {
         "name": "GREEN ORE",

@@ -78,8 +78,12 @@ public:
 	virtual void DemoRecorder_HandleAutoStart() = 0;
 	virtual bool DemoRecorder_IsRecording() = 0;
 
-	virtual void InitBot(int ClientID, int BType) = 0; // MineTee
-	virtual char *GetMapName() = 0; // MineTee
+	// MineTee
+	virtual void InitBot(int ClientID, int BType) = 0;
+	virtual char *GetMapName() = 0;
+	virtual char *GetBlocksData() = 0;
+	virtual int GetBlocksDataSize() = 0;
+	//
 };
 
 class IGameServer : public IInterface

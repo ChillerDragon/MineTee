@@ -185,7 +185,7 @@ public:
 	virtual const char *NetVersion();
 
 	// MineTee
-	int SendTileModif(int ClientID, vec2 Pos, int Group, int Layer, int Index, int Flags);
+	int SendTileModif(int ClientID, ivec2 Pos, int Group, int Layer, int Index, int Flags);
 	void CreateTombstone(vec2 Pos);
 	void UpdateBotInfo(int ClientID, int TEnemy);
 	void CreateBot(int ClientID);

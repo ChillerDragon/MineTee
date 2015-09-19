@@ -398,8 +398,7 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
                 }
 			}
 
-			if (TileMineTee == 0)
-				x += pTiles[c].m_Skip;
+			x += pTiles[c].m_Skip;
 		}
 
     if (!Animated)
@@ -417,7 +416,7 @@ void CRenderTools::UpdateLights(CTile *pTiles, CTile *pLights, int w, int h, int
 		return;
 
     CTile *pLightsTemp = static_cast<CTile*>(mem_alloc(sizeof(CTile)*w*h, 1));
-    mem_copy(pLightsTemp, pLights, sizeof(CTile)*w*h);
+    mem_zero(pLightsTemp, sizeof(CTile)*w*h);
 
     const int aTileIndexDarkness[] = {0, 154, 170, 186, 202};
     const float Scale = 32.0f;
@@ -442,7 +441,6 @@ void CRenderTools::UpdateLights(CTile *pTiles, CTile *pLights, int w, int h, int
 
             pLightsTemp[c].m_Index = aTileIndexDarkness[DarknessLevel];
             pLightsTemp[c].m_Reserved = 0;
-            pLightsTemp[c].m_Skip = 0;
         }
 
 	// Environment Light (The Sun)
@@ -612,7 +610,9 @@ void CRenderTools::UpdateLights(CTile *pTiles, CTile *pLights, int w, int h, int
             if (!m_pCollision->GetBlockManager()->GetBlockInfo(TileIndex, &BlockInfo))
             	continue;
 
-            if (BlockInfo.m_LightSize > 1)
+            if (BlockInfo.m_LightSize && BlockInfo.m_LightSize <= 5)
+            	pLightsTemp[c].m_Index = aTileIndexDarkness[5-BlockInfo.m_LightSize];
+            else if (BlockInfo.m_LightSize)
             {
             	int LightSize = (!BigSize)?(BlockInfo.m_LightSize - BlockInfo.m_LightSize/3):BlockInfo.m_LightSize;
                 for (int e=0; e<=LightSize; e++)
@@ -630,9 +630,22 @@ void CRenderTools::UpdateLights(CTile *pTiles, CTile *pLights, int w, int h, int
 
                 pLightsTemp[c].m_Index = 0;
             }
-            else if (BlockInfo.m_LightSize == 1)
-            	pLightsTemp[c].m_Index = 0;
 		}
+
+    // Update Skip Info
+    for(int y = StartY; y < EndY; y++)
+		for(int x = StartX; x < EndX; x++)
+	{
+		int sx;
+		for(sx = 1; x+sx < w && sx < 255; sx++)
+		{
+			if(pLightsTemp[y*w+x+sx].m_Index)
+				break;
+		}
+
+		pLightsTemp[y*w+x].m_Skip = sx-1;
+		x += sx;
+	}
 
     mem_copy(pLights, pLightsTemp, sizeof(CTile)*w*h);
     mem_free(pLightsTemp);

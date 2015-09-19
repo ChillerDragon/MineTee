@@ -266,6 +266,11 @@ int CDataFileReader::GetDataSize(int Index)
 	return m_pDataFile->m_Info.m_pDataOffsets[Index+1]-m_pDataFile->m_Info.m_pDataOffsets[Index];
 }
 
+int CDataFileReader::GetDataUncompressedSize(int Index)
+{
+	return (!m_pDataFile)?0:m_pDataFile->m_Info.m_pDataSizes[Index];
+}
+
 void *CDataFileReader::GetDataImpl(int Index, int Swap)
 {
 	if(!m_pDataFile) { return 0; }
@@ -725,7 +730,7 @@ int CDataFileWriter::Finish()
 }
 
 // MineTee
-bool CDataFileWriter::SaveMap(class IStorage *pStorage, CDataFileReader *pFileMap, const char *pFileName)
+bool CDataFileWriter::SaveMap(class IStorage *pStorage, CDataFileReader *pFileMap, const char *pFileName, char *pBlocksData, int BlocksDataSize)
 {
 	dbg_msg("CDataFileWriter", "saving to '%s'...", pFileName);
 
@@ -858,6 +863,14 @@ bool CDataFileWriter::SaveMap(class IStorage *pStorage, CDataFileReader *pFileMa
 	CEnvPoint *pPoints = (CEnvPoint *)pFileMap->GetItem(StartEP, 0, 0);
 	int TotalSizePoints = sizeof(CEnvPoint)*Count;
 	AddItem(MAPITEMTYPE_ENVPOINTS, 0, TotalSizePoints, pPoints);
+
+	// save json
+	if (pBlocksData && BlocksDataSize > 0)
+	{
+		CMapItemBlocksJson Item;
+		Item.m_Data = AddData(BlocksDataSize, pBlocksData);
+		AddItem(MAPITEMTYPE_JSON_BLOCKS, 0, sizeof(CMapItemBlocksJson), &Item);
+	}
 
 	// finish the data file
 	Finish();

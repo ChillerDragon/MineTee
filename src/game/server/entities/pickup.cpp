@@ -70,6 +70,14 @@ void CPickup::Tick()
 	CCharacter *pChr = 0x0;
 	if (m_Type == POWERUP_DROPITEM)
 	{
+        CCharacter *pChrAttraction = GameServer()->m_World.ClosestCharacter(m_Pos, 60.0f, 0);
+        if (pChrAttraction && Server()->Tick()-m_TimerOwnerTake > Server()->TickSpeed()*2.5f)
+        {
+        	float d = distance(m_Pos, pChrAttraction->m_Pos);
+        	float v = abs((100.0f-d)*5.5f/100.0f);
+        	m_Vel += normalize(pChrAttraction->m_Pos - m_Pos) * v;
+        }
+
         GameServer()->Collision()->MoveBox(&m_Pos, &m_Vel, vec2(32.0f, 32.0f), 0.5f);
         m_Vel.y += GameServer()->m_World.m_Core.m_Tuning.m_Gravity;
         m_Vel.x += (m_Vel.x < 0.0f)?0.05f:-0.05f;
@@ -79,6 +87,17 @@ void CPickup::Tick()
         else if (GameServer()->m_apPlayers[m_Owner] && GameServer()->m_apPlayers[m_Owner]->GetCharacter() && GameServer()->m_apPlayers[m_Owner]->GetCharacter()->IsAlive())
             pChr = GameServer()->m_World.ClosestCharacter(m_Pos, 20.0f, GameServer()->m_apPlayers[m_Owner]->GetCharacter());
 	}
+    else if (m_Type == POWERUP_BLOCK)
+    {
+        CCharacter *pChrAttraction = GameServer()->m_World.ClosestCharacter(m_Pos, 96.0f, 0);
+        if (pChrAttraction)
+        {
+        	float d = distance(m_Pos, pChrAttraction->m_Pos);
+        	float v = abs((100.0f-d)*5.5f/100.0f);
+        	m_Pos += normalize(pChrAttraction->m_Pos - m_Pos) * v;
+        }
+        pChr = GameServer()->m_World.ClosestCharacter(m_Pos, 20.0f, 0);
+    }
     else
         pChr = GameServer()->m_World.ClosestCharacter(m_Pos, 20.0f, 0);
 	//

@@ -277,7 +277,7 @@ int CCollision::GetMineTeeTileAt(vec2 Pos)
 }
 
 
-void CCollision::ModifTile(vec2 pos, int group, int layer, int index, int flags)
+void CCollision::ModifTile(ivec2 pos, int group, int layer, int index, int flags)
 {
     CMapItemGroup *pGroup = m_pLayers->GetGroup(group);
     CMapItemLayer *pLayer = m_pLayers->GetLayer(pGroup->m_StartLayer+layer);
@@ -285,8 +285,9 @@ void CCollision::ModifTile(vec2 pos, int group, int layer, int index, int flags)
         return;
 
     CMapItemLayerTilemap *pTilemap = reinterpret_cast<CMapItemLayerTilemap *>(pLayer);
+    int TotalTiles = pTilemap->m_Width*pTilemap->m_Height;
     int tpos = (int)pos.y*pTilemap->m_Width+(int)pos.x;
-    if (tpos < 0 || tpos >= pTilemap->m_Width*pTilemap->m_Height) // protect against the dark side people
+    if (tpos < 0 || tpos >= TotalTiles) // protect against the dark side people
         return;
 
     if (pTilemap == m_pLayers->MineTeeLayer())
@@ -294,6 +295,8 @@ void CCollision::ModifTile(vec2 pos, int group, int layer, int index, int flags)
         CTile *pTiles = static_cast<CTile *>(m_pLayers->Map()->GetData(pTilemap->m_Data));
         pTiles[tpos].m_Flags = flags;
         pTiles[tpos].m_Index = index;
+
+        RegenerateSkip(pTiles, pTilemap->m_Width, pTilemap->m_Height, pos, !index);
 
     	if (index == 0)
     	{
@@ -316,6 +319,8 @@ void CCollision::ModifTile(vec2 pos, int group, int layer, int index, int flags)
         CTile *pTiles = static_cast<CTile *>(m_pLayers->Map()->GetData(pTilemap->m_Data));
         pTiles[tpos].m_Flags = flags;
         pTiles[tpos].m_Index = index;
+
+        RegenerateSkip(pTiles, pTilemap->m_Width, pTilemap->m_Height, pos, !index);
     }
     else
     {
@@ -338,4 +343,32 @@ void CCollision::ModifTile(vec2 pos, int group, int layer, int index, int flags)
                 m_pTiles[tpos].m_Index = 0;
         }
     }
+}
+
+void CCollision::RegenerateSkip(CTile *pTiles, int Width, int Height, ivec2 Pos, bool Delete)
+{
+	if (!pTiles || Pos.x < 0 || Pos.x > Width || Pos.y < 0 || Pos.y > Height)
+		return;
+
+	int sx, i;
+
+	if (Delete)
+	{
+		// Back Tile
+		sx = 1;
+		for (i=Pos.x+1; i<Width && !pTiles[Pos.y*Width+i].m_Index; i++, sx++);
+		for (i=Pos.x-1; i>=0 && !pTiles[Pos.y*Width+i].m_Index; i--, sx++);
+		pTiles[Pos.y*Width+i].m_Skip = sx;
+		// Current Tile
+		pTiles[Pos.y*Width+Pos.x].m_Skip = 0;
+	}
+	else
+	{
+		// Back Tile
+		for (i=Pos.x-1, sx=0; i>=0 && !pTiles[Pos.y*Width+i].m_Index; i--, sx++);
+		pTiles[Pos.y*Width+i].m_Skip = sx;
+		// Current Tile
+		for (i=Pos.x+1, sx=0; i<Width && !pTiles[Pos.y*Width+i].m_Index; i++, sx++);
+		pTiles[Pos.y*Width+Pos.x].m_Skip = sx;
+	}
 }

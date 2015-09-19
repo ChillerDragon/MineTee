@@ -18,6 +18,7 @@ enum
 	MAPITEMTYPE_GROUP,
 	MAPITEMTYPE_LAYER,
 	MAPITEMTYPE_ENVPOINTS,
+	MAPITEMTYPE_JSON_BLOCKS, // MineTee
 
 
 	CURVETYPE_STEP=0,
@@ -89,6 +90,13 @@ public:
 	unsigned char m_Skip;
 	unsigned char m_Reserved;
 };
+
+// MineTee
+class CTileMT : CTile
+{
+	int m_Health;
+};
+//
 
 struct CMapItemInfo
 {
@@ -208,4 +216,10 @@ struct CMapItemEnvelope : public CMapItemEnvelope_v1
 	int m_Synchronized;
 };
 
+// MineTee
+struct CMapItemBlocksJson
+{
+	int m_Data;
+};
+//
 #endif

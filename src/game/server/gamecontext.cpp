@@ -178,7 +178,7 @@ void CGameContext::CreateExplosion(vec2 Pos, int Owner, int Weapon, bool NoDamag
                 if (BIndex <= 0)
                     continue;
 
-                vec2 TilePos = vec2(static_cast<int>(finishPosPost.x/32.0f), static_cast<int>(finishPosPost.y/32.0f));
+                ivec2 TilePos(finishPosPost.x/32, finishPosPost.y/32);
                 SendTileModif(ALL_PLAYERS, TilePos, Layers()->GetMineTeeGroupIndex(),  Layers()->GetMineTeeLayerIndex(), 0, 0);
                 Collision()->ModifTile(TilePos, Layers()->GetMineTeeGroupIndex(),  Layers()->GetMineTeeLayerIndex(), 0, 0);
 
@@ -1577,8 +1577,6 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 	m_World.SetGameServer(this);
 	m_Events.SetGameServer(this);
 
-	dbg_assert(m_BlockManager.Init(), "Can't read information about blocks! (blocks.json)"); // MineTee
-
 	//if(!data) // only load once
 		//data = load_data_from_memory(internal_data);
 
@@ -1586,6 +1584,9 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 		Server()->SnapSetStaticsize(i, m_NetObjHandler.GetObjSize(i));
 
 	m_Layers.Init(Kernel());
+
+	dbg_assert(m_BlockManager.Init(Server()->GetBlocksData(), Server()->GetBlocksDataSize()), "Can't read information about blocks! (blocks.json)"); // MineTee
+
 	m_Collision.Init(&m_Layers, &m_BlockManager);
 	m_MapGen.Init(&m_Layers, &m_Collision); // MineTee
 	if (g_Config.m_SvMapGeneration) // generate a random world if wanted
@@ -1703,11 +1704,11 @@ const char *CGameContext::NetVersion() { return GAME_NETVERSION; }
 IGameServer *CreateGameServer() { return new CGameContext; }
 
 // MineTee
-int CGameContext::SendTileModif(int ClientID, vec2 Pos, int Group, int Layer, int Index, int Flags)
+int CGameContext::SendTileModif(int ClientID, ivec2 Pos, int Group, int Layer, int Index, int Flags)
 {
 	CNetMsg_SvAn_TileModif TileModif;
-	TileModif.m_X = (int)Pos.x;
-	TileModif.m_Y = (int)Pos.y;
+	TileModif.m_X = Pos.x;
+	TileModif.m_Y = Pos.y;
 	TileModif.m_Group = Group;
 	TileModif.m_Layer = Layer;
 	TileModif.m_Index = Index;
@@ -1773,7 +1774,7 @@ bool CGameContext::OnSendMap(int ClientID) // MineTee
         CDataFileWriter fileWrite;
         char aMapFile[255];
         str_format(aMapFile, sizeof(aMapFile), "maps/%s_tmp.map", Server()->GetMapName());
-        if (!fileWrite.SaveMap(pStorage, pMap->GetFileReader(), aMapFile))
+        if (!fileWrite.SaveMap(pStorage, pMap->GetFileReader(), aMapFile, Server()->GetBlocksData(), Server()->GetBlocksDataSize()))
 		{
 			return false;
 		}

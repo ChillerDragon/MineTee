@@ -38,7 +38,7 @@ void CMapGen::GenerateMap()
 	for(int i = 0; i < MineTeeLayerSize; i++)
 	{
 		int x = i%m_pLayers->MineTeeLayer()->m_Width;
-		vec2 TilePos = vec2(x, (i-x)/m_pLayers->MineTeeLayer()->m_Width);
+		ivec2 TilePos(x, (i-x)/m_pLayers->MineTeeLayer()->m_Width);
 		
 		// clear the different layers
 		m_pCollision->ModifTile(TilePos, m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), 0, 0);
@@ -68,6 +68,9 @@ void CMapGen::GenerateMap()
 
 	// misc
 	GenerateBorder(); // as long as there are no infinite (chunked) maps
+
+	// Performance
+	GenerateSkip();
 }
 
 void CMapGen::GenerateBasicTerrain()
@@ -82,13 +85,13 @@ void CMapGen::GenerateBasicTerrain()
 		float frequency = 25.0f / (float)m_pLayers->MineTeeLayer()->m_Width;
 		TilePosY = m_pNoise->Noise((float) TilePosX * frequency) * (m_pLayers->MineTeeLayer()->m_Height/6) + DIRT_LEVEL;
 
-		m_pCollision->ModifTile(vec2(TilePosX, TilePosY), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::GRASS, 0);
+		m_pCollision->ModifTile(ivec2(TilePosX, TilePosY), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::GRASS, 0);
 		
 		// fill the tiles under the defined tile
 		int TempTileY = TilePosY+1;
 		while(TempTileY < m_pLayers->MineTeeLayer()->m_Height)
 		{
-			m_pCollision->ModifTile(vec2(TilePosX, TempTileY), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::DIRT, 0);
+			m_pCollision->ModifTile(ivec2(TilePosX, TempTileY), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::DIRT, 0);
 			TempTileY++;
 		}
 	}
@@ -104,13 +107,13 @@ void CMapGen::GenerateBasicTerrain()
 		else if(TilePosY - STONE_LEVEL > LEVEL_TOLERANCE)
 			TilePosY--;
 
-		m_pCollision->ModifTile(vec2(TilePosX, TilePosY), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::STONE, 0);
+		m_pCollision->ModifTile(ivec2(TilePosX, TilePosY), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::STONE, 0);
 		
 		// fill the tiles under the random tile
 		int TempTileY = TilePosY+1;
 		while(TempTileY < m_pLayers->MineTeeLayer()->m_Height)
 		{
-			m_pCollision->ModifTile(vec2(TilePosX, TempTileY), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::STONE, 0);
+			m_pCollision->ModifTile(ivec2(TilePosX, TempTileY), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::STONE, 0);
 			TempTileY++;
 		}
 	}
@@ -128,7 +131,7 @@ void CMapGen::GenerateOre(int Type, float F, int Level, int Radius, int ClusterS
 			if(noise > 0.85f)
 			{
 				// place the "entry point"-tile
-				m_pCollision->ModifTile(vec2(x, y), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), Type, 0);
+				m_pCollision->ModifTile(ivec2(x, y), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), Type, 0);
 
 				// generate a cluster
 				int CS = ClusterSize + rand()%4;
@@ -138,7 +141,7 @@ void CMapGen::GenerateOre(int Type, float F, int Level, int Radius, int ClusterS
 					for(int cy = y-CS/2; cy < y+CS/2; cy++)
 					{
 						if(!(rand()%3))
-							m_pCollision->ModifTile(vec2(cx, cy), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), Type, 0);
+							m_pCollision->ModifTile(ivec2(cx, cy), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), Type, 0);
 					}
 				}
 			}
@@ -157,7 +160,7 @@ void CMapGen::GenerateCaves()
 			float noise = m_pNoise->Noise((float)x * frequency, (float)y * frequency);
 	
 			if(noise > 0.4f)
-				m_pCollision->ModifTile(vec2(x, y), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::AIR, 0);
+				m_pCollision->ModifTile(ivec2(x, y), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::AIR, 0);
 		}
 	}
 }
@@ -170,7 +173,7 @@ void CMapGen::GenerateWater()
 		{
 			if(m_pCollision->GetMineTeeTileAt(vec2(x*32, y*32)) == CBlockManager::AIR)
 			{
-				m_pCollision->ModifTile(vec2(x, y), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::WATER_A, 0);
+				m_pCollision->ModifTile(ivec2(x, y), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::WATER_A, 0);
 			}
 		}
 	}
@@ -194,7 +197,7 @@ void CMapGen::GenerateFlowers()
 				if(y >= m_pLayers->MineTeeLayer()->m_Height)
 					return;
 
-				m_pCollision->ModifTile(vec2(f, y), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::ROSE + rand()%2, 0);
+				m_pCollision->ModifTile(ivec2(f, y), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::ROSE + rand()%2, 0);
 			}
 
 			x += FieldSize;
@@ -220,7 +223,7 @@ void CMapGen::GenerateMushrooms()
 				if(y >= m_pLayers->MineTeeLayer()->m_Height)
 					return;
 
-				m_pCollision->ModifTile(vec2(f, y), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::MUSHROOM_RED + rand()%2, 0);
+				m_pCollision->ModifTile(ivec2(f, y), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::MUSHROOM_RED + rand()%2, 0);
 			}
 
 			x += FieldSize;
@@ -251,11 +254,11 @@ void CMapGen::GenerateTrees()
 			// plant the tree \o/
 			int TreeHeight = 4 + (rand()%5);
 			for(int h = 0; h <= TreeHeight; h++)
-				m_pCollision->ModifTile(vec2(x, TempTileY-h), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::WOOD_BROWN, 0);
+				m_pCollision->ModifTile(ivec2(x, TempTileY-h), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::WOOD_BROWN, 0);
 		
 			// add the leafs
 			for(int l = 0; l <= TreeHeight/2.5f; l++)
-				m_pCollision->ModifTile(vec2(x, TempTileY - TreeHeight - l), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::LEAFS, 0);
+				m_pCollision->ModifTile(ivec2(x, TempTileY - TreeHeight - l), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::LEAFS, 0);
 		
 			int TreeWidth = TreeHeight/1.2f;
 			if(!(TreeWidth%2)) // odd numbers please
@@ -267,7 +270,7 @@ void CMapGen::GenerateTrees()
 					if(m_pCollision->GetMineTeeTileAt(vec2((x-(w-(TreeWidth/2)))*32, (TempTileY-(TreeHeight-(TreeHeight/2.5f)+h))*32)) != CBlockManager::AIR)
 						continue;
 
-					m_pCollision->ModifTile(vec2(x-(w-(TreeWidth/2)), TempTileY-(TreeHeight-(TreeHeight/2.5f)+h)), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::LEAFS, 0);
+					m_pCollision->ModifTile(ivec2(x-(w-(TreeWidth/2)), TempTileY-(TreeHeight-(TreeHeight/2.5f)+h)), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::LEAFS, 0);
 				}
 			}
 
@@ -281,15 +284,50 @@ void CMapGen::GenerateBorder()
 	for(int i = 0; i < m_pLayers->MineTeeLayer()->m_Width; i++)
 	{
 		// bottom border
-		m_pCollision->ModifTile(vec2(i, m_pLayers->MineTeeLayer()->m_Height-1), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::BEDROCK, 0);
+		m_pCollision->ModifTile(ivec2(i, m_pLayers->MineTeeLayer()->m_Height-1), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::BEDROCK, 0);
 	}
 
 	for(int i = 0; i < m_pLayers->MineTeeLayer()->m_Height; i++)
 	{
 		// left border
-		m_pCollision->ModifTile(vec2(0, i), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::BEDROCK, 0);
+		m_pCollision->ModifTile(ivec2(0, i), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::BEDROCK, 0);
 		
 		// right border
-		m_pCollision->ModifTile(vec2(m_pLayers->MineTeeLayer()->m_Width-1, i), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::BEDROCK, 0);
+		m_pCollision->ModifTile(ivec2(m_pLayers->MineTeeLayer()->m_Width-1, i), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::BEDROCK, 0);
+	}
+}
+
+void CMapGen::GenerateSkip()
+{
+
+	for(int g = 0; g < m_pLayers->NumGroups(); g++)
+	{
+		CMapItemGroup *pGroup = m_pLayers->GetGroup(g);
+
+		for(int l = 0; l < pGroup->m_NumLayers; l++)
+		{
+			CMapItemLayer *pLayer = m_pLayers->GetLayer(pGroup->m_StartLayer+l);
+
+			if(pLayer->m_Type == LAYERTYPE_TILES)
+			{
+				CMapItemLayerTilemap *pTmap = (CMapItemLayerTilemap *)pLayer;
+				CTile *pTiles = (CTile *)m_pLayers->Map()->GetData(pTmap->m_Data);
+				for(int y = 0; y < pTmap->m_Height; y++)
+				{
+					for(int x = 1; x < pTmap->m_Width;)
+					{
+						int sx;
+						for(sx = 1; x+sx < pTmap->m_Width && sx < 255; sx++)
+						{
+							if(pTiles[y*pTmap->m_Width+x+sx].m_Index)
+								break;
+						}
+
+						pTiles[y*pTmap->m_Width+x].m_Skip = sx-1;
+						x += sx;
+					}
+				}
+			}
+		}
 	}
 }

@@ -212,7 +212,6 @@ public:
 
 	void PumpNetwork();
 
-	virtual char *GetMapName(); // MineTee
 	int LoadMap(const char *pMapName);
 
 	void InitRegister(CNetServer *pNetServer, IEngineMasterServer *pMasterServer, IConsole *pConsole);
@@ -239,11 +238,18 @@ public:
 	void SnapSetStaticsize(int ItemType, int Size);
 
 	// MineTee
+	char *m_pCurrentBlocksData;
+	int m_CurrentBlocksSize;
+
 	virtual void InitBot(int ClientID, int BType);
 	static void ConGive(IConsole::IResult *pResult, void *pUser);
 	static void ConMapSave(IConsole::IResult *pResult, void *pUser);
 	static void ConTeleport(IConsole::IResult *pResult, void *pUser);
 	static void ConAdvanceTime(IConsole::IResult *pResult, void *pUser);
+
+	virtual char *GetMapName();
+	virtual char *GetBlocksData() { return m_pCurrentBlocksData; }
+	virtual int GetBlocksDataSize() { return m_CurrentBlocksSize; }
 	//
 };
 

@@ -68,13 +68,15 @@ void CGameControllerMineTee::Tick()
 				GetPlayerArea(q, &StartX, &EndX, &StartY, &EndY);
 
 				for(int y = StartY; y < EndY; y++)
-				{
 					for(int x = StartX; x < EndX; x++)
 					{
 						const int Index[NUM_TILE_POS] = { y*pTmap->m_Width+x, (y-1)*pTmap->m_Width+x, (y-1)*pTmap->m_Width+(x-1), y*pTmap->m_Width+(x-1), (y+1)*pTmap->m_Width+(x-1), (y+1)*pTmap->m_Width+x, (y+1)*pTmap->m_Width+(x+1), y*pTmap->m_Width+(x+1), (y-1)*pTmap->m_Width+(x+1) };
 						const int TileIndex[NUM_TILE_POS] = { pTempTiles[Index[0]].m_Index, pTempTiles[Index[1]].m_Index, pTempTiles[Index[2]].m_Index, pTempTiles[Index[3]].m_Index, pTempTiles[Index[4]].m_Index, pTempTiles[Index[5]].m_Index, pTempTiles[Index[6]].m_Index, pTempTiles[Index[7]].m_Index, pTempTiles[Index[8]].m_Index };
 						if (TileIndex[TILE_CENTER] != pTiles[Index[TILE_CENTER]].m_Index || !GameServer()->m_BlockManager.GetBlockInfo(TileIndex[TILE_CENTER], &BlockInfo))
+						{
+							x += pTiles[Index[TILE_CENTER]].m_Skip;
 							continue;
+						}
 
 
 						if (Envirionment)
@@ -192,13 +194,13 @@ void CGameControllerMineTee::Tick()
 								else if (TileIndex[TILE_CENTER] == CBlockManager::OVEN_OFF &&
 										(TileIndex[TILE_TOP] == CBlockManager::COAL || TileIndex[TILE_LEFT] == CBlockManager::COAL || TileIndex[TILE_RIGHT] == CBlockManager::COAL))
 								{
-									vec2 TilePos;
+									ivec2 TilePos;
 									if (TileIndex[TILE_TOP] == CBlockManager::COAL)
-										TilePos = vec2(x, y-1);
+										TilePos = ivec2(x, y-1);
 									else if (TileIndex[TILE_LEFT] == CBlockManager::COAL)
-										TilePos = vec2(x-1, y);
+										TilePos = ivec2(x-1, y);
 									else if (TileIndex[TILE_RIGHT] == CBlockManager::COAL)
-										TilePos = vec2(x+1, y);
+										TilePos = ivec2(x+1, y);
 
 									ModifTile(x, y, CBlockManager::OVEN_ON);
 									ModifTile(TilePos, 0);
@@ -421,7 +423,6 @@ void CGameControllerMineTee::Tick()
 
 						if (Wear)
 						{
-
 							if (TileIndex[TILE_CENTER] == CBlockManager::OVEN_ON)
 							{
 								ModifTile(x, y, CBlockManager::OVEN_OFF);
@@ -435,9 +436,10 @@ void CGameControllerMineTee::Tick()
 								ModifTile(x, y, CBlockManager::STONE_BRICK_IVY);
 							}
 						}
+
+						x += pTiles[Index[TILE_CENTER]].m_Skip;
 					}
-				}
-            }
+			}
 
             mem_free(pTempTiles);
         }
@@ -801,7 +803,7 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
     return true;
 }
 
-void CGameControllerMineTee::ModifTile(vec2 MapPos, int TileIndex)
+void CGameControllerMineTee::ModifTile(ivec2 MapPos, int TileIndex)
 {
 	GameServer()->SendTileModif(ALL_PLAYERS, MapPos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0);
     GameServer()->Collision()->ModifTile(MapPos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0);

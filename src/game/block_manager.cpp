@@ -13,34 +13,17 @@ CBlockManager::~CBlockManager()
 	//json_value_free_ex(&m_JsonSettings, m_pJsonData);
 }
 
-bool CBlockManager::Init()
+bool CBlockManager::Init(char *pData, int DataSize)
 {
-    IOHANDLE fileBlocks = io_open("data/blocks.json", IOFLAG_READ);
-    if (fileBlocks)
-    {
-		io_seek(fileBlocks, 0, IOSEEK_END);
-		long size = io_tell(fileBlocks);
-		io_seek(fileBlocks, 0, IOSEEK_START);
+	char aError[256];
+	m_pJsonData = json_parse_ex(&m_JsonSettings, pData, DataSize, aError);
+	if (!m_pJsonData)
+	{
+		dbg_msg("BlockManager", "Error: %s", aError);
+		return false;
+	}
 
-		char aFileBuff[size];
-		mem_zero(&aFileBuff, sizeof(aFileBuff));
-		if (io_read(fileBlocks, aFileBuff, size))
-		{
-			char aError[256];
-			m_pJsonData = json_parse_ex(&m_JsonSettings, aFileBuff, size, aError);
-			if (!m_pJsonData)
-			{
-				io_close(fileBlocks);
-				dbg_msg("BlockManager", "Error: %s", aError);
-				return false;
-			}
-		}
-
-		io_close(fileBlocks);
-		return true;
-    }
-
-    return false;
+    return true;
 }
 
 bool CBlockManager::GetBlockInfo(unsigned char BlockID, CBlockInfo *pBlockInfo)
@@ -50,7 +33,7 @@ bool CBlockManager::GetBlockInfo(unsigned char BlockID, CBlockInfo *pBlockInfo)
 
 	pBlockInfo->Reset();
 
-	if (BlockID < 0 || BlockID >= m_pJsonData->u.array.length)
+	if (!m_pJsonData || BlockID < 0 || BlockID >= m_pJsonData->u.array.length)
 		return false;
 
 	json_value *pJsonObject = m_pJsonData->u.array.values[BlockID];
@@ -67,8 +50,15 @@ bool CBlockManager::GetBlockInfo(unsigned char BlockID, CBlockInfo *pBlockInfo)
 	pBlockInfo->m_Damage = ((*pJsonObject)["damage"].type == json_none)?false:(*pJsonObject)["damage"].u.boolean;
 	pBlockInfo->m_OnPut = ((*pJsonObject)["onPut"].type == json_none)?BlockID:(*pJsonObject)["onPut"].u.integer;
 
+	int items = (*pJsonObject)["lightColor"].u.array.length;
+	if (items == 3)
+	{
+		pBlockInfo->m_LightColor.r = (float)((*pJsonObject)["lightColor"].u.array.values[0]->u.dbl)/255.0f;
+		pBlockInfo->m_LightColor.g = (float)((*pJsonObject)["lightColor"].u.array.values[1]->u.dbl)/255.0f;
+		pBlockInfo->m_LightColor.b = (float)((*pJsonObject)["lightColor"].u.array.values[2]->u.dbl)/255.0f;
+	}
 
-	int items = (*pJsonObject)["craft"].u.object.length;
+	items = (*pJsonObject)["craft"].u.object.length;
 	for (int i=0; i<items; i++)
 	{
 		int CraftBlockID = -1;
@@ -97,6 +87,11 @@ bool CBlockManager::GetBlockInfo(unsigned char BlockID, CBlockInfo *pBlockInfo)
 
 		pBlockInfo->m_vOnBreak.insert(std::pair<int, unsigned char>(BreakBlockID, BreakBlockAmount));
 	}
+
+	if (pBlockInfo->m_LightSize < 0)
+		pBlockInfo->m_LightSize = 0;
+	if (pBlockInfo->m_CraftNum < 0)
+		pBlockInfo->m_CraftNum = 0;
 
 	return true;
 }

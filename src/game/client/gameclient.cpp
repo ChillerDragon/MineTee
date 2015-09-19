@@ -12,6 +12,7 @@
 #include <engine/serverbrowser.h>
 #include <engine/shared/demo.h>
 #include <engine/shared/config.h>
+#include <engine/shared/datafile.h> // MineTee
 
 #include <game/generated/protocol.h>
 #include <game/generated/client_data.h>
@@ -278,8 +279,6 @@ void CGameClient::OnInit()
 	Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "gameclient", aBuf);
 
 	m_ServerMode = SERVERMODE_PURE;
-
-	m_BlockManager.Init(); // MineTee
 }
 
 void CGameClient::DispatchInput()
@@ -324,6 +323,18 @@ int CGameClient::OnSnapInput(int *pData)
 void CGameClient::OnConnected()
 {
 	m_Layers.Init(Kernel());
+
+	int Start, Num;
+	Layers()->Map()->GetType(MAPITEMTYPE_JSON_BLOCKS, &Start, &Num);
+	if(Num)
+	{
+		CMapItemBlocksJson *pMapItemJson = (CMapItemBlocksJson *)Layers()->Map()->GetItem(Start, 0, 0);
+		if (pMapItemJson)
+			m_BlockManager.Init((char*)Layers()->Map()->GetData(pMapItemJson->m_Data), Layers()->Map()->GetFileReader()->GetDataUncompressedSize(pMapItemJson->m_Data));
+		else
+			dbg_msg("MineTee", "Error! Can't load blocks definitions!");
+	}
+
 	m_Collision.Init(Layers(), &m_BlockManager); // MineTee
 
 	RenderTools()->RenderTilemapGenerateSkip(Layers());
@@ -568,7 +579,7 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker)
     {
         CNetMsg_SvAn_TileModif *pMsg = (CNetMsg_SvAn_TileModif *)pRawMsg;
 
-        Collision()->ModifTile(vec2(pMsg->m_X, pMsg->m_Y), pMsg->m_Group, pMsg->m_Layer, pMsg->m_Index, pMsg->m_Flags);
+        Collision()->ModifTile(ivec2(pMsg->m_X, pMsg->m_Y), pMsg->m_Group, pMsg->m_Layer, pMsg->m_Index, pMsg->m_Flags);
     }
 }
 
@@ -857,7 +868,6 @@ void CGameClient::OnNewSnapshot()
 				m_Inventory.m_Ammo[7] = pInfo->m_Ammo8;
 				m_Inventory.m_Ammo[8] = pInfo->m_Ammo9;
 				m_Inventory.m_Selected = pInfo->m_Selected;
-				IntsToStr(&pInfo->m_SelectedName0, 6, m_Inventory.m_aSelectedName);
 			}
 		}
 	}

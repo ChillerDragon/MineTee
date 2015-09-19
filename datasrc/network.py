@@ -254,10 +254,6 @@ Objects = [
 		NetIntRange("m_Ammo8", 0, 255),
 		NetIntRange("m_Ammo9", 0, 255),
 		NetIntRange("m_Selected", 0, 8),
-		
-		# 4*6 = 24 charachters
-		NetIntAny("m_SelectedName0"), NetIntAny("m_SelectedName1"), NetIntAny("m_SelectedName2"),
-		NetIntAny("m_SelectedName3"), NetIntAny("m_SelectedName4"), NetIntAny("m_SelectedName5"),
 	]),
 ]
 

@@ -32,6 +32,8 @@ public:
 	void Unload();
 
 	unsigned Crc();
+
+	int GetDataUncompressedSize(int Index); // MineTee
 };
 
 // write access
@@ -85,7 +87,7 @@ public:
 	int AddItem(int Type, int ID, int Size, void *pData);
 	int Finish();
 
-	bool SaveMap(class IStorage *pStorage, CDataFileReader *pFileMap, const char *pFileName); // MineTee
+	bool SaveMap(class IStorage *pStorage, CDataFileReader *pFileMap, const char *pFileName, char *pBlocksData = 0x0, int BlocksDataSize = 0); // MineTee
 };
 
 

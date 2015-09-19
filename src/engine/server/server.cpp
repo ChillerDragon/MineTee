@@ -287,6 +287,11 @@ CServer::CServer() : m_DemoRecorder(&m_SnapshotDelta)
 	m_RconClientID = IServer::RCON_CID_SERV;
 	m_RconAuthLevel = AUTHED_ADMIN;
 
+	// MineTee
+	m_pCurrentBlocksData = 0;
+	m_CurrentBlocksSize = 0;
+	//
+
 	Init();
 }
 
@@ -1265,6 +1270,28 @@ int CServer::LoadMap(const char *pMapName)
 		io_read(File, m_pCurrentMapData, m_CurrentMapSize);
 		io_close(File);
 	}
+
+	// load blocks definitions into memory for embedded
+	{
+		str_append(aBuf, ".json", sizeof(aBuf));
+		IOHANDLE File = Storage()->OpenFile(aBuf, IOFLAG_READ, IStorage::TYPE_ALL);
+		if (!File)
+		{
+			File = Storage()->OpenFile("blocks.json", IOFLAG_READ, IStorage::TYPE_ALL);
+			if (!File)
+			{
+				Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "mapchecker", "Can't found blocks definitions!");
+				return 0;
+			}
+		}
+
+		m_CurrentBlocksSize = (int)io_length(File);
+		m_pCurrentBlocksData = (char *)mem_alloc(m_CurrentBlocksSize, 1);
+		io_read(File, m_pCurrentBlocksData, m_CurrentBlocksSize);
+
+		io_close(File);
+	}
+
 	return 1;
 }
 
@@ -1461,8 +1488,9 @@ int CServer::Run()
 	GameServer()->OnShutdown();
 	m_pMap->Unload();
 
-	if(m_pCurrentMapData)
-		mem_free(m_pCurrentMapData);
+
+	mem_free(m_pCurrentMapData);
+	mem_free(m_pCurrentBlocksData);
 	return 0;
 }
 

@@ -42,7 +42,8 @@ public:
 	bool TestBox(vec2 Pos, vec2 Size);
 
 	// MineTee
-	void ModifTile(vec2 pos, int group, int layer, int index, int flags);
+	void ModifTile(ivec2 pos, int group, int layer, int index, int flags);
+	void RegenerateSkip(CTile *pTiles, int Width, int Height, ivec2 Pos, bool Delete);
 	int GetMineTeeTileAt(vec2 Pos);
 	CBlockManager *GetBlockManager() const { return m_pBlockManager; }
 	//

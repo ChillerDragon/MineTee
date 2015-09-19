@@ -267,7 +267,6 @@ public:
 	    int m_Items[NUM_ITEMS_INVENTORY];
 	    int m_Ammo[NUM_ITEMS_INVENTORY];
         int m_Selected;
-        char m_aSelectedName[24];
 	} m_Inventory;
 	int m_PaintMode;
 	void SendDropItem(int Index);

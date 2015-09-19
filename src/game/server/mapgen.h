@@ -37,6 +37,8 @@ class CMapGen
 
 	void GenerateBorder();
 
+	void GenerateSkip();
+
 public:
 	CMapGen();
 	~CMapGen();
