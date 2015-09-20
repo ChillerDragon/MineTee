@@ -46,9 +46,11 @@ bool CBlockManager::GetBlockInfo(unsigned char BlockID, CBlockInfo *pBlockInfo)
 	pBlockInfo->m_CraftNum = ((*pJsonObject)["craftNum"].type == json_none)?1:(*pJsonObject)["craftNum"].u.integer;
 	pBlockInfo->m_Gravity = ((*pJsonObject)["gravity"].type == json_none)?false:(*pJsonObject)["gravity"].u.boolean;
 	pBlockInfo->m_PlayerCollide = ((*pJsonObject)["playerCollide"].type == json_none)?true:(*pJsonObject)["playerCollide"].u.boolean;
+	pBlockInfo->m_RandomActions = ((*pJsonObject)["randomActions"].type == json_none)?true:(*pJsonObject)["randomActions"].u.integer;
 	pBlockInfo->m_HalfTile = ((*pJsonObject)["halfTile"].type == json_none)?false:(*pJsonObject)["halfTile"].u.boolean;
 	pBlockInfo->m_Damage = ((*pJsonObject)["damage"].type == json_none)?false:(*pJsonObject)["damage"].u.boolean;
 	pBlockInfo->m_OnPut = ((*pJsonObject)["onPut"].type == json_none)?BlockID:(*pJsonObject)["onPut"].u.integer;
+	pBlockInfo->m_OnWear = ((*pJsonObject)["onWear"].type == json_none)?-1:(*pJsonObject)["onWear"].u.integer;
 
 	int items = (*pJsonObject)["lightColor"].u.array.length;
 	if (items == 3)
@@ -56,6 +58,20 @@ bool CBlockManager::GetBlockInfo(unsigned char BlockID, CBlockInfo *pBlockInfo)
 		pBlockInfo->m_LightColor.r = (float)((*pJsonObject)["lightColor"].u.array.values[0]->u.dbl)/255.0f;
 		pBlockInfo->m_LightColor.g = (float)((*pJsonObject)["lightColor"].u.array.values[1]->u.dbl)/255.0f;
 		pBlockInfo->m_LightColor.b = (float)((*pJsonObject)["lightColor"].u.array.values[2]->u.dbl)/255.0f;
+	}
+
+	items = (*pJsonObject)["place"].u.array.length;
+	if (items == 8)
+	{
+		const json_value &JsonArrayPlace = (*pJsonObject)["place"];
+		array<int> IndexList;
+		for (int i=0; i<items; i++)
+		{
+			IndexList.clear();
+			json_value &JsonArray = *JsonArrayPlace.u.array.values[i];
+			for (std::size_t e=0; e<JsonArray.u.array.length; IndexList.add(JsonArray.u.array.values[e++]->u.integer));
+			pBlockInfo->m_vPlace.add(IndexList);
+		}
 	}
 
 	items = (*pJsonObject)["craft"].u.object.length;

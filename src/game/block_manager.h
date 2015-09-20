@@ -175,10 +175,15 @@ public:
     		m_Damage = false;
     		m_HalfTile = false;
     		m_PlayerCollide = true;
+    		m_RandomActions = 0;
     		m_OnPut = -1;
+    		m_OnWear = -1;
     		m_vOnBreak.clear();
     		m_vOnCook.clear();
     		m_vCraft.clear();
+
+    		for (int i=0; i<m_vPlace.size(); m_vPlace[i++].clear());
+    		m_vPlace.clear();
     	}
 
 		char m_aName[24];
@@ -190,10 +195,13 @@ public:
 		bool m_Damage;
 		bool m_HalfTile;
 		bool m_PlayerCollide;
+		int m_RandomActions;
 		int m_OnPut;
+		int m_OnWear;
 		std::map<int, unsigned char> m_vOnBreak;
 		std::map<int, unsigned char> m_vOnCook;
 		std::map<int, unsigned char> m_vCraft;
+		array<array<int> > m_vPlace;
 	};
 
 	CBlockManager();

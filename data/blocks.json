@@ -39,11 +39,13 @@
     },
     {
         "name": "ROSE",
-        "playerCollide": false
+        "playerCollide": false,
+        "place": [[-2],[-2],[-2],[-2],[3],[-2],[-2],[-2]]
     },
     {
         "name": "DAISY",
-        "playerCollide": false
+        "playerCollide": false,
+        "place": [[-2],[-2],[-2],[-2],[3],[-2],[-2],[-2]]
     },
     {
         "name": "NOT USED 14",
@@ -92,15 +94,18 @@
     },
     {
         "name": "CHEST",
-        "craft": { "20":10 }
+        "craft": { "20":10 },
+        "place": [[-2],[-2],[-2],[-2],[-1],[-2],[-2],[-2]]
     },
     {
         "name": "MUSHROOM RED",
-        "playerCollide": false
+        "playerCollide": false,
+        "place": [[-2],[-2],[-2],[-2],[-1],[-2],[-2],[-2]]
     },
     {
         "name": "MUSHROOM BROWN",
-        "playerCollide": false
+        "playerCollide": false,
+        "place": [[-2],[-2],[-2],[-2],[-1],[-2],[-2],[-2]]
     },
     {
         "name": "COAL",
@@ -145,11 +150,13 @@
     },
     {
         "name": "LARGE CHEST LEFT",
-        "onBreak": { "27":1 }
+        "onBreak": { "27":1 },
+        "place": [[-2],[-2],[-2],[-2],[-1],[-2],[42],[-2]]
     },
     {
         "name": "LARGE CHEST RIGHT",
-        "onBreak": { "27":1 }
+        "onBreak": { "27":1 },
+        "place": [[-2],[-2],[41],[-2],[-1],[-2],[-2],[-2]]
     },
     {
         "name": "NOT USED 43",
@@ -191,6 +198,8 @@
     },
     {
         "name": "STONE BRICK",
+        "onWear": 101,
+        "randomActions": 100
     },
     {
         "name": "NOT USED 55",
@@ -213,6 +222,7 @@
     {
         "name": "OVEN (ON)",
         "lightSize": 1,
+        "onWear": 44
     },
     {
         "name": "NOT USED 62",
@@ -244,7 +254,8 @@
     },
     {
         "name": "CACTUS",
-        "damage": true
+        "damage": true,
+        "place": [[-2],[-2],[-2],[-2],[70,176],[-2],[-2],[-2]]
     },
     {
         "name": "NOT USED 71",
@@ -254,6 +265,7 @@
     },
     {
         "name": "SUGAR CANE",
+        "place": [[-2],[-2],[-2],[-2],[73,86],[-2],[-2],[-2]]
     },
     {
         "name": "NOT USED 74",
@@ -280,7 +292,8 @@
         "name": "TORCH",
         "lightSize": 80,
         "craft": { "20":1, "30":1 },
-        "craftNum": 4
+        "craftNum": 4,
+        "place": [[-1],[-1],[-1], [-1],[-1], [-1],[-1],[-1]]
     },
     {
         "name": "WOODEN WINDOW II",
@@ -315,35 +328,49 @@
     },
     {
         "name": "GRASS I",
-        "onBreak": { "184":1 }
+        "onBreak": { "184":1 },
+        "onWear": 89,
+        "place": [[-2],[-2],[-2],[-2],[3],[-2],[-2],[-2]]
     },
     {
         "name": "GRASS II",
-        "onBreak": { "184":1 }
+        "onBreak": { "184":1 },
+        "onWear": 90,
+        "place": [[-2],[-2],[-2],[-2],[3],[-2],[-2],[-2]]
     },
     {
         "name": "GRASS III",
-        "onBreak": { "184":1 }
+        "onBreak": { "184":1 },
+        "onWear": 91,
+        "place": [[-2],[-2],[-2],[-2],[3],[-2],[-2],[-2]]
     },
     {
         "name": "GRASS IV",
-        "onBreak": { "184":1 }
+        "onBreak": { "184":1 },
+        "onWear": 92,
+        "place": [[-2],[-2],[-2],[-2],[3],[-2],[-2],[-2]]
     },
     {
         "name": "GRASS V",
-        "onBreak": { "184":1 }
+        "onBreak": { "184":1 },
+        "onWear": 93,
+        "place": [[-2],[-2],[-2],[-2],[3],[-2],[-2],[-2]]
     },
     {
         "name": "GRASS VI",
-        "onBreak": { "184":1 }
+        "onBreak": { "184":1 },
+        "onWear": 94,
+        "place": [[-2],[-2],[-2],[-2],[3],[-2],[-2],[-2]]
     },
     {
         "name": "GRASS VII",
-        "onBreak": { "184":1 }
+        "onBreak": { "184":1 },
+        "place": [[-2],[-2],[-2],[-2],[3],[-2],[-2],[-2]]
     },
     {
         "name": "WHEAT PLANT",
-        "onBreak": { "74":1 }
+        "onBreak": { "74":1 },
+        "place": [[-2],[-2],[-2],[-2],[86],[-2],[-2],[-2]]
     },
 
 
@@ -365,7 +392,9 @@
     },
     {
         "name": "STONE BRICK DIRTY",
-        "onBreak": { "54":1 }
+        "onBreak": { "54":1 },
+        "onWear": 100,
+        "randomActions": 100
     },
     {
         "name": "NOT USED 102",
@@ -529,17 +558,20 @@
     {
         "name": "LARGE BED LEFT",
         "onBreak": { "152":1 },
-        "halfTile": true
+        "halfTile": true,
+        "place": [[-2],[-2],[-2],[-2],[-1],[-2],[151],[-2]]
     },
     {
         "name": "LARGE BED RIGHT",
         "onBreak": { "152":1 },
-        "halfTile": true
+        "halfTile": true,
+        "place": [[-2],[-2],[150],[-2],[-1],[-2],[-2],[-2]]
     },
     {
         "name": "BED",
         "halfTile": true,
-        "craft": { "20":4, "187":2 }
+        "craft": { "20":4, "187":2 },
+        "place": [[-2],[-2],[-2],[-2],[-1],[-2],[-2],[-2]]
     },
     {
         "name": "NOT USED 153",

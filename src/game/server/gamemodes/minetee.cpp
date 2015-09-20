@@ -130,16 +130,6 @@ void CGameControllerMineTee::Tick()
 								}
 
 							}
-							// Rose & Daisy Generates a Ground Cultivate Dry
-							/*else if (pTempTiles[c].m_Index == CBlockManager::ROSE || pTempTiles[c].m_Index == CBlockManager::DAISY)
-							{
-								int indexT = (y+1)*pTmap->m_Width+x;
-								if (pTempTiles[indexT].m_Index == CBlockManager::DIRT)
-								{
-									GameServer()->SendTileModif(ALL_PLAYERS, vec2(x, y+1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::GROUND_CULTIVATION_DRY, 0);
-									GameServer()->Collision()->ModifTile(vec2(x, y+1), GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::GROUND_CULTIVATION_DRY, 0);
-								}
-							}*/
 							// Two Beds = One Large Bed
 							else if (TileIndex[TILE_CENTER] == CBlockManager::BED && TileIndex[TILE_RIGHT] == CBlockManager::BED)
 							{
@@ -230,76 +220,62 @@ void CGameControllerMineTee::Tick()
 
 						if (Destruction)
 						{
-							if (TileIndex[TILE_CENTER] == CBlockManager::SUGAR_CANE && TileIndex[TILE_BOTTOM] != CBlockManager::SUGAR_CANE && TileIndex[TILE_BOTTOM] != CBlockManager::GROUND_CULTIVATION_WET)
+							if (BlockInfo.m_vPlace.size() > 0)
 							{
-								ModifTile(x, y, 0);
-								CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, CBlockManager::SUGAR_CANE);
-								pPickup->m_Pos = vec2((x<<5) + 8.0f, (y<<5) + 8.0f);
-							}
-							else if (TileIndex[TILE_CENTER] == CBlockManager::CACTUS && TileIndex[TILE_BOTTOM] != CBlockManager::CACTUS && TileIndex[TILE_BOTTOM] != CBlockManager::SAND)
-							{
-								ModifTile(x, y, 0);
-								CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, CBlockManager::CACTUS);
-								pPickup->m_Pos = vec2((x<<5) + 8.0f, (y<<5) + 8.0f);
-							}
-							else if (TileIndex[TILE_CENTER] == CBlockManager::TORCH)
-							{
-								bool found = false;
+								bool PlaceCheck = false;
+								for (int i=0; i<BlockInfo.m_vPlace.size(); i++)
+								{
+									array<int> *pArray = &BlockInfo.m_vPlace[i];
+									for (int e=0; e<pArray->size(); e++)
+									{
+										if ((*pArray)[e] == -2)
+											continue;
+										else if (((*pArray)[e] == -1 && TileIndex[TILE_TOP+i] != 0) ||
+											((*pArray)[e] != -1 && TileIndex[TILE_TOP+i] == (*pArray)[e]))
+										{
+											PlaceCheck = true;
+											break;
+										}
+									}
 
-								if ((TileIndex[TILE_LEFT] != 0 && TileIndex[TILE_LEFT] != CBlockManager::LAVA_D && TileIndex[TILE_LEFT] != CBlockManager::WATER_D) ||
-									(TileIndex[TILE_RIGHT] != 0 && TileIndex[TILE_RIGHT] != CBlockManager::LAVA_D && TileIndex[TILE_RIGHT] != CBlockManager::WATER_D) ||
-									(TileIndex[TILE_BOTTOM] != 0 && TileIndex[TILE_BOTTOM] != CBlockManager::LAVA_D && TileIndex[TILE_BOTTOM] != CBlockManager::WATER_D))
-									found = true;
+									if (PlaceCheck)
+										break;
+								}
 
-								if (!found)
+								if (!PlaceCheck)
 								{
 									ModifTile(x, y, 0);
-									CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, CBlockManager::TORCH);
-									pPickup->m_Pos = vec2((x<<5) + 8.0f, (y<<5) + 8.0f);
+
+									if (BlockInfo.m_vOnBreak.size() > 0)
+									{
+										for (std::map<int, unsigned char>::iterator it = BlockInfo.m_vOnBreak.begin(); it != BlockInfo.m_vOnBreak.end(); it++)
+										{
+											if (it->first == 0)
+											{
+												++it;
+												continue;
+											}
+
+											CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, it->first);
+											pPickup->m_Pos = vec2((x<<5) + 8.0f, (y<<5) + 8.0f);
+											pPickup->m_Amount = it->second;
+										}
+									}
+									else
+									{
+										CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, TileIndex[TILE_CENTER]);
+										pPickup->m_Pos = vec2((x<<5) + 8.0f, (y<<5) + 8.0f);
+									}
 								}
 							}
-							else if (TileIndex[TILE_CENTER] >= CBlockManager::GRASS_A && TileIndex[TILE_CENTER] <= CBlockManager::GRASS_G && TileIndex[TILE_BOTTOM] == 0)
-							{
-								ModifTile(x, y, 0);
-								CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, CBlockManager::SEED);
-								pPickup->m_Pos = vec2((x<<5) + 8.0f, (y<<5) + 8.0f);
-							}
-							else if (TileIndex[TILE_CENTER] == CBlockManager::LARGE_BED_LEFT && TileIndex[TILE_RIGHT] == 0)
-							{
-								ModifTile(x, y, 0);
-								CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, CBlockManager::BED);
-								pPickup->m_Pos = vec2((x<<5) + 8.0f, (y<<5) + 8.0f);
-							}
-							else if (TileIndex[TILE_CENTER] == CBlockManager::LARGE_BED_RIGHT && TileIndex[TILE_LEFT] == 0)
-							{
-								ModifTile(x, y, 0);
-								CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, CBlockManager::BED);
-								pPickup->m_Pos = vec2((x<<5) + 8.0f, (y<<5) + 8.0f);
-							}
-							else if (TileIndex[TILE_CENTER] == CBlockManager::LARGE_CHEST_LEFT && TileIndex[TILE_RIGHT] == 0)
-							{
-								ModifTile(x, y, 0);
-								CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, CBlockManager::CHEST);
-								pPickup->m_Pos = vec2((x<<5) + 8.0f, (y<<5) + 8.0f);
-							}
-							else if (TileIndex[TILE_CENTER] == CBlockManager::LARGE_CHEST_RIGHT && TileIndex[TILE_LEFT] == 0)
-							{
-								ModifTile(x, y, 0);
-								CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, CBlockManager::CHEST);
-								pPickup->m_Pos = vec2((x<<5) + 8.0f, (y<<5) + 8.0f);
-							}
-							else if ((TileIndex[TILE_CENTER] == CBlockManager::WATER_C || TileIndex[TILE_CENTER] == CBlockManager::LAVA_C) &&
+
+							// Cut Fluids
+							if ((TileIndex[TILE_CENTER] == CBlockManager::WATER_C || TileIndex[TILE_CENTER] == CBlockManager::LAVA_C) &&
 									!GameServer()->m_BlockManager.IsFluid(TileIndex[TILE_TOP]) &&
 									!GameServer()->m_BlockManager.IsFluid(TileIndex[TILE_LEFT]) &&
 									!GameServer()->m_BlockManager.IsFluid(TileIndex[TILE_RIGHT]))
 							{
 								ModifTile(x, y, 0);
-							}
-							else if ((TileIndex[TILE_CENTER] == CBlockManager::ROSE || TileIndex[TILE_CENTER] == CBlockManager::DAISY) && TileIndex[TILE_BOTTOM] == 0)
-							{
-								ModifTile(x, y, 0);
-								CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, TileIndex[TILE_CENTER]);
-								pPickup->m_Pos = vec2((x<<5) + 8.0f, (y<<5) + 8.0f);
 							}
 						}
 
@@ -421,20 +397,12 @@ void CGameControllerMineTee::Tick()
 							}
 						}
 
-						if (Wear)
+						if (Wear && BlockInfo.m_OnWear != -1)
 						{
-							if (TileIndex[TILE_CENTER] == CBlockManager::OVEN_ON)
-							{
-								ModifTile(x, y, CBlockManager::OVEN_OFF);
-							}
-							else if (!(rand()%100) && TileIndex[TILE_CENTER] == CBlockManager::STONE_BRICK)
-							{
-								ModifTile(x, y, CBlockManager::STONE_BRICK_DIRTY);
-							}
-							else if (!(rand()%100) && TileIndex[TILE_CENTER] == CBlockManager::STONE_BRICK_DIRTY)
-							{
-								ModifTile(x, y, CBlockManager::STONE_BRICK_IVY);
-							}
+							if (!BlockInfo.m_RandomActions)
+								ModifTile(x, y, BlockInfo.m_OnWear);
+							else if (!(rand()%BlockInfo.m_RandomActions))
+								ModifTile(x, y, BlockInfo.m_OnWear);
 						}
 
 						x += pTiles[Index[TILE_CENTER]].m_Skip;
@@ -805,6 +773,7 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
 
 void CGameControllerMineTee::ModifTile(ivec2 MapPos, int TileIndex)
 {
+	//dbg_msg("MineTee", "MODIF TILE: %d [%dx%d]", TileIndex, MapPos.x, MapPos.y);
 	GameServer()->SendTileModif(ALL_PLAYERS, MapPos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0);
     GameServer()->Collision()->ModifTile(MapPos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0);
 }
