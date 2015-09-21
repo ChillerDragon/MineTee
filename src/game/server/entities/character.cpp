@@ -386,9 +386,8 @@ void CCharacter::Construct()
         if (GameServer()->Collision()->GetCollisionAt(finishPosPost.x, finishPosPost.y) != CCollision::COLFLAG_SOLID)
         {
             ivec2 TilePos(finishPosPost.x/32, finishPosPost.y/32);
-            CBlockManager::CBlockInfo BlockInfo;
-            GameServer()->m_BlockManager.GetBlockInfo(ActiveBlock, &BlockInfo);
-            int TileIndex = BlockInfo.m_OnPut;
+            CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(ActiveBlock);
+            int TileIndex = pBlockInfo->m_OnPut;
 
             //Check player stuck
             for (int i=0; i<MAX_CLIENTS; i++)
@@ -552,12 +551,12 @@ void CCharacter::FireWeapon()
 							}
 							else
 							{
-								CBlockManager::CBlockInfo BlockInfo;
-								if (GameServer()->m_BlockManager.GetBlockInfo(TIndex, &BlockInfo))
+								CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(TIndex);
+								if (pBlockInfo)
 								{
-									if (BlockInfo.m_vOnBreak.size() > 0)
+									if (pBlockInfo->m_vOnBreak.size() > 0)
 									{
-										for (std::map<int, unsigned char>::iterator it = BlockInfo.m_vOnBreak.begin(); it != BlockInfo.m_vOnBreak.end(); it++)
+										for (std::map<int, unsigned char>::iterator it = pBlockInfo->m_vOnBreak.begin(); it != pBlockInfo->m_vOnBreak.end(); it++)
 										{
 											if (it->first == 0)
 											{

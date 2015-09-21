@@ -1,6 +1,5 @@
 #ifndef ENGINE_SHARED_BLOCK_PROVIDER_H
 #define ENGINE_SHARED_BLOCK_PROVIDER_H
-#include <engine/external/json-parser/json.h>
 #include <map>
 #include <base/vmath.h>
 #include <base/tl/array.h>
@@ -178,12 +177,15 @@ public:
     		m_RandomActions = 0;
     		m_OnPut = -1;
     		m_OnWear = -1;
+    		m_OnSun = -1;
     		m_vOnBreak.clear();
     		m_vOnCook.clear();
     		m_vCraft.clear();
 
     		for (int i=0; i<m_vPlace.size(); m_vPlace[i++].clear());
     		m_vPlace.clear();
+    		for (int i=0; i<m_vMutations.size(); m_vMutations[i++].clear());
+    		m_vMutations.clear();
     	}
 
 		char m_aName[24];
@@ -198,23 +200,18 @@ public:
 		int m_RandomActions;
 		int m_OnPut;
 		int m_OnWear;
+		int m_OnSun;
 		std::map<int, unsigned char> m_vOnBreak;
 		std::map<int, unsigned char> m_vOnCook;
 		std::map<int, unsigned char> m_vCraft;
 		array<array<int> > m_vPlace;
-	};
-
-	CBlockManager();
-	~CBlockManager();
+		array<array<int> > m_vMutations;
+	} m_aBlocks[256];
 
 	bool Init(char *pBlocksData, int BlocksDataSize);
 
-	bool GetBlockInfo(unsigned char BlockID, CBlockInfo *pBlockInfo);
+	CBlockInfo* GetBlockInfo(unsigned char BlockID);
 	bool IsFluid(int BlockID, int *pType = 0x0);
-
-private:
-	json_value *m_pJsonData;
-	json_settings m_JsonSettings;
 };
 
 #endif

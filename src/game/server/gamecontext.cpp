@@ -189,12 +189,12 @@ void CGameContext::CreateExplosion(vec2 Pos, int Owner, int Weapon, bool NoDamag
 				}
 				else
 				{
-					CBlockManager::CBlockInfo BlockInfo;
-					if (m_BlockManager.GetBlockInfo(BIndex, &BlockInfo))
+					CBlockManager::CBlockInfo *pBlockInfo = m_BlockManager.GetBlockInfo(BIndex);
+					if (pBlockInfo)
 					{
-						if (BlockInfo.m_vOnBreak.size() > 0)
+						if (pBlockInfo->m_vOnBreak.size() > 0)
 						{
-							for (std::map<int, unsigned char>::iterator it = BlockInfo.m_vOnBreak.begin(); it != BlockInfo.m_vOnBreak.end(); it++)
+							for (std::map<int, unsigned char>::iterator it = pBlockInfo->m_vOnBreak.begin(); it != pBlockInfo->m_vOnBreak.end(); it++)
 							{
 								if (it->first == 0)
 								{
@@ -1876,12 +1876,12 @@ void CGameContext::GiveItem(int ClientID, int ItemID, int ammo)
 	if (ItemID >= NUM_WEAPONS)
 	{
 		ItemID -= NUM_WEAPONS;
-		CBlockManager::CBlockInfo BlockInfo;
-		if (m_BlockManager.GetBlockInfo(ItemID, &BlockInfo))
+		CBlockManager::CBlockInfo *pBlockInfo = m_BlockManager.GetBlockInfo(ItemID);
+		if (pBlockInfo)
 		{
 			pChar->GiveBlock(ItemID, ammo);
 			char aBuf[128];
-			str_format(aBuf, sizeof(aBuf), "Admin give you a '%s'! revise your inventory :)", BlockInfo.m_aName);
+			str_format(aBuf, sizeof(aBuf), "Admin give you a '%s'! revise your inventory :)", pBlockInfo->m_aName);
 			SendChatTarget(ClientID, aBuf);
 		}
 	}

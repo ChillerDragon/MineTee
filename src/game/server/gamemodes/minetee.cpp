@@ -50,14 +50,12 @@ void CGameControllerMineTee::Tick()
         m_TimeWear = Server()->Tick();
     }
 
-
     //Actions
     if (Vegetal || Envirionment || Destruction || Cook || Wear)
     {
         CMapItemLayerTilemap *pTmap = (CMapItemLayerTilemap *)GameServer()->Layers()->MineTeeLayer();
         if (pTmap)
         {
-        	CBlockManager::CBlockInfo BlockInfo;
             CTile *pTiles = (CTile *)GameServer()->Layers()->Map()->GetData(pTmap->m_Data);
             CTile *pTempTiles = static_cast<CTile*>(mem_alloc(sizeof(CTile)*pTmap->m_Width*pTmap->m_Height,1));
             mem_copy(pTempTiles, pTiles, sizeof(CTile)*pTmap->m_Width*pTmap->m_Height);
@@ -70,9 +68,12 @@ void CGameControllerMineTee::Tick()
 				for(int y = StartY; y < EndY; y++)
 					for(int x = StartX; x < EndX; x++)
 					{
+						const ivec2 Positions[NUM_TILE_POS] = { ivec2(x,y), ivec2(x,y-1), ivec2(x-1,y-1), ivec2(x-1,y), ivec2(x-1,y+1), ivec2(x,y+1), ivec2(x+1,y+1), ivec2(x+1,y), ivec2(x+1,y-1) };
 						const int Index[NUM_TILE_POS] = { y*pTmap->m_Width+x, (y-1)*pTmap->m_Width+x, (y-1)*pTmap->m_Width+(x-1), y*pTmap->m_Width+(x-1), (y+1)*pTmap->m_Width+(x-1), (y+1)*pTmap->m_Width+x, (y+1)*pTmap->m_Width+(x+1), y*pTmap->m_Width+(x+1), (y-1)*pTmap->m_Width+(x+1) };
 						const int TileIndex[NUM_TILE_POS] = { pTempTiles[Index[0]].m_Index, pTempTiles[Index[1]].m_Index, pTempTiles[Index[2]].m_Index, pTempTiles[Index[3]].m_Index, pTempTiles[Index[4]].m_Index, pTempTiles[Index[5]].m_Index, pTempTiles[Index[6]].m_Index, pTempTiles[Index[7]].m_Index, pTempTiles[Index[8]].m_Index };
-						if (TileIndex[TILE_CENTER] != pTiles[Index[TILE_CENTER]].m_Index || !GameServer()->m_BlockManager.GetBlockInfo(TileIndex[TILE_CENTER], &BlockInfo))
+
+						CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(TileIndex[TILE_CENTER]);
+						if (TileIndex[TILE_CENTER] != pTiles[Index[TILE_CENTER]].m_Index || !pBlockInfo)
 						{
 							x += pTiles[Index[TILE_CENTER]].m_Skip;
 							continue;
@@ -130,30 +131,55 @@ void CGameControllerMineTee::Tick()
 								}
 
 							}
-							// Two Beds = One Large Bed
-							else if (TileIndex[TILE_CENTER] == CBlockManager::BED && TileIndex[TILE_RIGHT] == CBlockManager::BED)
+
+							// Mutations
+							for (int i=0; i<pBlockInfo->m_vMutations.size(); i+=2)
 							{
-								ModifTile(x, y, CBlockManager::LARGE_BED_LEFT);
-								ModifTile(x+1, y, CBlockManager::LARGE_BED_RIGHT);
-							}
-							// Two Chest = One Large Chest
-							else if (TileIndex[TILE_CENTER] == CBlockManager::CHEST && TileIndex[TILE_RIGHT] == CBlockManager::CHEST)
-							{
-								ModifTile(x, y, CBlockManager::LARGE_CHEST_LEFT);
-								ModifTile(x+1, y, CBlockManager::LARGE_CHEST_RIGHT);
+								bool MutationCheck = true;
+								array<int> *pArray = &pBlockInfo->m_vMutations[i];
+								array<int> *pArrayF = &pBlockInfo->m_vMutations[i+1];
+
+								if (pArray->size() != NUM_TILE_POS-1 || pArrayF->size() != NUM_TILE_POS)
+									continue;
+
+								for (int e=0; e<pArray->size(); e++)
+								{
+									if ((*pArray)[e] == -2)
+										continue;
+									else if (((*pArray)[e] == -1 && !TileIndex[TILE_TOP+e]) ||
+											((*pArray)[e] != -1 && TileIndex[TILE_TOP+e] != (*pArray)[e]))
+									{
+										MutationCheck = false;
+										break;
+									}
+								}
+
+
+								if (MutationCheck)
+								{
+									for (int e=0; e<NUM_TILE_POS; e++)
+									{
+										if ((*pArrayF)[e] == -1)
+											continue;
+
+										ModifTile(Positions[e], (*pArrayF)[e]);
+									}
+
+									break;
+								}
 							}
 
 							// Check what block are on top
 							if (y>0)
 							{
-								// Dirt -> Grass
-								if (TileIndex[TILE_CENTER] == CBlockManager::DIRT && !(rand()%20))
+								// OnSun
+								if (pBlockInfo->m_OnSun != -1 && !(rand()%pBlockInfo->m_RandomActions))
 								{
 									bool found = false;
 									for (int o=y-1; o>=0; o--)
 									{
 										int TileIndexTemp = o*pTmap->m_Width+x;
-										if (pTempTiles[TileIndexTemp].m_Index != 0 && (pTempTiles[TileIndexTemp].m_Index < CBlockManager::GRASS_A || pTempTiles[TileIndexTemp].m_Index > CBlockManager::GRASS_F))
+										if (pTempTiles[TileIndexTemp].m_Index != 0)
 										{
 											found = true;
 											break;
@@ -162,21 +188,10 @@ void CGameControllerMineTee::Tick()
 
 									if (!found)
 									{
-										ModifTile(x, y, CBlockManager::GRASS);
-									}
-								}
-								// Grass -> Dirt or Snow
-								else if (TileIndex[TILE_CENTER] == CBlockManager::GRASS && !(rand()%20))
-								{
-									if (TileIndex[TILE_TOP] != 0 &&
-										(TileIndex[TILE_TOP] < CBlockManager::GRASS_A || TileIndex[TILE_TOP] > CBlockManager::GRASS_F) &&
-										TileIndex[TILE_TOP] != CBlockManager::ROSE &&
-										TileIndex[TILE_TOP] != CBlockManager::DAISY &&
-										TileIndex[TILE_TOP] != CBlockManager::MUSHROOM_RED &&
-										TileIndex[TILE_TOP] != CBlockManager::MUSHROOM_BROWN)
-									{
-										int TileIndexTemp = TileIndex[TILE_TOP]==CBlockManager::SNOW?CBlockManager::DIRT_SNOW:CBlockManager::DIRT;
-										ModifTile(x, y, TileIndexTemp);
+										if (!pBlockInfo->m_RandomActions)
+											ModifTile(x, y, pBlockInfo->m_OnSun);
+										else if (!(rand()%pBlockInfo->m_RandomActions))
+											ModifTile(x, y, pBlockInfo->m_OnSun);
 									}
 								}
 								// Turn On Oven if Coal touch one side
@@ -197,15 +212,15 @@ void CGameControllerMineTee::Tick()
 								}
 							}
 
-							//BLOCK FALL
-							if (BlockInfo.m_Gravity && TileIndex[TILE_BOTTOM] == 0)
+							// Gravity
+							if (pBlockInfo->m_Gravity && TileIndex[TILE_BOTTOM] == 0)
 							{
 								ModifTile(x, y, 0);
 								ModifTile(x, y+1, TileIndex[TILE_CENTER]);
 							}
 
-							//BLOCK DAMAGE
-							if (BlockInfo.m_Damage)
+							// Damage
+							if (pBlockInfo->m_Damage)
 							{
 								for (size_t e=0; e<MAX_CLIENTS; e++)
 								{
@@ -220,12 +235,13 @@ void CGameControllerMineTee::Tick()
 
 						if (Destruction)
 						{
-							if (BlockInfo.m_vPlace.size() > 0)
+							// Place Check
+							if (pBlockInfo->m_vPlace.size() > 0)
 							{
 								bool PlaceCheck = false;
-								for (int i=0; i<BlockInfo.m_vPlace.size(); i++)
+								for (int i=0; i<pBlockInfo->m_vPlace.size(); i++)
 								{
-									array<int> *pArray = &BlockInfo.m_vPlace[i];
+									array<int> *pArray = &pBlockInfo->m_vPlace[i];
 									for (int e=0; e<pArray->size(); e++)
 									{
 										if ((*pArray)[e] == -2)
@@ -246,9 +262,9 @@ void CGameControllerMineTee::Tick()
 								{
 									ModifTile(x, y, 0);
 
-									if (BlockInfo.m_vOnBreak.size() > 0)
+									if (pBlockInfo->m_vOnBreak.size() > 0)
 									{
-										for (std::map<int, unsigned char>::iterator it = BlockInfo.m_vOnBreak.begin(); it != BlockInfo.m_vOnBreak.end(); it++)
+										for (std::map<int, unsigned char>::iterator it = pBlockInfo->m_vOnBreak.begin(); it != pBlockInfo->m_vOnBreak.end(); it++)
 										{
 											if (it->first == 0)
 											{
@@ -375,34 +391,33 @@ void CGameControllerMineTee::Tick()
 							}
 						}
 
-						if (Cook)
+						// OnCook
+						if (Cook && y > 0)
 						{
-							if (y > 0)
+							if (TileIndex[TILE_CENTER] == CBlockManager::OVEN_ON)
 							{
-								if (TileIndex[TILE_CENTER] == CBlockManager::OVEN_ON)
+								CBlockManager::CBlockInfo *pCookedBlock = GameServer()->m_BlockManager.GetBlockInfo(TileIndex[TILE_TOP]);
+								if (pCookedBlock)
 								{
-									CBlockManager::CBlockInfo CookedBlock;
-									if (GameServer()->m_BlockManager.GetBlockInfo(TileIndex[TILE_TOP], &CookedBlock))
+									for (std::map<int, unsigned char>::iterator it = pCookedBlock->m_vOnCook.begin(); it != pCookedBlock->m_vOnCook.end(); it++)
 									{
-										for (std::map<int, unsigned char>::iterator it = CookedBlock.m_vOnCook.begin(); it != CookedBlock.m_vOnCook.end(); it++)
-										{
-											CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, it->first);
-											pPickup->m_Pos = vec2((x<<5) + 8.0f, ((y-1)<<5) + 8.0f);
-											pPickup->m_Amount = it->second;
-										}
+										CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, it->first);
+										pPickup->m_Pos = vec2((x<<5) + 8.0f, ((y-1)<<5) + 8.0f);
+										pPickup->m_Amount = it->second;
 									}
-
-									ModifTile(x, y-1, 0);
 								}
+
+								ModifTile(x, y-1, 0);
 							}
 						}
 
-						if (Wear && BlockInfo.m_OnWear != -1)
+						// OnWear
+						if (Wear && pBlockInfo->m_OnWear != -1)
 						{
-							if (!BlockInfo.m_RandomActions)
-								ModifTile(x, y, BlockInfo.m_OnWear);
-							else if (!(rand()%BlockInfo.m_RandomActions))
-								ModifTile(x, y, BlockInfo.m_OnWear);
+							if (!pBlockInfo->m_RandomActions)
+								ModifTile(x, y, pBlockInfo->m_OnWear);
+							else if (!(rand()%pBlockInfo->m_RandomActions))
+								ModifTile(x, y, pBlockInfo->m_OnWear);
 						}
 
 						x += pTiles[Index[TILE_CENTER]].m_Skip;
@@ -615,16 +630,16 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
 			bool BlockFounded = false;
 			for (int u=0; u<CBlockManager::MAX_BLOCKS; u++)
 			{
-				CBlockManager::CBlockInfo BlockInfo;
-				if (!GameServer()->m_BlockManager.GetBlockInfo(u, &BlockInfo))
+				CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(u);
+				if (!pBlockInfo)
 					continue;
-				if (str_comp_nocase(ptr, BlockInfo.m_aName) != 0 || BlockInfo.m_CraftNum == 0 || BlockInfo.m_vCraft.size() <= 0)
+				if (str_comp_nocase(ptr, pBlockInfo->m_aName) != 0 || pBlockInfo->m_CraftNum == 0 || pBlockInfo->m_vCraft.size() <= 0)
 					continue;
 
 				BlockFounded = true;
 
 				bool CanCraft = true;
-				for (std::map<int, unsigned char>::iterator it = BlockInfo.m_vCraft.begin(); it != BlockInfo.m_vCraft.end(); it++)
+				for (std::map<int, unsigned char>::iterator it = pBlockInfo->m_vCraft.begin(); it != pBlockInfo->m_vCraft.end(); it++)
 				{
 					if (!pChar->m_aBlocks[it->first].m_Got || pChar->m_aBlocks[it->first].m_Amount <= 0 )
 					{
@@ -636,29 +651,31 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
 				if (!CanCraft)
 				{
 					GameServer()->SendChatTarget(cid, "--------------------------- --------- --------");
-					str_format(aBuf, sizeof(aBuf), "- CRAFT: %s   [%d Units]", BlockInfo.m_aName, BlockInfo.m_CraftNum);
+					str_format(aBuf, sizeof(aBuf), "- CRAFT: %s   [%d Units]", pBlockInfo->m_aName, pBlockInfo->m_CraftNum);
 					GameServer()->SendChatTarget(cid, aBuf);
 					GameServer()->SendChatTarget(cid, "===============================");
 					GameServer()->SendChatTarget(cid, "You need the following items:");
 					GameServer()->SendChatTarget(cid, " ");
-					for (std::map<int, unsigned char>::iterator it = BlockInfo.m_vCraft.begin(); it != BlockInfo.m_vCraft.end(); it++)
+					for (std::map<int, unsigned char>::iterator it = pBlockInfo->m_vCraft.begin(); it != pBlockInfo->m_vCraft.end(); it++)
 					{
-						CBlockManager::CBlockInfo CraftBlockInfo;
-						GameServer()->m_BlockManager.GetBlockInfo(it->first, &CraftBlockInfo);
-						str_format(aBuf, sizeof(aBuf), "- %d x %s", it->second, CraftBlockInfo.m_aName);
-						GameServer()->SendChatTarget(cid, aBuf);
+						CBlockManager::CBlockInfo *pCraftBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(it->first);
+						if (pCraftBlockInfo)
+						{
+							str_format(aBuf, sizeof(aBuf), "- %d x %s", it->second, pCraftBlockInfo->m_aName);
+							GameServer()->SendChatTarget(cid, aBuf);
+						}
 					}
 					GameServer()->SendChatTarget(cid, " ");
 					return false;
 				}
 
-				for (std::map<int, unsigned char>::iterator it = BlockInfo.m_vCraft.begin(); it != BlockInfo.m_vCraft.end(); it++)
+				for (std::map<int, unsigned char>::iterator it = pBlockInfo->m_vCraft.begin(); it != pBlockInfo->m_vCraft.end(); it++)
 					pChar->m_aBlocks[it->first].m_Amount -= it->second;
 
-				pChar->GiveBlock(u, BlockInfo.m_CraftNum);
+				pChar->GiveBlock(u, pBlockInfo->m_CraftNum);
 				pChar->SetWeapon(NUM_WEAPONS+u);
 
-				str_format(aBuf, sizeof(aBuf), "** You have been added a %s!", BlockInfo.m_aName);
+				str_format(aBuf, sizeof(aBuf), "** You have been added a %s!", pBlockInfo->m_aName);
 				GameServer()->SendChatTarget(cid, aBuff);
 			}
 

@@ -524,12 +524,12 @@ void CHud::RenderInventoryHud()
 
     // Item Name
     int SelectedItem = m_pClient->m_Inventory.m_Items[m_pClient->m_Inventory.m_Selected]-NUM_WEAPONS;
-    CBlockManager::CBlockInfo InfoBlock;
-    if (SelectedItem >= 0 && m_pClient->m_BlockManager.GetBlockInfo(SelectedItem, &InfoBlock))
+    CBlockManager::CBlockInfo *pInfoBlock = m_pClient->m_BlockManager.GetBlockInfo(SelectedItem);
+    if (SelectedItem >= 0 && pInfoBlock)
 	{
-		float TWidth = TextRender()->TextWidth(0, 4.0f, InfoBlock.m_aName, -1);
+		float TWidth = TextRender()->TextWidth(0, 4.0f, pInfoBlock->m_aName, -1);
 		TextRender()->TextColor(1.0f, 1.0f, 1.0f, 0.85f);
-		TextRender()->Text(0x0, (m_Width/2-TWidth/2), Outbox.y - 8.0f, 4.0f, InfoBlock.m_aName, -1);
+		TextRender()->Text(0x0, (m_Width/2-TWidth/2), Outbox.y - 8.0f, 4.0f, pInfoBlock->m_aName, -1);
     }
 
     Graphics()->TextureSet(-1);

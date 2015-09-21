@@ -258,8 +258,7 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
                 // MineTee
                 if (TileMineTee == 1)
                 {
-                	CBlockManager::CBlockInfo BlockInfo;
-                	m_pCollision->GetBlockManager()->GetBlockInfo(Index, &BlockInfo);
+                	CBlockManager::CBlockInfo *pBlockInfo = m_pCollision->GetBlockManager()->GetBlockInfo(Index);
 
                 	if (pEffects)
                 	{
@@ -286,7 +285,7 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
                 	}
 
                 	// Flip HalfTiles
-                	if (my > 0 && BlockInfo.m_HalfTile)
+                	if (my > 0 && pBlockInfo->m_HalfTile)
                 	{
                 		int tu = mx + (my-1)*w;
                 		if (pTiles[tu].m_Index != 0 && !(pTiles[c].m_Flags&TILEFLAG_HFLIP))
@@ -441,6 +440,7 @@ void CRenderTools::UpdateLights(CTile *pTiles, CTile *pLights, int w, int h, int
 
             pLightsTemp[c].m_Index = aTileIndexDarkness[DarknessLevel];
             pLightsTemp[c].m_Reserved = 0;
+            pLightsTemp[c].m_Skip = 0;
         }
 
 	// Environment Light (The Sun)
@@ -606,15 +606,15 @@ void CRenderTools::UpdateLights(CTile *pTiles, CTile *pLights, int w, int h, int
 		{
             int c = x + y*w;
             int TileIndex = pTiles[c].m_Index;
-            CBlockManager::CBlockInfo BlockInfo;
-            if (!m_pCollision->GetBlockManager()->GetBlockInfo(TileIndex, &BlockInfo))
+            CBlockManager::CBlockInfo *pBlockInfo = m_pCollision->GetBlockManager()->GetBlockInfo(TileIndex);
+            if (!pBlockInfo)
             	continue;
 
-            if (BlockInfo.m_LightSize && BlockInfo.m_LightSize <= 5)
-            	pLightsTemp[c].m_Index = aTileIndexDarkness[5-BlockInfo.m_LightSize];
-            else if (BlockInfo.m_LightSize)
+            if (pBlockInfo->m_LightSize && pBlockInfo->m_LightSize <= 5)
+            	pLightsTemp[c].m_Index = aTileIndexDarkness[5-pBlockInfo->m_LightSize];
+            else if (pBlockInfo->m_LightSize)
             {
-            	int LightSize = (!BigSize)?(BlockInfo.m_LightSize - BlockInfo.m_LightSize/3):BlockInfo.m_LightSize;
+            	int LightSize = (!BigSize)?(pBlockInfo->m_LightSize - pBlockInfo->m_LightSize/3):pBlockInfo->m_LightSize;
                 for (int e=0; e<=LightSize; e++)
                 {
                     int index = 4-(e*4)/LightSize;
@@ -633,7 +633,7 @@ void CRenderTools::UpdateLights(CTile *pTiles, CTile *pLights, int w, int h, int
 		}
 
     // Update Skip Info
-    for(int y = StartY; y < EndY; y++)
+    /*for(int y = StartY; y < EndY; y++)
 		for(int x = StartX; x < EndX; x++)
 	{
 		int sx;
@@ -645,7 +645,7 @@ void CRenderTools::UpdateLights(CTile *pTiles, CTile *pLights, int w, int h, int
 
 		pLightsTemp[y*w+x].m_Skip = sx-1;
 		x += sx;
-	}
+	}*/
 
     mem_copy(pLights, pLightsTemp, sizeof(CTile)*w*h);
     mem_free(pLightsTemp);
