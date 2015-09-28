@@ -1,7 +1,7 @@
 dependencies:
   pre:
     - |
-        sudo apt-get update && sudo apt-get -y build-dep teeworlds
+        sudo apt-get update && sudo apt-get -y gcc g++ binutils && install sudo apt-get -y build-dep teeworlds
 
         if [ ! -x ~/bam/bam ]; then
           git clone https://github.com/matricks/bam ~/bam/
