@@ -1,8 +1,16 @@
+# To use GCC and G++ 4.9
+machine:
+  pre:
+    - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.6 10
+    - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.6 10
+    - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 20
+    - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 20
+
+# To Build Teeworlds
 dependencies:
   pre:
     - |
-        sudo apt-get update && install sudo apt-get -y build-dep teeworlds
-        cd /usr/bin/; sudo unlink g++ && sudo ln -s g++-4.9 g++
+        sudo apt-get update && sudo apt-get build-dep -y teeworlds
 
         if [ ! -x ~/bam/bam ]; then
           git clone https://github.com/matricks/bam ~/bam/
@@ -12,11 +20,13 @@ dependencies:
   cache_directories:
     - "~/bam/"
 
-## Customize test commands
+## Artifacts
 general:
   artifacts:
-    - tw_minetee
-    - tw_minetee_srv
+    - "tw_minetee"
+    - "tw_minetee_srv"
+
+## Customize test commands
 test:
   override:
     - ~/bam/bam client_release
