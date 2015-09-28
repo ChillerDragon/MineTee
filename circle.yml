@@ -1,0 +1,22 @@
+dependencies:
+  pre:
+    - |
+        sudo apt-get update && sudo apt-get -y build-dep teeworlds
+
+        if [ ! -x ~/bam/bam ]; then
+          git clone https://github.com/matricks/bam ~/bam/
+          cd ~/bam; ./make_unix.sh
+        fi
+
+  cache_directories:
+    - "~/bam/"
+
+## Customize test commands
+general:
+  artifacts:
+    - tw_minetee
+    - tw_minetee_srv
+test:
+  override:
+    - ~/bam/bam client_release
+    - ~/bam/bam server_release
