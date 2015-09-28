@@ -1,4 +1,4 @@
-+ MineTee README
++ MineTee README [![Circle CI](https://circleci.com/gh/CytraL/MineTee.svg?style=svg)](https://circleci.com/gh/CytraL/MineTee)
 =============================================
 MineTee its a mod for the game Teeworlds created and maintained by unsigned char*.
 
@@ -6,7 +6,6 @@ MineTee its a mod for the game Teeworlds created and maintained by unsigned char
 
 + TEEWORLDS README
 =============================================
-
 Copyright (c) 2011 Magnus Auvinen
 
 
