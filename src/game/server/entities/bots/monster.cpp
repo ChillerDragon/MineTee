@@ -2,16 +2,15 @@
 #include <engine/shared/config.h>
 #include <game/server/gamecontext.h>
 #include <game/mapitems.h>
-
+#include <game/server/entities/bots/monster.h>
 #include "../pickup.h" // MineTee
 #include "../character.h"
 #include "../laser.h"
 #include "../projectile.h"
-#include "zombitee.h"
 
-MACRO_ALLOC_POOL_ID_IMPL(CZombitee, MAX_CLIENTS)
+MACRO_ALLOC_POOL_ID_IMPL(CMonster, MAX_CLIENTS)
 
-CZombitee::CZombitee(CGameWorld *pWorld)
+CMonster::CMonster(CGameWorld *pWorld)
 : CCharacter(pWorld)
 {
 	m_BotDir = 1;
@@ -27,13 +26,13 @@ CZombitee::CZombitee(CGameWorld *pWorld)
 	m_BotJumpTry = false;
 }
 
-void CZombitee::Tick()
+void CMonster::Tick()
 {
 	TickBotAI();
 	CCharacter::Tick();
 }
 
-bool CZombitee::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
+bool CMonster::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 {
 	if (CCharacter::TakeDamage(Force, Dmg, From, Weapon))
 	{
@@ -44,14 +43,12 @@ bool CZombitee::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 	return false;
 }
 
-void CZombitee::TickBotAI()
+void CMonster::TickBotAI()
 {
     //Sounds
     if (Server()->Tick() - m_BotTimeLastSound > Server()->TickSpeed()*5.0f)
     {
-        if (m_pPlayer->GetTeam() == TEAM_ANIMAL_TEECOW)
-            GameServer()->CreateSound(m_Pos, SOUND_ANIMAL_TEECOW);
-        else if (m_pPlayer->GetTeam() == TEAM_ENEMY_ZOMBITEE)
+        if (m_pPlayer->GetTeam() == TEAM_ENEMY_ZOMBITEE)
             GameServer()->CreateSound(m_Pos, SOUND_ENEMY_ZOMBITEE);
         m_BotTimeLastSound = Server()->Tick();
     }
@@ -162,9 +159,7 @@ void CZombitee::TickBotAI()
                     }
                 }
 
-                if (m_pPlayer->GetTeam() == TEAM_ANIMAL_TEECOW || m_pPlayer->GetTeam() == TEAM_ANIMAL_TEEPIG)
-                    m_BotDir = 0;
-                else if (m_pPlayer->GetTeam() == TEAM_ENEMY_SKELETEE)
+                if (m_pPlayer->GetTeam() == TEAM_ENEMY_SKELETEE)
                 {
                     m_BotDir = 0;
                     m_BotClientIDFix = pPlayer->GetCID();
@@ -204,15 +199,15 @@ void CZombitee::TickBotAI()
         m_Input.m_TargetX = m_BotDir;
         m_Input.m_TargetY = 0;
     }
-    else if (m_pPlayer->GetTeam() < TEAM_ANIMAL_TEECOW && m_BotClientIDFix != -1)
+    else if (m_BotClientIDFix != -1)
     {
     	CPlayer *pPlayer = GameServer()->m_apPlayers[m_BotClientIDFix];
     	if (pPlayer && pPlayer->GetCharacter() && m_Pos.y > pPlayer->GetCharacter()->m_Pos.y) // Jump to player
     		m_Input.m_Jump = 1;
     }
 
-    //Random Actions to animals
-	if (m_pPlayer->GetTeam() == TEAM_ANIMAL_TEECOW || m_pPlayer->GetTeam() == TEAM_ANIMAL_TEEPIG || !PlayerFound)
+    //Random Actions
+	if (!PlayerFound)
 	{
         if (Server()->Tick()-m_BotTimeLastOption > Server()->TickSpeed()*10.0f)
         {
@@ -259,7 +254,7 @@ void CZombitee::TickBotAI()
         m_BotTimeGrounded = Server()->Tick();
 
     //Falls
-    if (m_pPlayer->GetTeam() != TEAM_ENEMY_ZOMBITEE && m_pPlayer->GetTeam() != TEAM_ANIMAL_TEECOW  && m_pPlayer->GetTeam() != TEAM_ANIMAL_TEEPIG && m_Core.m_Vel.y > GameServer()->Tuning()->m_Gravity)
+    if (m_pPlayer->GetTeam() != TEAM_ENEMY_ZOMBITEE && m_Core.m_Vel.y > GameServer()->Tuning()->m_Gravity)
     {
     	if (m_BotClientIDFix != -1)
     	{

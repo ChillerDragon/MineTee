@@ -20,7 +20,8 @@ enum
 class CCharacter : public CEntity
 {
 	MACRO_ALLOC_POOL_ID()
-	friend class CZombitee;
+	friend class CMonster;
+	friend class CAnimal;
 
 public:
 

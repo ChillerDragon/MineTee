@@ -2,8 +2,9 @@
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <new>
 #include <engine/shared/config.h>
+#include <game/server/entities/bots/monster.h> // MineTee
+#include <game/server/entities/bots/animal.h> // MineTee
 #include "player.h"
-#include <game/server/entities/mobs/zombitee.h> // MineTee
 
 
 MACRO_ALLOC_POOL_ID_IMPL(CPlayer, MAX_CLIENTS)
@@ -313,8 +314,10 @@ void CPlayer::TryRespawn()
 	m_Spawning = false;
 
 	// MineTee
-	if (m_Team > TEAM_BLUE)
-		m_pCharacter = new(m_ClientID) CZombitee(&GameServer()->m_World);
+	if (m_Team >= TEAM_ENEMY_TEEPER && m_Team <= TEAM_ENEMY_SPIDERTEE)
+		m_pCharacter = new(m_ClientID) CMonster(&GameServer()->m_World);
+	else if (m_Team >= TEAM_ANIMAL_TEECOW && m_Team <= TEAM_ANIMAL_TEEPIG)
+		m_pCharacter = new(m_ClientID) CAnimal(&GameServer()->m_World);
 	else
 		m_pCharacter = new(m_ClientID) CCharacter(&GameServer()->m_World);
 	//

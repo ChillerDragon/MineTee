@@ -1,6 +1,7 @@
 #include <base/system.h>
 #include <base/math.h>
 #include <base/vmath.h>
+#include <engine/shared/config.h>
 
 #include "mapgen.h"
 #include <game/server/gamecontext.h>
@@ -31,6 +32,9 @@ void CMapGen::GenerateMap()
 {
 	if (!m_pLayers->MineTeeLayer())
 		return;
+
+	dbg_msg("MapGen", "Generating '%s' map...", g_Config.m_SvMapGenerationSize);
+
 
 	int MineTeeLayerSize = m_pLayers->MineTeeLayer()->m_Width*m_pLayers->MineTeeLayer()->m_Height;
 
@@ -173,7 +177,7 @@ void CMapGen::GenerateWater()
 		{
 			if(m_pCollision->GetMineTeeTileAt(vec2(x*32, y*32)) == CBlockManager::AIR)
 			{
-				m_pCollision->ModifTile(ivec2(x, y), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::WATER_A, 0);
+				m_pCollision->ModifTile(ivec2(x, y), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), y==WATER_LEVEL_MAX?CBlockManager::WATER_A:CBlockManager::WATER_D, 0);
 			}
 		}
 	}
