@@ -31,6 +31,8 @@ public:
 	int NumData();
 	void Unload();
 
+	bool ResizeData(int *pIndex, unsigned int NewSize);
+
 	unsigned Crc();
 
 	int GetDataUncompressedSize(int Index); // MineTee

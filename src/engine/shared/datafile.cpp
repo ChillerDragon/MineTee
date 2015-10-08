@@ -429,6 +429,10 @@ unsigned CDataFileReader::Crc()
 	return m_pDataFile->m_Crc;
 }
 
+bool CDataFileReader::ResizeData(int *pIndex, unsigned int NewSize)
+{
+	return false;
+}
 
 CDataFileWriter::CDataFileWriter()
 {

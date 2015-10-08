@@ -3,6 +3,7 @@
 #include <new>
 #include <engine/shared/config.h>
 #include "player.h"
+#include <game/server/entities/mobs/zombitee.h> // MineTee
 
 
 MACRO_ALLOC_POOL_ID_IMPL(CPlayer, MAX_CLIENTS)
@@ -310,7 +311,14 @@ void CPlayer::TryRespawn()
 		return;
 
 	m_Spawning = false;
-	m_pCharacter = new(m_ClientID) CCharacter(&GameServer()->m_World);
+
+	// MineTee
+	if (m_Team > TEAM_BLUE)
+		m_pCharacter = new(m_ClientID) CZombitee(&GameServer()->m_World);
+	else
+		m_pCharacter = new(m_ClientID) CCharacter(&GameServer()->m_World);
+	//
+
 	m_pCharacter->Spawn(this, SpawnPos);
 	GameServer()->CreatePlayerSpawn(SpawnPos);
 }

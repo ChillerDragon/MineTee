@@ -20,8 +20,10 @@ enum
 class CCharacter : public CEntity
 {
 	MACRO_ALLOC_POOL_ID()
+	friend class CZombitee;
 
 public:
+
 	//character's size
 	static const int ms_PhysSize = 28;
 
@@ -49,7 +51,7 @@ public:
 	void FireWeapon();
 
 	void Die(int Killer, int Weapon);
-	bool TakeDamage(vec2 Force, int Dmg, int From, int Weapon);
+	virtual bool TakeDamage(vec2 Force, int Dmg, int From, int Weapon); // MineTee
 
 	bool Spawn(class CPlayer *pPlayer, vec2 Pos);
 	bool Remove();
@@ -84,20 +86,6 @@ public:
 	bool IsInventoryFull();
 	bool GiveBlock(int Block, int Amount);
     int GetCurrentAmmo(int wid);
-
-	//Bot
-	vec2 m_BotLastPos;
-    int m_BotDir;
-    int m_BotStuckCount;
-    int m_BotClientIDFix;
-    float m_BotLastStuckTime;
-    float m_BotTimePlayerFound;
-    float m_BotTimeGrounded;
-    float m_BotTimeLastOption;
-    float m_BotTimeLastDamage;
-    float m_BotTimeLastSound;
-    bool m_BotJumpTry;
-	//
 
 private:
 	// player controlling this character
@@ -171,7 +159,6 @@ private:
 	float TimerFluidDamage;
 	bool inWater;
 	void Construct();
-	void TickBotAI();
 	//
 };
 
