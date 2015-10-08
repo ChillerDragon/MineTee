@@ -1,5 +1,6 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
+/* File modified by Alexandre Díaz */
 #ifndef BASE_MATH_H
 #define BASE_MATH_H
 

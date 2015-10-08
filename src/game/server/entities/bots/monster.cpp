@@ -1,9 +1,11 @@
+/* (c) Alexandre Díaz. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <new>
 #include <engine/shared/config.h>
 #include <game/server/gamecontext.h>
 #include <game/mapitems.h>
-#include <game/server/entities/bots/monster.h>
-#include "../pickup.h" // MineTee
+#include "monster.h"
+#include "../pickup.h"
 #include "../character.h"
 #include "../laser.h"
 #include "../projectile.h"
