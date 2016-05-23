@@ -35,21 +35,21 @@ double CPerlin::Noise(double x, double y, double z) const
     const double v = fade(y);
     const double w = fade(z);
 
-    const auto A = m_aNumsPerlin[X] + Y;
-    const auto AA = m_aNumsPerlin[A] + Z;
-    const auto AB = m_aNumsPerlin[A + 1] + Z;
-    const auto B = m_aNumsPerlin[X + 1] + Y;
-    const auto BA = m_aNumsPerlin[B] + Z;
-    const auto BB = m_aNumsPerlin[B + 1] + Z;
+    const int A = m_aNumsPerlin[X] + Y;
+    const int AA = m_aNumsPerlin[A] + Z;
+    const int AB = m_aNumsPerlin[A + 1] + Z;
+    const int B = m_aNumsPerlin[X + 1] + Y;
+    const int BA = m_aNumsPerlin[B] + Z;
+    const int BB = m_aNumsPerlin[B + 1] + Z;
 
-    const auto PAA = m_aNumsPerlin[AA];
-    const auto PBA = m_aNumsPerlin[BA];
-    const auto PAB = m_aNumsPerlin[AB];
-    const auto PBB = m_aNumsPerlin[BB];
-    const auto PAA1 = m_aNumsPerlin[AA + 1];
-    const auto PBA1 = m_aNumsPerlin[BA + 1];
-    const auto PAB1 = m_aNumsPerlin[AB + 1];
-    const auto PBB1 = m_aNumsPerlin[BB + 1];
+    const int PAA = m_aNumsPerlin[AA];
+    const int PBA = m_aNumsPerlin[BA];
+    const int PAB = m_aNumsPerlin[AB];
+    const int PBB = m_aNumsPerlin[BB];
+    const int PAA1 = m_aNumsPerlin[AA + 1];
+    const int PBA1 = m_aNumsPerlin[BA + 1];
+    const int PAB1 = m_aNumsPerlin[AB + 1];
+    const int PBB1 = m_aNumsPerlin[BB + 1];
 
     const auto a = lerp(v,
         lerp(u, grad(PAA, x, y, z), grad(PBA, x-1, y, z)),

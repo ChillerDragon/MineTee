@@ -6,7 +6,7 @@
 
 // you can subclass GAMECONTROLLER_CTF, GAMECONTROLLER_TDM etc if you want
 // todo a modification with their base as well.
-class CGameControllerMOD : public IGameController
+class CGameControllerMOD : public CGameController
 {
 public:
 	CGameControllerMOD(class CGameContext *pGameServer);

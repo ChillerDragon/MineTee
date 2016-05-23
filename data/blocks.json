@@ -863,19 +863,19 @@
     },
     {
         "name": "LAVA IV",
-        "lightSize": 1
+        "lightSize": 5
     },
     {
         "name": "LAVA III",
-        "lightSize": 1
+        "lightSize": 5
     },
     {
         "name": "LAVA II",
-        "lightSize": 1,
+        "lightSize": 5,
     },
     {
         "name": "LAVA I",
-        "lightSize": 1,
+        "lightSize": 5,
     },
 
 

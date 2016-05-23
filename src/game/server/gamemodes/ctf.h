@@ -5,7 +5,7 @@
 #include <game/server/gamecontroller.h>
 #include <game/server/entity.h>
 
-class CGameControllerCTF : public IGameController
+class CGameControllerCTF : public CGameController
 {
 public:
 	class CFlag *m_apFlags[2];

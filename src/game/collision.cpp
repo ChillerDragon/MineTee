@@ -281,13 +281,13 @@ void CCollision::ModifTile(ivec2 pos, int group, int layer, int index, int flags
 {
     CMapItemGroup *pGroup = m_pLayers->GetGroup(group);
     CMapItemLayer *pLayer = m_pLayers->GetLayer(pGroup->m_StartLayer+layer);
-    if (pLayer->m_Type != LAYERTYPE_TILES) // protect against the dark side people
+    if (pLayer->m_Type != LAYERTYPE_TILES || pos.y <= 1)
         return;
 
     CMapItemLayerTilemap *pTilemap = reinterpret_cast<CMapItemLayerTilemap *>(pLayer);
     int TotalTiles = pTilemap->m_Width*pTilemap->m_Height;
     int tpos = (int)pos.y*pTilemap->m_Width+(int)pos.x;
-    if (tpos < 0 || tpos >= TotalTiles) // protect against the dark side people
+    if (tpos < 0 || tpos >= TotalTiles)
         return;
 
     if (pTilemap == m_pLayers->MineTeeLayer())

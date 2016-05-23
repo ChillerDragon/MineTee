@@ -11,7 +11,7 @@
 #include <cstring>
 
 CGameControllerMineTee::CGameControllerMineTee(class CGameContext *pGameServer)
-: IGameController(pGameServer)
+: CGameController(pGameServer)
 {
 	m_pGameType = "MineTee";
 	m_TimeVegetal = Server()->Tick();
@@ -430,7 +430,7 @@ void CGameControllerMineTee::Tick()
         }
     }
 
-	IGameController::Tick();
+	CGameController::Tick();
 }
 
 void CGameControllerMineTee::OnCharacterSpawn(class CCharacter *pChr)
@@ -468,7 +468,7 @@ void CGameControllerMineTee::OnCharacterSpawn(class CCharacter *pChr)
 
 int CGameControllerMineTee::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon)
 {
-    IGameController::OnCharacterDeath(pVictim, pKiller, Weapon);
+    CGameController::OnCharacterDeath(pVictim, pKiller, Weapon);
 
     if (!(pVictim->GetPlayer()->IsBot() && pVictim->GetPlayer() == pKiller))
     {
@@ -536,7 +536,7 @@ bool CGameControllerMineTee::CanJoinTeam(int Team, int NotThisID)
         return false;
     }
 
-    return IGameController::CanJoinTeam(Team, NotThisID);
+    return CGameController::CanJoinTeam(Team, NotThisID);
 }
 
 bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)

@@ -70,7 +70,7 @@ public:
 	class CPlayer *GetPlayer() { return m_pPlayer; }
 
     //H-Client
-    CCharacterCore* GetCore() { return &m_Core; }
+	CCharacterCore* GetCore() { return &m_Core; }
     void DropItem(int ItemID = -1);
 
     struct {

@@ -4,7 +4,7 @@
 #define GAME_SERVER_GAMEMODES_DM_H
 #include <game/server/gamecontroller.h>
 
-class CGameControllerDM : public IGameController
+class CGameControllerDM : public CGameController
 {
 public:
 	CGameControllerDM(class CGameContext *pGameServer);

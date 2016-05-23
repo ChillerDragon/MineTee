@@ -6,7 +6,7 @@
 #include <game/server/player.h>
 #include "tdm.h"
 
-CGameControllerTDM::CGameControllerTDM(class CGameContext *pGameServer) : IGameController(pGameServer)
+CGameControllerTDM::CGameControllerTDM(class CGameContext *pGameServer) : CGameController(pGameServer)
 {
 	m_pGameType = "TDM";
 	m_GameFlags = GAMEFLAG_TEAMS;
@@ -14,7 +14,7 @@ CGameControllerTDM::CGameControllerTDM(class CGameContext *pGameServer) : IGameC
 
 int CGameControllerTDM::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon)
 {
-	IGameController::OnCharacterDeath(pVictim, pKiller, Weapon);
+	CGameController::OnCharacterDeath(pVictim, pKiller, Weapon);
 
 
 	if(pKiller && Weapon != WEAPON_GAME)
@@ -33,7 +33,7 @@ int CGameControllerTDM::OnCharacterDeath(class CCharacter *pVictim, class CPlaye
 
 void CGameControllerTDM::Snap(int SnappingClient)
 {
-	IGameController::Snap(SnappingClient);
+	CGameController::Snap(SnappingClient);
 
 	CNetObj_GameData *pGameDataObj = (CNetObj_GameData *)Server()->SnapNewItem(NETOBJTYPE_GAMEDATA, 0, sizeof(CNetObj_GameData));
 	if(!pGameDataObj)
@@ -48,5 +48,5 @@ void CGameControllerTDM::Snap(int SnappingClient)
 
 void CGameControllerTDM::Tick()
 {
-	IGameController::Tick();
+	CGameController::Tick();
 }

@@ -6,7 +6,7 @@
 #include <game/server/gamecontroller.h>
 
 
-class CGameControllerMineTee : public IGameController
+class CGameControllerMineTee : public CGameController
 {
 	enum
 	{
