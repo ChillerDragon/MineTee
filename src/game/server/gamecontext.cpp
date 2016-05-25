@@ -1591,7 +1591,7 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 	m_Collision.Init(&m_Layers, &m_BlockManager);
 	m_MapGen.Init(&m_Layers, &m_Collision); // MineTee
 	if (g_Config.m_SvMapGeneration) // generate a random world if wanted
-		m_MapGen.GenerateMap();
+		m_MapGen.GenerateMap(g_Config.m_SvMapGenerationSize, g_Config.m_SvMapGenerationSeed);
 
 	// reset everything here
 	//world = new GAMEWORLD;

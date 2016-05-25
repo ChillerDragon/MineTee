@@ -158,8 +158,8 @@ private:
 
 	// H-Client
     bool m_NeedSendInventory;
-	float TimerFluidDamage;
-	bool inWater;
+	float m_TimerFluidDamage;
+	bool m_InWater;
 	void Construct();
 	//
 };

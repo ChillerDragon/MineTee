@@ -349,47 +349,55 @@
     },
     {
         "name": "GRASS I",
+        "playerCollide": false,
         "onBreak": { "184":1 },
         "onWear": 89,
         "place": [[-2],[-2],[-2],[-2],[3],[-2],[-2],[-2]]
     },
     {
         "name": "GRASS II",
+        "playerCollide": false,
         "onBreak": { "184":1 },
         "onWear": 90,
         "place": [[-2],[-2],[-2],[-2],[3],[-2],[-2],[-2]]
     },
     {
         "name": "GRASS III",
+        "playerCollide": false,
         "onBreak": { "184":1 },
         "onWear": 91,
         "place": [[-2],[-2],[-2],[-2],[3],[-2],[-2],[-2]]
     },
     {
         "name": "GRASS IV",
+        "playerCollide": false,
         "onBreak": { "184":1 },
         "onWear": 92,
         "place": [[-2],[-2],[-2],[-2],[3],[-2],[-2],[-2]]
     },
     {
         "name": "GRASS V",
+        "playerCollide": false,
         "onBreak": { "184":1 },
         "onWear": 93,
         "place": [[-2],[-2],[-2],[-2],[3],[-2],[-2],[-2]]
     },
     {
         "name": "GRASS VI",
+        "playerCollide": false,
         "onBreak": { "184":1 },
         "onWear": 94,
         "place": [[-2],[-2],[-2],[-2],[3],[-2],[-2],[-2]]
     },
     {
         "name": "GRASS VII",
+        "playerCollide": false,
         "onBreak": { "184":1 },
         "place": [[-2],[-2],[-2],[-2],[3],[-2],[-2],[-2]]
     },
     {
         "name": "WHEAT PLANT",
+        "playerCollide": false,
         "onBreak": { "74":1 },
         "place": [[-2],[-2],[-2],[-2],[86],[-2],[-2],[-2]]
     },

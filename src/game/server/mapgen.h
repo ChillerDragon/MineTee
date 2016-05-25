@@ -55,7 +55,7 @@ class CMapGen
 	void GenerateFlowers();
 	void GenerateMushrooms();
 	void GenerateTrees();
-	void GenerateTunnels();
+	void GenerateTunnels(int Num);
 
 	void GenerateBorder();
 
@@ -65,7 +65,9 @@ public:
 	CMapGen();
 	~CMapGen();
 
-	void GenerateMap();
+	void GenerateTree(ivec2 Pos);
+
+	void GenerateMap(const char *pSize, int Seed);
 	void Init(CLayers *pLayers, CCollision *pCollision);
 };
 

@@ -50,8 +50,8 @@ CCharacter::CCharacter(CGameWorld *pWorld)
 
 	// MineTee
     m_NeedSendInventory = true;
-	TimerFluidDamage = Server()->Tick();
-	inWater = false;
+	m_TimerFluidDamage = Server()->Tick();
+	m_InWater = false;
     //
 }
 
@@ -343,11 +343,12 @@ void CCharacter::Construct()
             if (pMTTiles[Index].m_Index != 0 || pMTBGTiles[Index].m_Index == ActiveBlock)
                 return;
 
-        	GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeBGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0);
-            GameServer()->Collision()->ModifTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeBGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0);
-            GameServer()->CreateSound(m_Pos, SOUND_DESTROY_BLOCK);
-
-            Builded = true;
+            if (GameServer()->Collision()->ModifTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeBGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0))
+            {
+            	GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeBGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0);
+            	GameServer()->CreateSound(m_Pos, SOUND_DESTROY_BLOCK);
+            	Builded = true;
+            }
         }
     }
     else if (m_pPlayer->m_PlayerFlags&PLAYERFLAG_FGPAINT)
@@ -361,11 +362,12 @@ void CCharacter::Construct()
             if (pMTTiles[Index].m_Index != 0 || pMTFGTiles[Index].m_Index == ActiveBlock)
                 return;
 
-        	GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeFGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0);
-            GameServer()->Collision()->ModifTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeFGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0);
-            GameServer()->CreateSound(m_Pos, SOUND_DESTROY_BLOCK);
-
-            Builded = true;
+            if (GameServer()->Collision()->ModifTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeFGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0))
+            {
+            	GameServer()->CreateSound(m_Pos, SOUND_DESTROY_BLOCK);
+            	GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeFGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0);
+            	Builded = true;
+            }
         }
     }
     else if (GameServer()->Collision()->IntersectLine(ProjStartPos, colTilePos, &colTilePos, 0x0))
@@ -428,11 +430,12 @@ void CCharacter::Construct()
 
             if (distance(m_Pos, finishPosPost) >= 42.0f)
             {
-            	GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0);
-                GameServer()->Collision()->ModifTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0);
-                GameServer()->CreateSound(m_Pos, SOUND_DESTROY_BLOCK);
-
-                Builded = true;
+            	if (GameServer()->Collision()->ModifTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0))
+            	{
+            		GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0);
+            		GameServer()->CreateSound(m_Pos, SOUND_DESTROY_BLOCK);
+            		Builded = true;
+            	}
             }
         }
     }
@@ -465,7 +468,8 @@ void CCharacter::Construct()
 void CCharacter::FireWeapon()
 {
 	// MineTee
-    if (str_comp_nocase(GameServer()->GameType(), "MineTee") == 0 && (m_ActiveWeapon >= NUM_WEAPONS || (m_ActiveWeapon == WEAPON_HAMMER && (m_pPlayer->m_PlayerFlags&PLAYERFLAG_BGPAINT || m_pPlayer->m_PlayerFlags&PLAYERFLAG_FGPAINT))))
+    if (str_comp_nocase(GameServer()->GameType(), "MineTee") == 0
+    		&& (m_ActiveWeapon >= NUM_WEAPONS || (m_ActiveWeapon == WEAPON_HAMMER && ((m_pPlayer->m_PlayerFlags&PLAYERFLAG_BGPAINT) || (m_pPlayer->m_PlayerFlags&PLAYERFLAG_FGPAINT)))))
     {
         Construct();
         return;
@@ -864,31 +868,31 @@ void CCharacter::Tick()
 
 	// Fluid Damages
 	int BlockID = GameServer()->Collision()->GetMineTeeTileAt(vec2(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f));
-	if (Server()->Tick() - TimerFluidDamage >= Server()->TickSpeed()/2 && (BlockID >= CBlockManager::LAVA_A && BlockID <= CBlockManager::LAVA_D))
+	if (Server()->Tick() - m_TimerFluidDamage >= Server()->TickSpeed()/2 && (BlockID >= CBlockManager::LAVA_A && BlockID <= CBlockManager::LAVA_D))
 	{
 	    TakeDamage(vec2(0.0f,-1.0f), 1, m_pPlayer->GetCID(), WEAPON_WORLD);
-	    TimerFluidDamage = Server()->Tick();
+	    m_TimerFluidDamage = Server()->Tick();
 	}
 
-	if (!inWater)
+	if (!m_InWater)
 	{
-        if ((BlockID >= CBlockManager::WATER_A && BlockID <= CBlockManager::WATER_D) && (Server()->Tick() - TimerFluidDamage >= Server()->TickSpeed()*8))
+        if ((BlockID >= CBlockManager::WATER_A && BlockID <= CBlockManager::WATER_D) && (Server()->Tick() - m_TimerFluidDamage >= Server()->TickSpeed()*8))
         {
-            inWater = true;
-            TimerFluidDamage = Server()->Tick();
+            m_InWater = true;
+            m_TimerFluidDamage = Server()->Tick();
         }
     }
 	else
 	{
 	    if (BlockID < CBlockManager::WATER_A || BlockID > CBlockManager::WATER_D)
 	    {
-            inWater = false;
-            TimerFluidDamage = Server()->Tick();
+            m_InWater = false;
+            m_TimerFluidDamage = Server()->Tick();
 	    }
-        else if (Server()->Tick() - TimerFluidDamage >= Server()->TickSpeed()*2)
+        else if (Server()->Tick() - m_TimerFluidDamage >= Server()->TickSpeed()*2)
         {
             TakeDamage(vec2(0.0f,-1.0f), 1, m_pPlayer->GetCID(), WEAPON_WORLD);
-            TimerFluidDamage = Server()->Tick();
+            m_TimerFluidDamage = Server()->Tick();
         }
 	}
 	//

@@ -23,17 +23,19 @@ void CMapGen::Init(CLayers *pLayers, CCollision *pCollision)
 {
 	m_pLayers = pLayers;
 	m_pCollision = pCollision;
-
-	if (!m_pNoise)
-		m_pNoise = new CPerlinOctave(7); // TODO: Add a seed
 }
 
-void CMapGen::GenerateMap()
+void CMapGen::GenerateMap(const char *pSize, int Seed)
 {
 	if (!m_pLayers->MineTeeLayer())
 		return;
 
-	dbg_msg("MapGen", "Generating '%s' map...", g_Config.m_SvMapGenerationSize);
+	if (m_pNoise)
+		delete m_pNoise;
+	m_pNoise = new CPerlinOctave(7, Seed);
+	srand(Seed);
+
+	dbg_msg("MapGen", "Generating '%s' map using seed: %d", pSize, Seed);
 
 
 	int MineTeeLayerSize = m_pLayers->MineTeeLayer()->m_Width*m_pLayers->MineTeeLayer()->m_Height;
@@ -65,7 +67,7 @@ void CMapGen::GenerateMap()
 	GenerateCaves(CBlockManager::AIR);
 	GenerateCaves(CBlockManager::WATER_D);
 	GenerateCaves(CBlockManager::LAVA_D);
-	GenerateTunnels();
+	GenerateTunnels(rand()%10+10);
 	GenerateWater();
 
 	// vegetation
@@ -83,7 +85,6 @@ void CMapGen::GenerateMap()
 void CMapGen::GenerateBasicTerrain()
 {
 	// generate the surface, 1d noise
-	const float freqs[] = {15.0f,5.0f,150.0f};
 	int TilePosY;
 	for(int TilePosX = 0; TilePosX < m_pLayers->MineTeeLayer()->m_Width; TilePosX++)
 	{
@@ -173,10 +174,10 @@ void CMapGen::GenerateCaves(int FillBlock)
 	}
 }
 
-void CMapGen::GenerateTunnels()
+void CMapGen::GenerateTunnels(int Num)
 {
 	int TilePosY, Level, Freq, Size, StartX, EndX;
-	for (int r=0; r<20; ++r)
+	for (int r=0; r<Num; ++r)
 	{
 		Level = TUNNEL_LEVEL + rand()%m_pLayers->MineTeeLayer()->m_Height;
 		Freq = rand()%5+2;
@@ -187,10 +188,9 @@ void CMapGen::GenerateTunnels()
 		{
 			float frequency = Freq / (float)m_pLayers->MineTeeLayer()->m_Width;
 			TilePosY = m_pNoise->Noise((float)TilePosX * frequency) * (m_pLayers->MineTeeLayer()->m_Height) + Level;
-			TilePosY = clamp(TilePosY, 1, m_pLayers->MineTeeLayer()->m_Height-1);
-
-			for (int i=-Size; i<=Size; i++)
-				m_pCollision->ModifTile(ivec2(TilePosX, TilePosY+i), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::AIR, 0);
+			if (TilePosY < m_pLayers->MineTeeLayer()->m_Height-1)
+				for (int i=-Size; i<=Size; i++)
+					m_pCollision->ModifTile(ivec2(TilePosX, TilePosY+i), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::AIR, 0);
 		}
 	}
 }
@@ -207,9 +207,10 @@ void CMapGen::GenerateFlowers()
 	const int flowers[] = {CBlockManager::ROSE, CBlockManager::DAISY, CBlockManager::BROWN_TREE_SAPLING, CBlockManager::GRASS_A};
 	for(int x = 1; x < m_pLayers->MineTeeLayer()->m_Width-1; x++)
 	{
+		int FieldSize = 2+(rand()%3);
+		int rnd = rand()%(sizeof(flowers)/sizeof(int));
 		if(!(rand()%32))
 		{
-			int FieldSize = 2+(rand()%3);
 			for(int f = x; f - x <= FieldSize; f++)
 			{
 				int y = 0;
@@ -219,7 +220,6 @@ void CMapGen::GenerateFlowers()
 				if(y >= m_pLayers->MineTeeLayer()->m_Height)
 					break;
 
-				int rnd = rand()%(sizeof(flowers)/sizeof(int));
 				m_pCollision->ModifTile(ivec2(f, y), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), flowers[rnd], 0);
 			}
 
@@ -232,9 +232,9 @@ void CMapGen::GenerateMushrooms()
 {
 	for(int x = 1; x < m_pLayers->MineTeeLayer()->m_Width-1; x++)
 	{
+		int FieldSize = 5+(rand()%8);
 		if(rand()%256 == 0)
 		{
-			int FieldSize = 5+(rand()%8);
 			for(int f = x; f - x <= FieldSize; f++)
 			{
 				int y = 0;
@@ -266,7 +266,8 @@ void CMapGen::GenerateTrees()
 		if((abs(LastTreeX - x) >= 8) || (abs(LastTreeX - x) <= 8 && abs(LastTreeX - x) >= 3 && rand()%8 == 0))
 		{
 			int TempTileY = 0;
-			while(m_pCollision->GetMineTeeTileAt(vec2(x*32, (TempTileY+1)*32)) != CBlockManager::GRASS && TempTileY < m_pLayers->MineTeeLayer()->m_Height)
+			while((m_pCollision->GetMineTeeTileAt(vec2(x*32, (TempTileY+1)*32)) != CBlockManager::GRASS || m_pCollision->GetMineTeeTileAt(vec2(x*32, TempTileY*32)) != CBlockManager::AIR)
+					&& TempTileY < m_pLayers->MineTeeLayer()->m_Height)
 			{
 				TempTileY++;
 			}
@@ -274,31 +275,34 @@ void CMapGen::GenerateTrees()
 			if(TempTileY >= m_pLayers->MineTeeLayer()->m_Height)
 				continue;
 
+			GenerateTree(ivec2(x, TempTileY));
 			LastTreeX = x;
+		}
+	}
+}
 
-			// plant the tree \o/
-			int TreeHeight = 4 + (rand()%5);
-			for(int h = 0; h <= TreeHeight; h++)
-				m_pCollision->ModifTile(ivec2(x, TempTileY-h), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::WOOD_BROWN, 0);
-		
-			// add the leafs
-			for(int l = 0; l <= TreeHeight/2.5f; l++)
-				m_pCollision->ModifTile(ivec2(x, TempTileY - TreeHeight - l), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::LEAFS, 0);
-		
-			int TreeWidth = TreeHeight/1.2f;
-			if(!(TreeWidth%2)) // odd numbers please
-				TreeWidth++;
-			for(int h = 0; h <= TreeHeight/2; h++)
-			{
-				for(int w = 0; w < TreeWidth; w++)
-				{
-					if(m_pCollision->GetMineTeeTileAt(vec2((x-(w-(TreeWidth/2)))*32, (TempTileY-(TreeHeight-(TreeHeight/2.5f)+h))*32)) != CBlockManager::AIR)
-						continue;
+void CMapGen::GenerateTree(ivec2 Pos)
+{
+	// plant the tree \o/
+	int TreeHeight = 4 + (rand()%5);
+	for(int h = 0; h <= TreeHeight; h++)
+		m_pCollision->ModifTile(ivec2(Pos.x, Pos.y-h), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::WOOD_BROWN, 0);
 
-					m_pCollision->ModifTile(ivec2(x-(w-(TreeWidth/2)), TempTileY-(TreeHeight-(TreeHeight/2.5f)+h)), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::LEAFS, 0);
-				}
-			}
+	// add the leafs
+	for(int l = 0; l <= TreeHeight/2.5f; l++)
+		m_pCollision->ModifTile(ivec2(Pos.x, Pos.y - TreeHeight - l), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::LEAFS, 0);
 
+	int TreeWidth = TreeHeight/1.2f;
+	if(!(TreeWidth%2)) // odd numbers please
+		TreeWidth++;
+	for(int h = 0; h <= TreeHeight/2; h++)
+	{
+		for(int w = 0; w < TreeWidth; w++)
+		{
+			if(m_pCollision->GetMineTeeTileAt(vec2((Pos.x-(w-(TreeWidth/2)))*32, (Pos.y-(TreeHeight-(TreeHeight/2.5f)+h))*32)) != CBlockManager::AIR)
+				continue;
+
+			m_pCollision->ModifTile(ivec2(Pos.x-(w-(TreeWidth/2)), Pos.y-(TreeHeight-(TreeHeight/2.5f)+h)), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::LEAFS, 0);
 		}
 	}
 }

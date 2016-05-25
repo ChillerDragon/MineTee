@@ -211,6 +211,9 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
 	static vec2 TexTileOffset = vec2(.0f, .0f);
 	static int64 lastAnimTime = time_get();
 
+	static int waveSum = 0;
+	static int64 lastWaveTime = time_get();
+
 	if (time_get()-lastAnimTime > time_freq()/100) // ~100Hz
 	{
 		TexTileOffset += vec2(0.001f,  0.001f);
@@ -362,9 +365,25 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
                     else if (TileMineTee == 2)
                         Graphics()->SetColor(0.35f, 0.35f, 0.35f, Color.a*a);
 
-                    Graphics()->QuadsSetSubsetFree(x0, y0, x1, y1, x2, y2, x3, y3);
-					IGraphics::CQuadItem QuadItem(x*Scale, y*Scale, Scale, Scale);
-					Graphics()->QuadsDrawTL(&QuadItem, 1);
+                    if (Index == CBlockManager::LEAFS)
+                    {
+						const float offX = cosf((int)(time_get()/1200))*2.0f;
+						//const float offY = sinf((int)(time_get()/1200))*2.0f;
+						Graphics()->QuadsSetSubsetFree(x0, y0, x1, y1, x3, y3, x2, y2);
+						IGraphics::CFreeformItem Freeform(
+							x*Scale+Scale+offX, y*Scale,
+							x*Scale+offX, y*Scale,
+							x*Scale+Scale, y*Scale+Scale,
+							x*Scale, y*Scale+Scale);
+						Graphics()->QuadsDrawFreeform(&Freeform, 1);
+                    }
+                    else
+                    {
+                        Graphics()->QuadsSetSubsetFree(x0, y0, x1, y1, x2, y2, x3, y3);
+    					IGraphics::CQuadItem QuadItem(x*Scale, y*Scale, Scale, Scale);
+    					Graphics()->QuadsDrawTL(&QuadItem, 1);
+                    }
+
 					Graphics()->SetColor(Color.r, Color.g, Color.b, Color.a); //H-Client
 				}
 				else if (TileMineTee == 1 && Animated)
@@ -387,13 +406,34 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
                         Graphics()->QuadsSetSubsetFree(0+TexTileOffset.x,0, 0+TexTileOffset.x,1, 1+TexTileOffset.x,1, 1+TexTileOffset.x,0);
                     }
 
-                    IGraphics::CQuadItem QuadItem(x*Scale, y*Scale, Scale, Scale);
-                    if (Index == CBlockManager::WATER_A || Index == CBlockManager::LAVA_A)
-                        QuadItem = IGraphics::CQuadItem(x*Scale, y*Scale+(Scale-Scale/4), Scale, Scale/4);
-                    else if (Index == CBlockManager::WATER_B || Index == CBlockManager::LAVA_B)
-                        QuadItem = IGraphics::CQuadItem(x*Scale, y*Scale+Scale/2, Scale, Scale/2);
+                    if (Index == CBlockManager::WATER_A || Index == CBlockManager::WATER_B)
+                    { // Animated Water Waves
+                    	int Div = (Index == CBlockManager::WATER_A?4:2);
+                    	Graphics()->QuadsSetSubsetFree(0,0+TexTileOffset.y, 0,1+TexTileOffset.y, 1,0+TexTileOffset.y, 1,1+TexTileOffset.y);
+						const float offY = sinf(x+waveSum)*2.0f;
+						IGraphics::CFreeformItem Freeform(
+							x*Scale+Scale, y*Scale+(Scale-Scale/Div)+offY,
+							x*Scale, y*Scale+(Scale-Scale/Div)+offY,
+							x*Scale+Scale, y*Scale+(Scale-Scale/Div)+Scale/Div,
+							x*Scale, y*Scale+(Scale-Scale/Div)+Scale/Div);
+						Graphics()->QuadsDrawFreeform(&Freeform, 1);
 
-                    Graphics()->QuadsDrawTL(&QuadItem, 1);
+						if (time_get()-lastWaveTime > time_freq()/6)
+						{
+							++waveSum;
+							lastWaveTime = time_get();
+						}
+                    }
+                    else
+                    {
+						IGraphics::CQuadItem QuadItem(x*Scale, y*Scale, Scale, Scale);
+						if (Index == CBlockManager::LAVA_A)
+							QuadItem = IGraphics::CQuadItem(x*Scale, y*Scale+(Scale-Scale/4), Scale, Scale/4);
+						else if (Index == CBlockManager::LAVA_B)
+							QuadItem = IGraphics::CQuadItem(x*Scale, y*Scale+Scale/2, Scale, Scale/2);
+
+						Graphics()->QuadsDrawTL(&QuadItem, 1);
+                    }
                     Graphics()->QuadsEnd();
                 }
 			}

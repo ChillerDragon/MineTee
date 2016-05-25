@@ -23,6 +23,7 @@ CCollision::CCollision()
 	m_Height = 0;
 	m_pLayers = 0;
 
+	m_pBlockManager = 0x0; // MineTee
 	m_pMineTeeTiles = 0x0; // MineTee
 }
 
@@ -277,18 +278,18 @@ int CCollision::GetMineTeeTileAt(vec2 Pos)
 }
 
 
-void CCollision::ModifTile(ivec2 pos, int group, int layer, int index, int flags)
+bool CCollision::ModifTile(ivec2 pos, int group, int layer, int index, int flags)
 {
     CMapItemGroup *pGroup = m_pLayers->GetGroup(group);
     CMapItemLayer *pLayer = m_pLayers->GetLayer(pGroup->m_StartLayer+layer);
     if (pLayer->m_Type != LAYERTYPE_TILES || pos.y <= 1)
-        return;
+        return false;
 
     CMapItemLayerTilemap *pTilemap = reinterpret_cast<CMapItemLayerTilemap *>(pLayer);
     int TotalTiles = pTilemap->m_Width*pTilemap->m_Height;
     int tpos = (int)pos.y*pTilemap->m_Width+(int)pos.x;
     if (tpos < 0 || tpos >= TotalTiles)
-        return;
+        return false;
 
     if (pTilemap == m_pLayers->MineTeeLayer())
     {
@@ -343,6 +344,8 @@ void CCollision::ModifTile(ivec2 pos, int group, int layer, int index, int flags
                 m_pTiles[tpos].m_Index = 0;
         }
     }
+
+    return true;
 }
 
 void CCollision::RegenerateSkip(CTile *pTiles, int Width, int Height, ivec2 Pos, bool Delete)

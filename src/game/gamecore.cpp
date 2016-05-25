@@ -404,12 +404,12 @@ void CCharacterCore::Move()
 	{
 		if (FluidType == CCollision::FLUID_WATER)
 		{
-			m_Vel.y -= 0.51f;
+			m_Vel.y -= 0.1f;
 			m_Vel *= 0.85f;
 		}
 		else if (FluidType == CCollision::FLUID_LAVA)
 		{
-			m_Vel.y -= 0.11f;
+			m_Vel.y -= 0.35f;
 			m_Vel *= 0.65f;
 		}
 

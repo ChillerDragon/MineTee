@@ -90,6 +90,7 @@ MACRO_CONFIG_INT(SvAnimals, sv_animals, 1, 0, 1, CFGFLAG_SERVER, "Enable/Disable
 
 MACRO_CONFIG_INT(SvMapGeneration, sv_map_generation, 1, 0, 1, CFGFLAG_SERVER, "Enable/Disable random world generation")
 MACRO_CONFIG_STR(SvMapGenerationSize, sv_map_generation_size, 16, "medium", CFGFLAG_SERVER, "Set size of the world generation (small,medium,large)")
+MACRO_CONFIG_INT(SvMapGenerationSeed, sv_map_generation_seed, 0, 0, 2147483647, CFGFLAG_SERVER, "Set seed of the world generation (")
 
 // debug
 #ifdef CONF_DEBUG // this one can crash the server if not used correctly
