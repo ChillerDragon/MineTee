@@ -3,6 +3,7 @@
 /* File modified by Alexandre Díaz */
 #include <math.h>
 #include <base/math.h>
+#include <base/cephes_math.h> // MineTee
 #include <engine/graphics.h>
 #include <game/client/components/effects.h> // MineTee
 #include <game/generated/client_data.h> // MineTee
@@ -77,8 +78,8 @@ static void Rotate(CPoint *pCenter, CPoint *pPoint, float Rotation)
 {
 	int x = pPoint->x - pCenter->x;
 	int y = pPoint->y - pCenter->y;
-	pPoint->x = (int)(x * cosf(Rotation) - y * sinf(Rotation) + pCenter->x);
-	pPoint->y = (int)(x * sinf(Rotation) + y * cosf(Rotation) + pCenter->y);
+	pPoint->x = (int)(x * cephes_cosf(Rotation) - y * cephes_sinf(Rotation) + pCenter->x);
+	pPoint->y = (int)(x * cephes_sinf(Rotation) + y * cephes_cosf(Rotation) + pCenter->y);
 }
 
 void CRenderTools::RenderQuads(CQuad *pQuads, int NumQuads, int RenderFlags, ENVELOPE_EVAL pfnEval, void *pUser)
@@ -367,8 +368,8 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
 
                     if (Index == CBlockManager::LEAFS)
                     {
-						const float offX = cosf((int)(time_get()/1200))*2.0f;
-						//const float offY = sinf((int)(time_get()/1200))*2.0f;
+						const float offX = cephes_cosf((int)(time_get())/100000.0f)*2.0f;
+						//const float offY = cephes_sinf((int)(time_get()/1200))*2.0f;
 						Graphics()->QuadsSetSubsetFree(x0, y0, x1, y1, x3, y3, x2, y2);
 						IGraphics::CFreeformItem Freeform(
 							x*Scale+Scale+offX, y*Scale,
@@ -410,7 +411,7 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
                     { // Animated Water Waves
                     	int Div = (Index == CBlockManager::WATER_A?4:2);
                     	Graphics()->QuadsSetSubsetFree(0,0+TexTileOffset.y, 0,1+TexTileOffset.y, 1,0+TexTileOffset.y, 1,1+TexTileOffset.y);
-						const float offY = sinf(x+waveSum)*2.0f;
+						const float offY = cephes_sinf((int)(x+waveSum))*2.0f;
 						IGraphics::CFreeformItem Freeform(
 							x*Scale+Scale, y*Scale+(Scale-Scale/Div)+offY,
 							x*Scale, y*Scale+(Scale-Scale/Div)+offY,
