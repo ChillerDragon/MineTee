@@ -209,11 +209,12 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
 	float Frac = (1.25f/TexSize) * (1/FinalTilesetScale);
 	float Nudge = (0.5f/TexSize) * (1/FinalTilesetScale);
 
+	// MineTee
 	static vec2 TexTileOffset = vec2(.0f, .0f);
 	static int64 lastAnimTime = time_get();
-
 	static int waveSum = 0;
 	static int64 lastWaveTime = time_get();
+	const float LeafOffX = cephes_cosf((int)(time_get())/100000.0f)*2.0f;
 
 	if (time_get()-lastAnimTime > time_freq()/100) // ~100Hz
 	{
@@ -368,12 +369,11 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
 
                     if (Index == CBlockManager::LEAFS)
                     {
-						const float offX = cephes_cosf((int)(time_get())/100000.0f)*2.0f;
 						//const float offY = cephes_sinf((int)(time_get()/1200))*2.0f;
 						Graphics()->QuadsSetSubsetFree(x0, y0, x1, y1, x3, y3, x2, y2);
 						IGraphics::CFreeformItem Freeform(
-							x*Scale+Scale+offX, y*Scale,
-							x*Scale+offX, y*Scale,
+							x*Scale+Scale+LeafOffX, y*Scale,
+							x*Scale+LeafOffX, y*Scale,
 							x*Scale+Scale, y*Scale+Scale,
 							x*Scale, y*Scale+Scale);
 						Graphics()->QuadsDrawFreeform(&Freeform, 1);
