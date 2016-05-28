@@ -5,6 +5,7 @@
 #include <engine/shared/config.h>
 #include <game/server/entities/bots/monster.h> // MineTee
 #include <game/server/entities/bots/animal.h> // MineTee
+#include <game/server/gamemodes/minetee.h> // MineTee
 #include "player.h"
 
 
@@ -315,8 +316,34 @@ void CPlayer::TryRespawn()
 	m_Spawning = false;
 
 	// MineTee
+	if (IsBot())
+	{
+		// Other bots near?
+		CCharacter *aEnts[MAX_BOTS];
+		int Num = GameServer()->m_World.FindEntities(SpawnPos, 1250.0f, (CEntity**)aEnts, MAX_BOTS, CGameWorld::ENTTYPE_CHARACTER);
+		for (int i=0; i<Num; i++)
+		{
+			if (aEnts[i]->GetPlayer()->IsBot())
+				return;
+		}
+	}
+
 	if (m_Team >= TEAM_ENEMY_TEEPER && m_Team <= TEAM_ENEMY_SPIDERTEE)
+	{
+		// In Dark?
+		CGameControllerMineTee *pControllerMT = (CGameControllerMineTee*)GameServer()->m_pController;
+		pControllerMT->UpdateLayerLights(SpawnPos);
+		const int Nx = clamp((int)(SpawnPos.x/32), 0, GameServer()->Layers()->Lights()->m_Width-1);
+		const int Ny = clamp((int)(SpawnPos.y/32), 0, GameServer()->Layers()->Lights()->m_Height-1);
+		int Index = Nx + Ny*GameServer()->Layers()->Lights()->m_Width;
+		if (GameServer()->Layers()->TileLights()[Index].m_Index < 186)
+		{
+			dbg_msg("NO", "Em Tile: %d [%dx%d]", GameServer()->Layers()->TileLights()[Index].m_Index, Nx, Ny);
+			return;
+		}
+
 		m_pCharacter = new(m_ClientID) CMonster(&GameServer()->m_World);
+	}
 	else if (m_Team >= TEAM_ANIMAL_TEECOW && m_Team <= TEAM_ANIMAL_TEEPIG)
 		m_pCharacter = new(m_ClientID) CAnimal(&GameServer()->m_World);
 	else

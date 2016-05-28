@@ -375,3 +375,258 @@ void CCollision::RegenerateSkip(CTile *pTiles, int Width, int Height, ivec2 Pos,
 		pTiles[Pos.y*Width+Pos.x].m_Skip = sx;
 	}
 }
+
+// FIXME: 6-phase seems very ugly and slow... :(
+void CCollision::UpdateLayerLights(float ScreenX0, float ScreenY0, float ScreenX1, float ScreenY1, int DarknessLevel)
+{
+	CTile *pTiles = 0x0;
+    CMapItemLayerTilemap *pMTMap = m_pLayers->MineTeeLayer();
+    if (pMTMap)
+        pTiles = (CTile *)m_pLayers->Map()->GetData(pMTMap->m_Data);
+
+    CTile *pLights = m_pLayers->TileLights();
+
+	if (!pTiles || !pLights)
+		return;
+
+	dbg_msg("LUX", "SE actualiza!!");
+
+	const int w = m_pLayers->Lights()->m_Width;
+	const int h = m_pLayers->Lights()->m_Height;
+
+	const int LayerSize = w*h*sizeof(CTile);
+    CTile *pLightsTemp = static_cast<CTile*>(mem_alloc(LayerSize, 1));
+    mem_zero(pLightsTemp, LayerSize);
+
+    const int aTileIndexDarkness[] = {0, 154, 170, 186, 202};
+    const float Scale = 32.0f;
+
+	int StartY = (int)(ScreenY0/Scale)-1;
+	int StartX = (int)(ScreenX0/Scale)-1;
+	int EndY = (int)(ScreenY1/Scale)+1;
+	int EndX = (int)(ScreenX1/Scale)+1;
+
+    StartX = clamp(StartX-25, 0, w);
+    StartY = clamp(StartY-25, 0, h);
+    EndX = clamp(EndX+25, 0, w);
+    EndY = clamp(EndY+25, 0, h);
+
+    // Fill base shadow
+	for(int y = StartY; y < EndY; y++)
+		for(int x = StartX; x < EndX; x++)
+		{
+            int c = x + y * w;
+
+            pLightsTemp[c].m_Index = aTileIndexDarkness[DarknessLevel];
+            pLightsTemp[c].m_Reserved = 0;
+            pLightsTemp[c].m_Skip = 0;
+        }
+
+	// Environment Light (The Sun)
+	if (DarknessLevel < 4)
+	{
+		// Hard Shadows
+		for(int y = StartY; y < EndY; y++)
+			for(int x = StartX; x < EndX; x++)
+			{
+				int c = x + y*w;
+				if (CheckPoint(x*Scale, y*Scale, true) || GetBlockManager()->IsFluid(pTiles[c].m_Index))
+				{
+					int tmy = y+1;
+					int tc = x + tmy*w;
+					while (!CheckPoint(x*Scale, tmy*Scale, true) && tmy < h)
+					{
+						pLightsTemp[tc].m_Index = aTileIndexDarkness[4];
+						++tmy;
+						tc = x + tmy*w;
+					}
+
+					if (tmy < h)
+						pLightsTemp[tc].m_Index = aTileIndexDarkness[4];
+				}
+			}
+
+
+		// Ground Shadows
+		for(int y = StartY; y < EndY; y++)
+			for(int x = StartX; x < EndX; x++)
+			{
+				int c = x + y*w;
+
+				if (pTiles[c].m_Index != 0)
+				{
+					bool light = false;
+					ivec2 Positions[] = { ivec2(-1,-1), ivec2(1,-1), ivec2(1,1), ivec2(-1,1), ivec2(-1,0), ivec2(1,0), ivec2(0,-1), ivec2(0,1) };
+					bool PositionsTest[] = { false, false, false, false, false, false, false, false };
+
+					// Search where is the light in relation to the current tile
+					for (size_t o=0; o<8; o++)
+					{
+						int tc = (x+Positions[o].x) + (y+Positions[o].y)*w;
+						if (tc >= 0 && tc < w*h && pLightsTemp[tc].m_Index == 0 && pTiles[tc].m_Index == 0)
+							PositionsTest[o] = light = true;
+					}
+
+					if (light) // Light founded?
+					{
+						pLightsTemp[c].m_Index = 0;
+
+						// Do Diffuse..
+						for (int i=1;i<=4;i++)
+						{
+							// Don't put shadows in the tiles affected directly by the light.. move in..
+							// By default assumed up-down
+							int tc = x + (y+i)*w;
+							if (PositionsTest[4]) // left-right
+								tc = (x+i) + y*w;
+							else if (PositionsTest[5]) // right-left
+								tc = (x-i) + y*w;
+
+							// Check for correct shadow
+							if (tc < 0 || tc >= w*h || pTiles[tc].m_Index == 0 || aTileIndexDarkness[i] > pLightsTemp[tc].m_Index)
+								continue;
+
+							pLightsTemp[tc].m_Index = aTileIndexDarkness[i];
+						}
+					}
+				}
+			}
+
+		if (DarknessLevel == 0)
+		{
+			// Gloom (Right-Left)
+			for(int y = StartY; y < EndY; y++)
+				for(int x = StartX; x < EndX; x++)
+				{
+					int c = x + y*w;
+
+					if (pLightsTemp[c].m_Index != 0)
+					{
+						int tcs[2] = { (x-1)+y*w, x+(y-1)*w };
+						for (int e=0; e<2; e++)
+						{
+							if (tcs[e] < 0 || tcs[e] >= w*h)
+								continue;
+
+							if (pLightsTemp[tcs[e]].m_Index == aTileIndexDarkness[0] && pTiles[c].m_Index == 0 && pTiles[tcs[e]].m_Index == 0)
+							{
+								pLightsTemp[c].m_Reserved = 1;
+								pLightsTemp[c].m_Index = aTileIndexDarkness[1];
+								break;
+							}
+							else if (pLightsTemp[tcs[e]].m_Index == aTileIndexDarkness[1] && pTiles[tcs[e]].m_Index == 0)
+							{
+								pLightsTemp[c].m_Reserved = 1;
+								pLightsTemp[c].m_Index = aTileIndexDarkness[2];
+								break;
+							}
+							else if (pLightsTemp[tcs[e]].m_Index == aTileIndexDarkness[2] && pTiles[tcs[e]].m_Index == 0)
+							{
+								pLightsTemp[c].m_Reserved = 1;
+								pLightsTemp[c].m_Index = aTileIndexDarkness[3];
+								break;
+							}
+							else if (pLightsTemp[tcs[e]].m_Index == aTileIndexDarkness[3] && pTiles[tcs[e]].m_Index == 0)
+							{
+								pLightsTemp[c].m_Reserved = 1;
+								pLightsTemp[c].m_Index = aTileIndexDarkness[4];
+								break;
+							}
+						}
+					}
+				}
+
+			// Gloom (Left-Right)
+			for(int y = StartY; y < EndY; y++)
+				for(int x = EndX-1; x >= StartX; x--)
+				{
+					int c = x + y*w;
+
+					if (pLightsTemp[c].m_Index != 0)
+					{
+						int tc = (x+1)+y*w;
+						if (tc >= 0 && tc < w*h && pLightsTemp[tc].m_Index == aTileIndexDarkness[0] && pTiles[c].m_Index == 0 && pTiles[tc].m_Index == 0 && (pLightsTemp[c].m_Reserved != 1 || (aTileIndexDarkness[1] < pLightsTemp[c].m_Index && pLightsTemp[c].m_Reserved == 1)))
+						{
+							pLightsTemp[c].m_Reserved = 1;
+							pLightsTemp[c].m_Index = aTileIndexDarkness[1];
+						}
+						else if (tc >= 0 && tc < w*h && pLightsTemp[tc].m_Index == aTileIndexDarkness[1] && pTiles[tc].m_Index == 0 && (pLightsTemp[c].m_Reserved != 1 || (aTileIndexDarkness[2] < pLightsTemp[c].m_Index && pLightsTemp[c].m_Reserved == 1)))
+						{
+							pLightsTemp[c].m_Reserved = 1;
+							pLightsTemp[c].m_Index = aTileIndexDarkness[2];
+						}
+						else if (tc >= 0 && tc < w*h && pLightsTemp[tc].m_Index == aTileIndexDarkness[2] && pTiles[tc].m_Index == 0 && (pLightsTemp[c].m_Reserved != 1 || (aTileIndexDarkness[3] < pLightsTemp[c].m_Index && pLightsTemp[c].m_Reserved == 1)))
+						{
+							pLightsTemp[c].m_Reserved = 1;
+							pLightsTemp[c].m_Index = aTileIndexDarkness[3];
+						}
+						else if (tc >= 0 && tc < w*h && pLightsTemp[tc].m_Index == aTileIndexDarkness[3] && pTiles[tc].m_Index == 0 && (pLightsTemp[c].m_Reserved != 1 || (aTileIndexDarkness[4] < pLightsTemp[c].m_Index && pLightsTemp[c].m_Reserved == 1)))
+						{
+							pLightsTemp[c].m_Reserved = 1;
+							pLightsTemp[c].m_Index = aTileIndexDarkness[4];
+						}
+					}
+				}
+
+		}
+	}
+
+    // Spot Lights & Bright Tiles
+    static int64 LightTime = time_get();
+    static bool BigSize = false;
+    if (time_get() - LightTime > 8.5f*time_freq()) // Blink
+    {
+    	BigSize = !BigSize;
+        LightTime = time_get();
+    }
+
+    for(int y = StartY; y < EndY; y++)
+		for(int x = StartX; x < EndX; x++)
+		{
+            int c = x + y*w;
+            int TileIndex = pTiles[c].m_Index;
+            CBlockManager::CBlockInfo *pBlockInfo = GetBlockManager()->GetBlockInfo(TileIndex);
+            if (!pBlockInfo)
+            	continue;
+
+            if (pBlockInfo->m_LightSize && pBlockInfo->m_LightSize <= 5)
+            	pLightsTemp[c].m_Index = aTileIndexDarkness[5-pBlockInfo->m_LightSize];
+            else if (pBlockInfo->m_LightSize)
+            {
+            	int LightSize = (!BigSize)?(pBlockInfo->m_LightSize - pBlockInfo->m_LightSize/3):pBlockInfo->m_LightSize;
+                for (int e=0; e<=LightSize; e++)
+                {
+                    int index = 4-(e*4)/LightSize;
+                    const int ff = (LightSize-e)/2;
+                    for (int i=ff; i>=-ff; i--)
+                        for (int o=-ff; o<=ff; o++)
+                        {
+                            int tc = clamp(x+o, 0, w-1) + clamp(y-i, 0, h-1)*w;
+                            if (aTileIndexDarkness[index] < pLightsTemp[tc].m_Index)
+                                pLightsTemp[tc].m_Index = aTileIndexDarkness[index];
+                        }
+                }
+
+                pLightsTemp[c].m_Index = 0;
+            }
+		}
+
+    // Update Skip Info
+    /*for(int y = StartY; y < EndY; y++)
+		for(int x = StartX; x < EndX; x++)
+	{
+		int sx;
+		for(sx = 1; x+sx < w && sx < 255; sx++)
+		{
+			if(pLightsTemp[y*w+x+sx].m_Index)
+				break;
+		}
+
+		pLightsTemp[y*w+x].m_Skip = sx-1;
+		x += sx;
+	}*/
+
+    mem_copy(pLights, pLightsTemp, sizeof(CTile)*w*h);
+    mem_free(pLightsTemp);
+}
+

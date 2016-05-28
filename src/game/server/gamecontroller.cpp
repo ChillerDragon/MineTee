@@ -104,7 +104,7 @@ bool CGameController::CanSpawn(int Team, vec2 *pOutPos)
 		return false;
 
     // MineTee: Spawn Bots
-	if (str_find_nocase(GameServer()->GameType(), "minetee"))
+	if (str_find_nocase(m_pGameType, "minetee"))
 	{
 
 		if (Team > TEAM_BLUE && ((g_Config.m_SvMonsters == 0 && Team >= TEAM_ENEMY_TEEPER && Team <= TEAM_ENEMY_SPIDERTEE) ||

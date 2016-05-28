@@ -47,6 +47,7 @@ public:
 	void RegenerateSkip(CTile *pTiles, int Width, int Height, ivec2 Pos, bool Delete);
 	int GetMineTeeTileAt(vec2 Pos);
 	CBlockManager *GetBlockManager() const { return m_pBlockManager; }
+	void UpdateLayerLights(float ScreenX0, float ScreenY0, float ScreenX1, float ScreenY1, int DarknessLevel); // TODO: Perhaps not the best place...
 	//
 };
 

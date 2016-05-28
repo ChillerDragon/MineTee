@@ -55,7 +55,7 @@ void CGameControllerMineTee::Tick()
     //Actions
     if (Vegetal || Envirionment || Destruction || Cook || Wear)
     {
-        CMapItemLayerTilemap *pTmap = (CMapItemLayerTilemap *)GameServer()->Layers()->MineTeeLayer();
+        CMapItemLayerTilemap *pTmap = GameServer()->Layers()->MineTeeLayer();
         if (pTmap)
         {
             CTile *pTiles = (CTile *)GameServer()->Layers()->Map()->GetData(pTmap->m_Data);
@@ -65,362 +65,38 @@ void CGameControllerMineTee::Tick()
             int StartX, EndX, StartY, EndY;
             for (int q=0; q<MAX_CLIENTS-MAX_BOTS; q++)
             {
-				GetPlayerArea(q, &StartX, &EndX, &StartY, &EndY);
+				if (!GetPlayerArea(q, &StartX, &EndX, &StartY, &EndY))
+					continue;
 
 				for(int y = StartY; y < EndY; y++)
 					for(int x = StartX; x < EndX; x++)
 					{
-						const ivec2 Positions[NUM_TILE_POS] = { ivec2(x,y), ivec2(x,y-1), ivec2(x-1,y-1), ivec2(x-1,y), ivec2(x-1,y+1), ivec2(x,y+1), ivec2(x+1,y+1), ivec2(x+1,y), ivec2(x+1,y-1) };
 						const int Index[NUM_TILE_POS] = { y*pTmap->m_Width+x, (y-1)*pTmap->m_Width+x, (y-1)*pTmap->m_Width+(x-1), y*pTmap->m_Width+(x-1), (y+1)*pTmap->m_Width+(x-1), (y+1)*pTmap->m_Width+x, (y+1)*pTmap->m_Width+(x+1), y*pTmap->m_Width+(x+1), (y-1)*pTmap->m_Width+(x+1) };
 						const int TileIndex[NUM_TILE_POS] = { pTempTiles[Index[0]].m_Index, pTempTiles[Index[1]].m_Index, pTempTiles[Index[2]].m_Index, pTempTiles[Index[3]].m_Index, pTempTiles[Index[4]].m_Index, pTempTiles[Index[5]].m_Index, pTempTiles[Index[6]].m_Index, pTempTiles[Index[7]].m_Index, pTempTiles[Index[8]].m_Index };
 
-						CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(TileIndex[TILE_CENTER]);
+						const CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(TileIndex[TILE_CENTER]);
 						if (TileIndex[TILE_CENTER] != pTiles[Index[TILE_CENTER]].m_Index || !pBlockInfo)
 						{
 							x += pTiles[Index[TILE_CENTER]].m_Skip;
 							continue;
 						}
 
-
 						if (Envirionment)
-						{
-							int FluidType = 0;
-							bool IsFluid = GameServer()->m_BlockManager.IsFluid(TileIndex[TILE_CENTER], &FluidType);
-
-							// Fluids
-							if (IsFluid)
-							{
-								// Fall
-								if (TileIndex[TILE_BOTTOM] == 0 ||
-									(TileIndex[TILE_BOTTOM] >= CBlockManager::WATER_A && TileIndex[TILE_BOTTOM] < CBlockManager::WATER_C) ||
-									(TileIndex[TILE_BOTTOM] >= CBlockManager::LAVA_A && TileIndex[TILE_BOTTOM] < CBlockManager::LAVA_C))
-								{
-									int TileIndexTemp = (FluidType==CBlockManager::FLUID_WATER)?CBlockManager::WATER_C:CBlockManager::LAVA_C;
-									ModifTile(x, y+1, TileIndexTemp);
-								}
-								// Create Obsidian?
-								else if ((FluidType == CBlockManager::FLUID_LAVA && TileIndex[TILE_BOTTOM] >= CBlockManager::WATER_A && TileIndex[TILE_BOTTOM] <= CBlockManager::WATER_D) ||
-										 (FluidType == CBlockManager::FLUID_WATER && TileIndex[TILE_BOTTOM] >= CBlockManager::LAVA_A && TileIndex[TILE_BOTTOM] <= CBlockManager::LAVA_D))
-								{
-									ModifTile(x, y+1, CBlockManager::OBSIDIAN_A);
-								}
-
-								// Spread To Right
-								if (TileIndex[TILE_RIGHT] == 0 && TileIndex[TILE_BOTTOM] != 0 &&
-									!GameServer()->m_BlockManager.IsFluid(TileIndex[TILE_BOTTOM]) &&
-									!GameServer()->m_BlockManager.IsFluid(TileIndex[TILE_RIGHT_BOTTOM]) &&
-									!GameServer()->m_BlockManager.IsFluid(TileIndex[TILE_RIGHT_TOP]) &&
-									TileIndex[TILE_CENTER]-1 != CBlockManager::WATER_A-1 && TileIndex[TILE_CENTER]-1 != CBlockManager::LAVA_A-1)
-								{
-									ModifTile(x+1, y, pTiles[Index[TILE_CENTER]].m_Index-1);
-								}
-								// Spread To Left
-								if (TileIndex[TILE_LEFT] == 0 && TileIndex[TILE_BOTTOM] != 0 &&
-									!GameServer()->m_BlockManager.IsFluid(TileIndex[TILE_BOTTOM]) &&
-									!GameServer()->m_BlockManager.IsFluid(TileIndex[TILE_LEFT_BOTTOM]) &&
-									!GameServer()->m_BlockManager.IsFluid(TileIndex[TILE_LEFT_TOP]) &&
-									TileIndex[TILE_CENTER]-1 != CBlockManager::WATER_A-1 && TileIndex[TILE_CENTER]-1 != CBlockManager::LAVA_A-1)
-								{
-									ModifTile(x-1, y, pTiles[Index[TILE_CENTER]].m_Index-1);
-								}
-
-								// Check for correct tiles FIXME
-								int FluidTypeTop = 0;
-								bool IsFluidTop = GameServer()->m_BlockManager.IsFluid(TileIndex[TILE_TOP], &FluidTypeTop);
-								if (IsFluidTop && TileIndex[TILE_CENTER] < CBlockManager::WATER_C)
-								{
-									ModifTile(x, y, FluidTypeTop==CBlockManager::FLUID_WATER?CBlockManager::WATER_C:CBlockManager::LAVA_C);
-								}
-
-							}
-
-							// Mutations
-							for (int i=0; i<pBlockInfo->m_vMutations.size(); i+=2)
-							{
-								bool MutationCheck = true;
-								array<int> *pArray = &pBlockInfo->m_vMutations[i];
-								array<int> *pArrayF = &pBlockInfo->m_vMutations[i+1];
-
-								if (pArray->size() != NUM_TILE_POS-1 || pArrayF->size() != NUM_TILE_POS)
-									continue;
-
-								for (int e=0; e<pArray->size(); e++)
-								{
-									if ((*pArray)[e] == -2)
-										continue;
-									else if (((*pArray)[e] == -1 && !TileIndex[TILE_TOP+e]) ||
-											((*pArray)[e] != -1 && TileIndex[TILE_TOP+e] != (*pArray)[e]))
-									{
-										MutationCheck = false;
-										break;
-									}
-								}
-
-
-								if (MutationCheck)
-								{
-									for (int e=0; e<NUM_TILE_POS; e++)
-									{
-										if ((*pArrayF)[e] == -1)
-											continue;
-
-										ModifTile(Positions[e], (*pArrayF)[e]);
-									}
-
-									break;
-								}
-							}
-
-							// Check what block are on top
-							if (y>0)
-							{
-								// OnSun
-								if (pBlockInfo->m_OnSun != -1 && !(rand()%pBlockInfo->m_RandomActions))
-								{
-									bool found = false;
-									for (int o=y-1; o>=0; o--)
-									{
-										int TileIndexTemp = o*pTmap->m_Width+x;
-										if (pTempTiles[TileIndexTemp].m_Index != 0)
-										{
-											found = true;
-											break;
-										}
-									}
-
-									if (!found)
-									{
-										if (!pBlockInfo->m_RandomActions)
-											ModifTile(x, y, pBlockInfo->m_OnSun);
-										else if (!(rand()%pBlockInfo->m_RandomActions))
-											ModifTile(x, y, pBlockInfo->m_OnSun);
-									}
-								}
-								// Turn On Oven if Coal touch one side
-								// TODO: Move this!
-								else if (TileIndex[TILE_CENTER] == CBlockManager::OVEN_OFF &&
-										(TileIndex[TILE_TOP] == CBlockManager::COAL || TileIndex[TILE_LEFT] == CBlockManager::COAL || TileIndex[TILE_RIGHT] == CBlockManager::COAL))
-								{
-									ivec2 TilePos;
-									if (TileIndex[TILE_TOP] == CBlockManager::COAL)
-										TilePos = ivec2(x, y-1);
-									else if (TileIndex[TILE_LEFT] == CBlockManager::COAL)
-										TilePos = ivec2(x-1, y);
-									else if (TileIndex[TILE_RIGHT] == CBlockManager::COAL)
-										TilePos = ivec2(x+1, y);
-
-									ModifTile(x, y, CBlockManager::OVEN_ON);
-									ModifTile(TilePos, 0);
-								}
-							}
-
-							// Gravity
-							if (pBlockInfo->m_Gravity && TileIndex[TILE_BOTTOM] == 0)
-							{
-								ModifTile(x, y, 0);
-								ModifTile(x, y+1, TileIndex[TILE_CENTER]);
-							}
-
-							// Damage
-							if (pBlockInfo->m_Damage)
-							{
-								for (size_t e=0; e<MAX_CLIENTS; e++)
-								{
-									if (!GameServer()->m_apPlayers[e] || !GameServer()->m_apPlayers[e]->GetCharacter() || !GameServer()->m_apPlayers[e]->GetCharacter()->IsAlive())
-										continue;
-
-									if (distance(GameServer()->m_apPlayers[e]->GetCharacter()->m_Pos, vec2((x<<5)+16.0f,(y<<5)+16.0f)) <= 36.0f)
-										GameServer()->m_apPlayers[e]->GetCharacter()->TakeDamage(vec2(0.0f, 0.0f), 1.0f, GameServer()->m_apPlayers[e]->GetCID(), WEAPON_WORLD);
-								}
-							}
-						}
+							EnvirionmentTick(pTempTiles, TileIndex, x, y, pBlockInfo);
 
 						if (Destruction)
-						{
-							// Place Check
-							if (pBlockInfo->m_vPlace.size() > 0)
-							{
-								bool PlaceCheck = false;
-								for (int i=0; i<pBlockInfo->m_vPlace.size(); i++)
-								{
-									array<int> *pArray = &pBlockInfo->m_vPlace[i];
-									for (int e=0; e<pArray->size(); e++)
-									{
-										if ((*pArray)[e] == -2)
-											continue;
-										else if (((*pArray)[e] == -1 && TileIndex[TILE_TOP+i] != 0) ||
-											((*pArray)[e] != -1 && TileIndex[TILE_TOP+i] == (*pArray)[e]))
-										{
-											PlaceCheck = true;
-											break;
-										}
-									}
-
-									if (PlaceCheck)
-										break;
-								}
-
-								if (!PlaceCheck)
-								{
-									ModifTile(x, y, 0);
-
-									if (pBlockInfo->m_vOnBreak.size() > 0)
-									{
-										for (std::map<int, unsigned char>::iterator it = pBlockInfo->m_vOnBreak.begin(); it != pBlockInfo->m_vOnBreak.end(); it++)
-										{
-											if (it->first == 0)
-											{
-												++it;
-												continue;
-											}
-
-											CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, it->first);
-											pPickup->m_Pos = vec2((x<<5) + 8.0f, (y<<5) + 8.0f);
-											pPickup->m_Amount = it->second;
-										}
-									}
-									else
-									{
-										CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, TileIndex[TILE_CENTER]);
-										pPickup->m_Pos = vec2((x<<5) + 8.0f, (y<<5) + 8.0f);
-									}
-								}
-							}
-
-							// Cut Fluids
-							if ((TileIndex[TILE_CENTER] == CBlockManager::WATER_C || TileIndex[TILE_CENTER] == CBlockManager::LAVA_C) &&
-									!GameServer()->m_BlockManager.IsFluid(TileIndex[TILE_TOP]) &&
-									!GameServer()->m_BlockManager.IsFluid(TileIndex[TILE_LEFT]) &&
-									!GameServer()->m_BlockManager.IsFluid(TileIndex[TILE_RIGHT]))
-							{
-								ModifTile(x, y, 0);
-							}
-						}
+							DestructionTick(pTempTiles, TileIndex, x, y, pBlockInfo);
 
 						if (Vegetal)
-						{
-							/** Growing **/
-							if (TileIndex[TILE_CENTER] == CBlockManager::SUGAR_CANE &&
-								(TileIndex[TILE_BOTTOM] == CBlockManager::SUGAR_CANE || TileIndex[TILE_BOTTOM] == CBlockManager::GROUND_CULTIVATION_WET) &&
-								TileIndex[TILE_TOP] == 0)
-							{
-								int tam=0;
-								bool canC = false;
-								for(int u=1; u<=5; u++)
-								{
-									int TileIndexTemp = (y+u)*pTmap->m_Width+x;
-									if (pTempTiles[TileIndexTemp].m_Index == CBlockManager::SUGAR_CANE)
-										tam++;
-									else
-									{
-										if (pTempTiles[TileIndexTemp].m_Index == CBlockManager::GROUND_CULTIVATION_WET)
-											canC = true;
-										break;
-									}
-								}
-
-								if (!(rand()%10) && canC && tam < 5)
-								{
-									ModifTile(x, y-1, CBlockManager::SUGAR_CANE);
-								}
-							}
-
-							if (TileIndex[TILE_CENTER] == CBlockManager::CACTUS &&
-								(TileIndex[TILE_BOTTOM] == CBlockManager::CACTUS || TileIndex[TILE_BOTTOM] == CBlockManager::SAND) &&
-								TileIndex[TILE_TOP] == 0)
-							{
-								int tam=0;
-								bool canC = false;
-								for(int u=1; u<=5; u++)
-								{
-									int TileIndexTemp = (y+u)*pTmap->m_Width+x;
-									if (pTempTiles[TileIndexTemp].m_Index == CBlockManager::CACTUS)
-										tam++;
-									else
-									{
-										if (pTempTiles[TileIndexTemp].m_Index == CBlockManager::SAND)
-											canC = true;
-										break;
-									}
-								}
-
-								if (!(rand()%10) && canC && tam < 8)
-								{
-									ModifTile(x, y-1, CBlockManager::CACTUS);
-								}
-							}
-							else if (TileIndex[TILE_CENTER] >= CBlockManager::GRASS_A && TileIndex[TILE_CENTER] < CBlockManager::GRASS_G && !(rand()%1))
-							{
-								int nindex = TileIndex[TILE_CENTER]+1;
-								if (TileIndex[TILE_BOTTOM] != CBlockManager::GROUND_CULTIVATION_WET && nindex > CBlockManager::GRASS_D)
-									nindex = CBlockManager::GRASS_D;
-
-								ModifTile(x, y, nindex);
-							}
-
-							/** Creation **/
-							if (!(rand()%100) && (TileIndex[TILE_CENTER] == CBlockManager::SAND) && TileIndex[TILE_TOP] == 0)
-							{
-								bool found = false;
-
-								for (int i=-4; i<5; i++)
-								{
-									int TileIndexTemp = (y-1)*pTmap->m_Width+(x+i);
-									if (pTempTiles[TileIndexTemp].m_Index == CBlockManager::CACTUS)
-									{
-										found = true;
-										break;
-									}
-								}
-
-								if (!found)
-									ModifTile(x, y-1, CBlockManager::CACTUS);
-							}
-							else if ((rand()%100)==3 && TileIndex[TILE_CENTER] == CBlockManager::GRASS_D &&
-									TileIndex[TILE_RIGHT] == 0 && TileIndex[TILE_RIGHT_BOTTOM] == CBlockManager::GRASS)
-							{
-								ModifTile(x+1, y, CBlockManager::GRASS_A);
-							}
-
-							/** Dead **/
-							if (TileIndex[TILE_CENTER] == CBlockManager::GROUND_CULTIVATION_WET && TileIndex[TILE_TOP] == 0)
-							{
-								ModifTile(x, y, CBlockManager::GROUND_CULTIVATION_DRY);
-							}
-							else if (TileIndex[TILE_CENTER] == CBlockManager::GROUND_CULTIVATION_DRY && TileIndex[TILE_TOP] == 0)
-							{
-								ModifTile(x, y, CBlockManager::DIRT);
-							}
-						}
+							VegetationTick(pTempTiles, TileIndex, x, y, pBlockInfo);
 
 						// OnCook
 						if (Cook && y > 0)
-						{
-							if (TileIndex[TILE_CENTER] == CBlockManager::OVEN_ON)
-							{
-								CBlockManager::CBlockInfo *pCookedBlock = GameServer()->m_BlockManager.GetBlockInfo(TileIndex[TILE_TOP]);
-								if (pCookedBlock)
-								{
-									for (std::map<int, unsigned char>::iterator it = pCookedBlock->m_vOnCook.begin(); it != pCookedBlock->m_vOnCook.end(); it++)
-									{
-										CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, it->first);
-										pPickup->m_Pos = vec2((x<<5) + 8.0f, ((y-1)<<5) + 8.0f);
-										pPickup->m_Amount = it->second;
-									}
-								}
-
-								ModifTile(x, y-1, 0);
-							}
-						}
+							CookTick(pTempTiles, TileIndex, x, y, pBlockInfo);
 
 						// OnWear
 						if (Wear && pBlockInfo->m_OnWear != -1)
-						{
-							if (!pBlockInfo->m_RandomActions)
-								ModifTile(x, y, pBlockInfo->m_OnWear);
-							else if (!(rand()%pBlockInfo->m_RandomActions))
-								ModifTile(x, y, pBlockInfo->m_OnWear);
-						}
+							WearTick(pTempTiles, TileIndex, x, y, pBlockInfo);
 
 						x += pTiles[Index[TILE_CENTER]].m_Skip;
 					}
@@ -431,6 +107,349 @@ void CGameControllerMineTee::Tick()
     }
 
 	CGameController::Tick();
+}
+
+void CGameControllerMineTee::EnvirionmentTick(CTile *pTempTiles, const int *pTileIndex, int x, int y, const CBlockManager::CBlockInfo *pBlockInfo)
+{
+	CMapItemLayerTilemap *pTmap = GameServer()->Layers()->MineTeeLayer();
+	CTile *pTiles = (CTile *)GameServer()->Layers()->Map()->GetData(pTmap->m_Data);
+	const ivec2 Positions[NUM_TILE_POS] = { ivec2(x,y), ivec2(x,y-1), ivec2(x-1,y-1), ivec2(x-1,y), ivec2(x-1,y+1), ivec2(x,y+1), ivec2(x+1,y+1), ivec2(x+1,y), ivec2(x+1,y-1) };
+	const int Index[NUM_TILE_POS] = { y*pTmap->m_Width+x, (y-1)*pTmap->m_Width+x, (y-1)*pTmap->m_Width+(x-1), y*pTmap->m_Width+(x-1), (y+1)*pTmap->m_Width+(x-1), (y+1)*pTmap->m_Width+x, (y+1)*pTmap->m_Width+(x+1), y*pTmap->m_Width+(x+1), (y-1)*pTmap->m_Width+(x+1) };
+	int FluidType = 0;
+	bool IsFluid = GameServer()->m_BlockManager.IsFluid(pTileIndex[TILE_CENTER], &FluidType);
+
+	// Fluids
+	if (IsFluid)
+	{
+		// Fall
+		if (pTileIndex[TILE_BOTTOM] == 0 ||
+			(pTileIndex[TILE_BOTTOM] >= CBlockManager::WATER_A && pTileIndex[TILE_BOTTOM] < CBlockManager::WATER_C) ||
+			(pTileIndex[TILE_BOTTOM] >= CBlockManager::LAVA_A && pTileIndex[TILE_BOTTOM] < CBlockManager::LAVA_C))
+		{
+			int TileIndexTemp = (FluidType==CBlockManager::FLUID_WATER)?CBlockManager::WATER_C:CBlockManager::LAVA_C;
+			ModifTile(x, y+1, TileIndexTemp);
+		}
+		// Create Obsidian?
+		else if ((FluidType == CBlockManager::FLUID_LAVA && pTileIndex[TILE_BOTTOM] >= CBlockManager::WATER_A && pTileIndex[TILE_BOTTOM] <= CBlockManager::WATER_D) ||
+				 (FluidType == CBlockManager::FLUID_WATER && pTileIndex[TILE_BOTTOM] >= CBlockManager::LAVA_A && pTileIndex[TILE_BOTTOM] <= CBlockManager::LAVA_D))
+		{
+			ModifTile(x, y+1, CBlockManager::OBSIDIAN_A);
+		}
+
+		// Spread To Right
+		if (pTileIndex[TILE_RIGHT] == 0 && pTileIndex[TILE_BOTTOM] != 0 &&
+			!GameServer()->m_BlockManager.IsFluid(pTileIndex[TILE_BOTTOM]) &&
+			!GameServer()->m_BlockManager.IsFluid(pTileIndex[TILE_RIGHT_BOTTOM]) &&
+			!GameServer()->m_BlockManager.IsFluid(pTileIndex[TILE_RIGHT_TOP]) &&
+			pTileIndex[TILE_CENTER]-1 != CBlockManager::WATER_A-1 && pTileIndex[TILE_CENTER]-1 != CBlockManager::LAVA_A-1)
+		{
+			ModifTile(x+1, y, pTiles[Index[TILE_CENTER]].m_Index-1);
+		}
+		// Spread To Left
+		if (pTileIndex[TILE_LEFT] == 0 && pTileIndex[TILE_BOTTOM] != 0 &&
+			!GameServer()->m_BlockManager.IsFluid(pTileIndex[TILE_BOTTOM]) &&
+			!GameServer()->m_BlockManager.IsFluid(pTileIndex[TILE_LEFT_BOTTOM]) &&
+			!GameServer()->m_BlockManager.IsFluid(pTileIndex[TILE_LEFT_TOP]) &&
+			pTileIndex[TILE_CENTER]-1 != CBlockManager::WATER_A-1 && pTileIndex[TILE_CENTER]-1 != CBlockManager::LAVA_A-1)
+		{
+			ModifTile(x-1, y, pTiles[Index[TILE_CENTER]].m_Index-1);
+		}
+
+		// Check for correct tiles FIXME
+		int FluidTypeTop = 0;
+		bool IsFluidTop = GameServer()->m_BlockManager.IsFluid(pTileIndex[TILE_TOP], &FluidTypeTop);
+		if (IsFluidTop && pTileIndex[TILE_CENTER] < CBlockManager::WATER_C)
+		{
+			ModifTile(x, y, FluidTypeTop==CBlockManager::FLUID_WATER?CBlockManager::WATER_C:CBlockManager::LAVA_C);
+		}
+
+	}
+
+	// Mutations
+	for (int i=0; i<pBlockInfo->m_vMutations.size(); i+=2)
+	{
+		bool MutationCheck = true;
+		const array<int> *pArray = &pBlockInfo->m_vMutations[i];
+		const array<int> *pArrayF = &pBlockInfo->m_vMutations[i+1];
+
+		if (pArray->size() != NUM_TILE_POS-1 || pArrayF->size() != NUM_TILE_POS)
+			continue;
+
+		for (int e=0; e<pArray->size(); e++)
+		{
+			if ((*pArray)[e] == -2)
+				continue;
+			else if (((*pArray)[e] == -1 && !pTileIndex[TILE_TOP+e]) ||
+					((*pArray)[e] != -1 && pTileIndex[TILE_TOP+e] != (*pArray)[e]))
+			{
+				MutationCheck = false;
+				break;
+			}
+		}
+
+
+		if (MutationCheck)
+		{
+			for (int e=0; e<NUM_TILE_POS; e++)
+			{
+				if ((*pArrayF)[e] == -1)
+					continue;
+
+				ModifTile(Positions[e], (*pArrayF)[e]);
+			}
+
+			break;
+		}
+	}
+
+	// Check what block are on top
+	if (y>0)
+	{
+		// OnSun
+		if (pBlockInfo->m_OnSun != -1 && !(rand()%pBlockInfo->m_RandomActions))
+		{
+			bool found = false;
+			for (int o=y-1; o>=0; o--)
+			{
+				int TileIndexTemp = o*pTmap->m_Width+x;
+				if (pTempTiles[TileIndexTemp].m_Index != 0)
+				{
+					found = true;
+					break;
+				}
+			}
+
+			if (!found)
+			{
+				if (!pBlockInfo->m_RandomActions)
+					ModifTile(x, y, pBlockInfo->m_OnSun);
+				else if (!(rand()%pBlockInfo->m_RandomActions))
+					ModifTile(x, y, pBlockInfo->m_OnSun);
+			}
+		}
+		// Turn On Oven if Coal touch one side
+		// TODO: Move this!
+		else if (pTileIndex[TILE_CENTER] == CBlockManager::OVEN_OFF &&
+				(pTileIndex[TILE_TOP] == CBlockManager::COAL || pTileIndex[TILE_LEFT] == CBlockManager::COAL || pTileIndex[TILE_RIGHT] == CBlockManager::COAL))
+		{
+			ivec2 TilePos;
+			if (pTileIndex[TILE_TOP] == CBlockManager::COAL)
+				TilePos = ivec2(x, y-1);
+			else if (pTileIndex[TILE_LEFT] == CBlockManager::COAL)
+				TilePos = ivec2(x-1, y);
+			else if (pTileIndex[TILE_RIGHT] == CBlockManager::COAL)
+				TilePos = ivec2(x+1, y);
+
+			ModifTile(x, y, CBlockManager::OVEN_ON);
+			ModifTile(TilePos, 0);
+		}
+	}
+
+	// Gravity
+	if (pBlockInfo->m_Gravity && pTileIndex[TILE_BOTTOM] == 0)
+	{
+		ModifTile(x, y, 0);
+		ModifTile(x, y+1, pTileIndex[TILE_CENTER]);
+	}
+
+	// Damage
+	if (pBlockInfo->m_Damage)
+	{
+		for (size_t e=0; e<MAX_CLIENTS; e++)
+		{
+			if (!GameServer()->m_apPlayers[e] || !GameServer()->m_apPlayers[e]->GetCharacter() || !GameServer()->m_apPlayers[e]->GetCharacter()->IsAlive())
+				continue;
+
+			if (distance(GameServer()->m_apPlayers[e]->GetCharacter()->m_Pos, vec2((x<<5)+16.0f,(y<<5)+16.0f)) <= 36.0f)
+				GameServer()->m_apPlayers[e]->GetCharacter()->TakeDamage(vec2(0.0f, 0.0f), 1.0f, GameServer()->m_apPlayers[e]->GetCID(), WEAPON_WORLD);
+		}
+	}
+}
+void CGameControllerMineTee::DestructionTick(CTile *pTempTiles, const int *pTileIndex, int x, int y, const CBlockManager::CBlockInfo *pBlockInfo)
+{
+	// Place Check
+	if (pBlockInfo->m_vPlace.size() > 0)
+	{
+		bool PlaceCheck = false;
+		for (int i=0; i<pBlockInfo->m_vPlace.size(); i++)
+		{
+			const array<int> *pArray = &pBlockInfo->m_vPlace[i];
+			for (int e=0; e<pArray->size(); e++)
+			{
+				if ((*pArray)[e] == -2)
+					continue;
+				else if (((*pArray)[e] == -1 && pTileIndex[TILE_TOP+i] != 0) ||
+					((*pArray)[e] != -1 && pTileIndex[TILE_TOP+i] == (*pArray)[e]))
+				{
+					PlaceCheck = true;
+					break;
+				}
+			}
+
+			if (PlaceCheck)
+				break;
+		}
+
+		if (!PlaceCheck)
+		{
+			ModifTile(x, y, 0);
+
+			if (pBlockInfo->m_vOnBreak.size() > 0)
+			{
+				for (std::map<int, unsigned char>::const_iterator it = pBlockInfo->m_vOnBreak.begin(); it != pBlockInfo->m_vOnBreak.end(); it++)
+				{
+					if (it->first == 0)
+					{
+						++it;
+						continue;
+					}
+
+					CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, it->first);
+					pPickup->m_Pos = vec2((x<<5) + 8.0f, (y<<5) + 8.0f);
+					pPickup->m_Amount = it->second;
+				}
+			}
+			else
+			{
+				CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, pTileIndex[TILE_CENTER]);
+				pPickup->m_Pos = vec2((x<<5) + 8.0f, (y<<5) + 8.0f);
+			}
+		}
+	}
+
+	// Cut Fluids
+	if ((pTileIndex[TILE_CENTER] == CBlockManager::WATER_C || pTileIndex[TILE_CENTER] == CBlockManager::LAVA_C) &&
+			!GameServer()->m_BlockManager.IsFluid(pTileIndex[TILE_TOP]) &&
+			!GameServer()->m_BlockManager.IsFluid(pTileIndex[TILE_LEFT]) &&
+			!GameServer()->m_BlockManager.IsFluid(pTileIndex[TILE_RIGHT]))
+	{
+		ModifTile(x, y, 0);
+	}
+}
+
+void CGameControllerMineTee::WearTick(CTile *pTempTiles, const int *pTileIndex, int x, int y, const CBlockManager::CBlockInfo *pBlockInfo)
+{
+	if (!pBlockInfo->m_RandomActions)
+		ModifTile(x, y, pBlockInfo->m_OnWear);
+	else if (!(rand()%pBlockInfo->m_RandomActions))
+		ModifTile(x, y, pBlockInfo->m_OnWear);
+}
+
+void CGameControllerMineTee::CookTick(CTile *pTempTiles, const int *pTileIndex, int x, int y, const CBlockManager::CBlockInfo *pBlockInfo)
+{
+	if (pTileIndex[TILE_CENTER] == CBlockManager::OVEN_ON)
+	{
+		CBlockManager::CBlockInfo *pCookedBlock = GameServer()->m_BlockManager.GetBlockInfo(pTileIndex[TILE_TOP]);
+		if (pCookedBlock)
+		{
+			for (std::map<int, unsigned char>::iterator it = pCookedBlock->m_vOnCook.begin(); it != pCookedBlock->m_vOnCook.end(); it++)
+			{
+				CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, it->first);
+				pPickup->m_Pos = vec2((x<<5) + 8.0f, ((y-1)<<5) + 8.0f);
+				pPickup->m_Amount = it->second;
+			}
+		}
+
+		ModifTile(x, y-1, 0);
+	}
+}
+
+void CGameControllerMineTee::VegetationTick(CTile *pTempTiles, const int *pTileIndex, int x, int y, const CBlockManager::CBlockInfo *pBlockInfo)
+{
+	CMapItemLayerTilemap *pTmap = (CMapItemLayerTilemap *)GameServer()->Layers()->MineTeeLayer();
+
+	/** Growing **/
+	if (pTileIndex[TILE_CENTER] == CBlockManager::SUGAR_CANE &&
+		(pTileIndex[TILE_BOTTOM] == CBlockManager::SUGAR_CANE || pTileIndex[TILE_BOTTOM] == CBlockManager::GROUND_CULTIVATION_WET) &&
+		pTileIndex[TILE_TOP] == 0)
+	{
+		int tam=0;
+		bool canC = false;
+		for(int u=1; u<=5; u++)
+		{
+			int TileIndexTemp = (y+u)*pTmap->m_Width+x;
+			if (pTempTiles[TileIndexTemp].m_Index == CBlockManager::SUGAR_CANE)
+				tam++;
+			else
+			{
+				if (pTempTiles[TileIndexTemp].m_Index == CBlockManager::GROUND_CULTIVATION_WET)
+					canC = true;
+				break;
+			}
+		}
+
+		if (!(rand()%10) && canC && tam < 5)
+		{
+			ModifTile(x, y-1, CBlockManager::SUGAR_CANE);
+		}
+	}
+
+	if (pTileIndex[TILE_CENTER] == CBlockManager::CACTUS &&
+		(pTileIndex[TILE_BOTTOM] == CBlockManager::CACTUS || pTileIndex[TILE_BOTTOM] == CBlockManager::SAND) &&
+		pTileIndex[TILE_TOP] == 0)
+	{
+		int tam=0;
+		bool canC = false;
+		for(int u=1; u<=5; u++)
+		{
+			int TileIndexTemp = (y+u)*pTmap->m_Width+x;
+			if (pTempTiles[TileIndexTemp].m_Index == CBlockManager::CACTUS)
+				tam++;
+			else
+			{
+				if (pTempTiles[TileIndexTemp].m_Index == CBlockManager::SAND)
+					canC = true;
+				break;
+			}
+		}
+
+		if (!(rand()%10) && canC && tam < 8)
+		{
+			ModifTile(x, y-1, CBlockManager::CACTUS);
+		}
+	}
+	else if (pTileIndex[TILE_CENTER] >= CBlockManager::GRASS_A && pTileIndex[TILE_CENTER] < CBlockManager::GRASS_G && !(rand()%1))
+	{
+		int nindex = pTileIndex[TILE_CENTER]+1;
+		if (pTileIndex[TILE_BOTTOM] != CBlockManager::GROUND_CULTIVATION_WET && nindex > CBlockManager::GRASS_D)
+			nindex = CBlockManager::GRASS_D;
+
+		ModifTile(x, y, nindex);
+	}
+
+	/** Creation **/
+	if (!(rand()%100) && (pTileIndex[TILE_CENTER] == CBlockManager::SAND) && pTileIndex[TILE_TOP] == 0)
+	{
+		bool found = false;
+
+		for (int i=-4; i<5; i++)
+		{
+			int TileIndexTemp = (y-1)*pTmap->m_Width+(x+i);
+			if (pTempTiles[TileIndexTemp].m_Index == CBlockManager::CACTUS)
+			{
+				found = true;
+				break;
+			}
+		}
+
+		if (!found)
+			ModifTile(x, y-1, CBlockManager::CACTUS);
+	}
+	else if ((rand()%100)==3 && pTileIndex[TILE_CENTER] == CBlockManager::GRASS_D &&
+			pTileIndex[TILE_RIGHT] == 0 && pTileIndex[TILE_RIGHT_BOTTOM] == CBlockManager::GRASS)
+	{
+		ModifTile(x+1, y, CBlockManager::GRASS_A);
+	}
+
+	/** Dead **/
+	if (pTileIndex[TILE_CENTER] == CBlockManager::GROUND_CULTIVATION_WET && pTileIndex[TILE_TOP] == 0)
+	{
+		ModifTile(x, y, CBlockManager::GROUND_CULTIVATION_DRY);
+	}
+	else if (pTileIndex[TILE_CENTER] == CBlockManager::GROUND_CULTIVATION_DRY && pTileIndex[TILE_TOP] == 0)
+	{
+		ModifTile(x, y, CBlockManager::DIRT);
+	}
 }
 
 void CGameControllerMineTee::OnCharacterSpawn(class CCharacter *pChr)
@@ -633,9 +652,7 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
 			for (int u=0; u<CBlockManager::MAX_BLOCKS; u++)
 			{
 				CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(u);
-				if (!pBlockInfo)
-					continue;
-				if (str_comp_nocase(ptr, pBlockInfo->m_aName) != 0 || pBlockInfo->m_CraftNum == 0 || pBlockInfo->m_vCraft.size() <= 0)
+				if (!pBlockInfo || str_comp_nocase(ptr, pBlockInfo->m_aName) != 0 || pBlockInfo->m_CraftNum == 0 || pBlockInfo->m_vCraft.size() <= 0)
 					continue;
 
 				BlockFounded = true;
@@ -797,18 +814,65 @@ void CGameControllerMineTee::ModifTile(ivec2 MapPos, int TileIndex)
     GameServer()->Collision()->ModifTile(MapPos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0);
 }
 
-void CGameControllerMineTee::GetPlayerArea(int ClientID, int *pStartX, int *pEndX, int *pStartY, int *pEndY)
+bool CGameControllerMineTee::GetPlayerArea(int ClientID, int *pStartX, int *pEndX, int *pStartY, int *pEndY)
 {
 	const int MapChunkSize = 24;
 	*pStartX = *pEndX = *pStartY = *pEndY = 0;
-	if (ClientID < 0 || ClientID > MAX_CLIENTS-MAX_BOTS || !GameServer()->m_apPlayers[ClientID] || !GameServer()->m_apPlayers[ClientID]->GetCharacter())
-		return;
+	if (ClientID < 0 || ClientID >= MAX_CLIENTS || !GameServer()->m_apPlayers[ClientID] || !GameServer()->m_apPlayers[ClientID]->GetCharacter())
+		return false;
 
-	vec2 ClientWorldPos = GameServer()->m_apPlayers[ClientID]->GetCharacter()->m_Pos;
-	ivec2 ClientMapPos(ClientWorldPos.x/32, ClientWorldPos.y/32);
+	const vec2 ClientWorldPos = GameServer()->m_apPlayers[ClientID]->GetCharacter()->m_Pos;
+	const ivec2 ClientMapPos(ClientWorldPos.x/32, ClientWorldPos.y/32);
 
 	*pStartX = max(ClientMapPos.x-MapChunkSize, 1);
 	*pEndX = min(ClientMapPos.x+MapChunkSize, GameServer()->Collision()->GetWidth()-2);
 	*pStartY = max(ClientMapPos.y-MapChunkSize, 1);
 	*pEndY = min(ClientMapPos.y+MapChunkSize, GameServer()->Collision()->GetHeight()-2);
+	return true;
+}
+
+void CGameControllerMineTee::GetPlayerArea(vec2 Pos, int *pStartX, int *pEndX, int *pStartY, int *pEndY)
+{
+	const int MapChunkSize = 24;
+	*pStartX = *pEndX = *pStartY = *pEndY = 0;
+	const ivec2 ClientMapPos(Pos.x/32, Pos.y/32);
+
+	*pStartX = max(ClientMapPos.x-MapChunkSize, 1);
+	*pEndX = min(ClientMapPos.x+MapChunkSize, GameServer()->Collision()->GetWidth()-2);
+	*pStartY = max(ClientMapPos.y-MapChunkSize, 1);
+	*pEndY = min(ClientMapPos.y+MapChunkSize, GameServer()->Collision()->GetHeight()-2);
+}
+
+void CGameControllerMineTee::UpdateLayerLights(vec2 Pos)
+{
+	//CTile *pMTLTiles = 0x0;
+	static int s_LightLevel = 0;
+	int64 Time = -1;
+	bool IsDay = false;
+
+	GameServer()->GetServerTime(&IsDay, &Time);
+
+	float tt = Time;
+	int itt = tt/GameServer()->m_World.m_Core.m_Tuning.m_DayNightDuration;
+	tt/=GameServer()->m_World.m_Core.m_Tuning.m_DayNightDuration;
+
+	if (tt-itt < 0.02)
+		s_LightLevel=(IsDay)?0:3;
+	else if (tt-itt < 0.025)
+		s_LightLevel=(IsDay)?1:2;
+	else if (tt-itt < 0.035)
+		s_LightLevel=(IsDay)?2:1;
+	else if (tt-itt < 0.045)
+		s_LightLevel=(IsDay)?3:0;
+	else
+		s_LightLevel=(IsDay)?4:0;
+
+
+	if (s_LightLevel >= 0)
+	{
+		int ScreenX0, ScreenY0, ScreenX1, ScreenY1;
+		GetPlayerArea(Pos, &ScreenX0, &ScreenX1, &ScreenY0, &ScreenY1);
+		dbg_msg("LUCES","LEvel: %d -- %d", ScreenX0, ScreenX1);
+		GameServer()->Collision()->UpdateLayerLights((float)ScreenX0*32.0f, (float)ScreenY0*32.0f, (float)ScreenX1*32.0f, (float)ScreenY1*32.0f, s_LightLevel);
+	}
 }

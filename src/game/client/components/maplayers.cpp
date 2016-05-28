@@ -279,7 +279,7 @@ void CMapLayers::OnRender()
     // MineTee: Tile-Lighting
     CServerInfo Info;
     Client()->GetServerInfo(&Info);
-    if (str_find_nocase(Info.m_aGameType,"minetee") && m_pLayers->TileLights() && m_pLayers->MineTeeLayer())
+    if (str_find_nocase(Info.m_aGameType,"minetee"))
     {
         //CTile *pMTLTiles = 0x0;
         static int s_LightLevel = 0;
@@ -306,13 +306,9 @@ void CMapLayers::OnRender()
 
         if (s_LightLevel >= 0)
         {
-        	CTile *pMTTiles = 0x0;
-            CMapItemLayerTilemap *pMTMap = m_pLayers->MineTeeLayer();
-            if (pMTMap)
-                pMTTiles = (CTile *)m_pLayers->Map()->GetData(pMTMap->m_Data);
-
-            if (pMTTiles)
-                RenderTools()->UpdateLights(pMTTiles, m_pLayers->TileLights(), Layers()->Lights()->m_Width, Layers()->Lights()->m_Height, s_LightLevel);
+			float ScreenX0, ScreenY0, ScreenX1, ScreenY1;
+			Graphics()->GetScreen(&ScreenX0, &ScreenY0, &ScreenX1, &ScreenY1);
+			Collision()->UpdateLayerLights(ScreenX0, ScreenY0, ScreenX1, ScreenY1, s_LightLevel);
         }
     }
 

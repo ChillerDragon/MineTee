@@ -4,6 +4,8 @@
 #ifndef GAME_SERVER_GAMEMODES_MINETEE_H
 #define GAME_SERVER_GAMEMODES_MINETEE_H
 #include <game/server/gamecontroller.h>
+#include <game/mapitems.h>
+#include <game/block_manager.h>
 
 
 class CGameControllerMineTee : public CGameController
@@ -24,11 +26,13 @@ class CGameControllerMineTee : public CGameController
 
 	void ModifTile(ivec2 MapPos, int TileIndex);
 	void ModifTile(int x, int y, int TileIndex) { ModifTile(ivec2(x, y), TileIndex); }
-	void GetPlayerArea(int ClientID, int *pStartX, int *pEndX, int *pStartY, int *pEndY);
+	bool GetPlayerArea(int ClientID, int *pStartX, int *pEndX, int *pStartY, int *pEndY);
+	void GetPlayerArea(vec2 Pos, int *pStartX, int *pEndX, int *pStartY, int *pEndY);
 
 public:
 	CGameControllerMineTee(class CGameContext *pGameServer);
 	virtual void Tick();
+	void UpdateLayerLights(vec2 Pos);
 
 	virtual void OnCharacterSpawn(class CCharacter *pChr);
 	virtual int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon);
@@ -41,6 +45,12 @@ private:
 	float m_TimeDestruction;
     float m_TimeWear;
     float m_TimeCook;
+
+    void VegetationTick(CTile *pTempTiles, const int *pTileIndex, int x, int y, const CBlockManager::CBlockInfo *pBlockInfo);
+    void EnvirionmentTick(CTile *pTempTiles, const int *pTileIndex, int x, int y, const CBlockManager::CBlockInfo *pBlockInfo);
+    void DestructionTick(CTile *pTempTiles, const int *pTileIndex, int x, int y, const CBlockManager::CBlockInfo *pBlockInfo);
+    void WearTick(CTile *pTempTiles, const int *pTileIndex, int x, int y, const CBlockManager::CBlockInfo *pBlockInfo);
+    void CookTick(CTile *pTempTiles, const int *pTileIndex, int x, int y, const CBlockManager::CBlockInfo *pBlockInfo);
 };
 
 #endif
