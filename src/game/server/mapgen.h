@@ -67,7 +67,7 @@ public:
 
 	void GenerateTree(ivec2 Pos);
 
-	void GenerateMap(const char *pSize, int Seed);
+	void FillMap(int Seed);
 	void Init(CLayers *pLayers, CCollision *pCollision);
 };
 

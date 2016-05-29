@@ -389,8 +389,6 @@ void CCollision::UpdateLayerLights(float ScreenX0, float ScreenY0, float ScreenX
 	if (!pTiles || !pLights)
 		return;
 
-	dbg_msg("LUX", "SE actualiza!!");
-
 	const int w = m_pLayers->Lights()->m_Width;
 	const int h = m_pLayers->Lights()->m_Height;
 

@@ -146,10 +146,6 @@ bool CGameController::OnEntity(int Index, vec2 Pos)
 	int Type = -1;
 	int SubType = 0;
 
-	dbg_msg("ENTIT", "PSA: %d", Index);
-	if(Index >= ENTITY_SPAWN && Index <= ENTITY_SPAWN_BLUE)
-		dbg_msg("ENTIT", "LEO LOS SPWANS!");
-
 	if(Index == ENTITY_SPAWN)
 		m_aaSpawnPoints[0][m_aNumSpawnPoints[0]++] = Pos;
 	else if(Index == ENTITY_SPAWN_RED)

@@ -872,7 +872,6 @@ void CGameControllerMineTee::UpdateLayerLights(vec2 Pos)
 	{
 		int ScreenX0, ScreenY0, ScreenX1, ScreenY1;
 		GetPlayerArea(Pos, &ScreenX0, &ScreenX1, &ScreenY0, &ScreenY1);
-		dbg_msg("LUCES","LEvel: %d -- %d", ScreenX0, ScreenX1);
 		GameServer()->Collision()->UpdateLayerLights((float)ScreenX0*32.0f, (float)ScreenY0*32.0f, (float)ScreenX1*32.0f, (float)ScreenY1*32.0f, s_LightLevel);
 	}
 }

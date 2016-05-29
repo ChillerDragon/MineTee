@@ -1227,7 +1227,7 @@ char *CServer::GetMapName()
 	return pMapShortName;
 }
 
-int CServer::LoadMap(const char *pMapName)
+int CServer::LoadMap(const char *pMapSize, const char *pMapName, bool GenerateMap)
 {
 	//DATAFILE *df;
 	char aBuf[512];
@@ -1236,6 +1236,42 @@ int CServer::LoadMap(const char *pMapName)
 	/*df = datafile_load(buf);
 	if(!df)
 		return 0;*/
+
+
+	if (GenerateMap)
+	{
+		if(!m_MapChecker.Exists(Storage(), aBuf, IStorage::TYPE_ALL))
+		{
+			int w=300, h=100;
+			if (str_comp_nocase(pMapSize,"medium") == 0)
+			{
+				w=1500;
+				h=200;
+			}
+			else if (str_comp_nocase(pMapSize,"large") == 0)
+			{
+				w=3000;
+				h=400;
+			}
+			else if (str_comp_nocase(pMapSize,"nomemory") == 0)
+			{
+				w=60000;
+				h=8000;
+			}
+
+		    CDataFileWriter fileWrite;
+		    if (!fileWrite.CreateEmptyMineTeeMap(Storage(), aBuf, w, h))
+		    {
+		    	m_MapGenerated = false;
+		    	return 0;
+		    }
+		    else
+		    	m_MapGenerated = true;
+		}
+		else // If exists don't generate
+			m_MapGenerated = false;
+	}
+
 
 	// check for valid standard map
 	if(!m_MapChecker.ReadAndValidateMap(Storage(), aBuf, IStorage::TYPE_ALL))
@@ -1307,7 +1343,7 @@ int CServer::Run()
 	m_PrintCBIndex = Console()->RegisterPrintCallback(g_Config.m_ConsoleOutputLevel, SendRconLineAuthed, this);
 
 	// load map
-	if(!LoadMap(g_Config.m_SvMap))
+	if(!LoadMap(g_Config.m_SvMapGenerationSize, g_Config.m_SvMap, g_Config.m_SvMapGeneration))
 	{
 		dbg_msg("server", "failed to load map. mapname='%s'", g_Config.m_SvMap);
 		return -1;
@@ -1369,12 +1405,13 @@ int CServer::Run()
 			int NewTicks = 0;
 
 			// load new map TODO: don't poll this
+			// MineTee
 			if(str_comp(g_Config.m_SvMap, m_aCurrentMap) != 0 || m_MapReload)
 			{
 				m_MapReload = 0;
 
 				// load map
-				if(LoadMap(g_Config.m_SvMap))
+				if(LoadMap(g_Config.m_SvMapGenerationSize, g_Config.m_SvMap, g_Config.m_SvMapGeneration))
 				{
 					// new map loaded
 					GameServer()->OnShutdown();

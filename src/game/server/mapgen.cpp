@@ -4,6 +4,7 @@
 #include <engine/shared/config.h>
 
 #include "mapgen.h"
+#include "mapstructures.h"
 #include <game/server/gamecontext.h>
 #include <game/layers.h>
 
@@ -25,22 +26,25 @@ void CMapGen::Init(CLayers *pLayers, CCollision *pCollision)
 	m_pCollision = pCollision;
 }
 
-void CMapGen::GenerateMap(const char *pSize, int Seed)
+void CMapGen::FillMap(int Seed)
 {
 	if (!m_pLayers->MineTeeLayer())
 		return;
+
+	dbg_msg("MapGen", "Start generation with seed: %d", Seed);
 
 	if (m_pNoise)
 		delete m_pNoise;
 	m_pNoise = new CPerlinOctave(7, Seed);
 	srand(Seed);
 
-	dbg_msg("MapGen", "Generating '%s' map using seed: %d", pSize, Seed);
-
+	int64 ProcessTime = 0;
+	int64 TotalTime = time_get();
 
 	int MineTeeLayerSize = m_pLayers->MineTeeLayer()->m_Width*m_pLayers->MineTeeLayer()->m_Height;
 
 	// clear map, but keep background, envelopes etc
+	ProcessTime = time_get();
 	for(int i = 0; i < MineTeeLayerSize; i++)
 	{
 		int x = i%m_pLayers->MineTeeLayer()->m_Width;
@@ -51,35 +55,48 @@ void CMapGen::GenerateMap(const char *pSize, int Seed)
 		m_pCollision->ModifTile(TilePos, m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeFGLayerIndex(), 0, 0);
 		m_pCollision->ModifTile(TilePos, m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeBGLayerIndex(), 0, 0);
 	}
+	dbg_msg("MapGen", "Map sanitized in %.3f", (time_get()-ProcessTime)/time_freq());
 
 	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	/* ~~~ Generate the world ~~~ */
 	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 	// terrain
+	ProcessTime = time_get();
 	GenerateBasicTerrain();
+	dbg_msg("MapGen", "Terrain generated in %.3f", (time_get()-ProcessTime)/time_freq());
 	// ores
+	ProcessTime = time_get();
 	GenerateOre(CBlockManager::COAL_ORE, 200.0f, COAL_LEVEL, 50, 4);
 	GenerateOre(CBlockManager::IRON_ORE, 320.0f, IRON_LEVEL, 30, 2);
 	GenerateOre(CBlockManager::GOLD_ORE, 350.0f, GOLD_LEVEL, 15, 2);
 	GenerateOre(CBlockManager::DIAMOND_ORE, 680.0f, DIAMOND_LEVEL, 15, 1);
-	// /ores1
+	dbg_msg("MapGen", "Ores generated in %.3f", (time_get()-ProcessTime)/time_freq());
+	// caves
+	ProcessTime = time_get();
 	GenerateCaves(CBlockManager::AIR);
 	GenerateCaves(CBlockManager::WATER_D);
 	GenerateCaves(CBlockManager::LAVA_D);
 	GenerateTunnels(rand()%10+10);
 	GenerateWater();
+	dbg_msg("MapGen", "Caves generated in %.3f", (time_get()-ProcessTime)/time_freq());
 
 	// vegetation
+	ProcessTime = time_get();
 	GenerateFlowers();
 	GenerateMushrooms();
 	GenerateTrees();
+	dbg_msg("MapGen", "Vegetation generated in %.3f", (time_get()-ProcessTime)/time_freq());
 
 	// misc
+	dbg_msg("MapGen", "Creating Limits...");
 	GenerateBorder(); // as long as there are no infinite (chunked) maps
 
 	// Performance
+	dbg_msg("MapGen", "Performing Map...");
 	GenerateSkip();
+
+	dbg_msg("MapGen", "Map generated in %.3f", (time_get()-TotalTime)/time_freq());
 }
 
 void CMapGen::GenerateBasicTerrain()
@@ -101,7 +118,7 @@ void CMapGen::GenerateBasicTerrain()
 		{
 			m_pCollision->ModifTile(ivec2(TilePosX, TempTileY), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::DIRT, 0);
 			if (TempTileY-startTilePos > 4) // Background
-				m_pCollision->ModifTile(ivec2(TilePosX, TempTileY), m_pLayers->GetMineTeeBGLayerIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::DIRT, 0);
+				m_pCollision->ModifTile(ivec2(TilePosX, TempTileY), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeBGLayerIndex(), CBlockManager::DIRT, 0);
 			TempTileY++;
 		}
 	}

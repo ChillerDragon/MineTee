@@ -32,6 +32,7 @@ public:
         int m_CurrentMapSize;
     };
     CClientMapInfo m_aClientsMapInfo[16];
+    bool m_MapGenerated;
     //
 
 	int Tick() const { return m_CurrentGameTick; }

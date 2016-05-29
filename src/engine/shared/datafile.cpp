@@ -883,3 +883,207 @@ bool CDataFileWriter::SaveMap(class IStorage *pStorage, CDataFileReader *pFileMa
 
 	return true;
 }
+
+// MineTee
+bool CDataFileWriter::CreateEmptyMineTeeMap(class IStorage *pStorage, const char *pFileName, int w, int h, char *pBlocksData, int BlocksDataSize)
+{
+	dbg_msg("CDataFileWriter", "saving to '%s'...", pFileName);
+
+	if(!Open(pStorage, pFileName))
+	{
+		dbg_msg("CDataFileWriter", "failed to open file '%s'...", pFileName);
+		return 0;
+	}
+
+	CTile *pTiles = (CTile*)mem_alloc(sizeof(CTile)*w*h, 1);
+	mem_zero(pTiles, sizeof(CTile)*w*h);
+	int LayerCount = 0, GroupCount = 0;
+
+	// save version
+	{
+		CMapItemVersion Item;
+		Item.m_Version = 1;
+		AddItem(MAPITEMTYPE_VERSION, 0, sizeof(Item), &Item);
+		dbg_msg("CDataFileWriter", "saving version");
+	}
+
+
+	// save map info
+	{
+		CMapItemInfo Item;
+		Item.m_Version = 1;
+        Item.m_Author = -1;
+        Item.m_MapVersion = -1;
+        Item.m_Credits = -1;
+        Item.m_License = -1;
+
+		AddItem(MAPITEMTYPE_INFO, 0, sizeof(Item), &Item);
+		dbg_msg("CDataFileWriter", "saving info");
+	}
+
+
+	// save images
+	CMapItemImage Item;
+	Item.m_Version = CMapItemImage::CURRENT_VERSION;
+	Item.m_Format = 1; // Auto
+	Item.m_External = 1;
+	Item.m_Width = 1024;
+	Item.m_Height = 1024;
+	Item.m_ImageData = -1;
+	const char *pName = "minetee";
+	Item.m_ImageName = AddData(str_length(pName)+1, (void*)pName);
+	AddItem(MAPITEMTYPE_IMAGE, 0, sizeof(Item), &Item);
+	dbg_msg("CDataFileWriter", "saving images");
+
+    // Background Layer
+    {
+		CMapItemGroup GItem;
+		GItem.m_NumLayers = 1;
+		GItem.m_StartLayer = 0;
+		GItem.m_Version = CMapItemGroup::CURRENT_VERSION;
+		GItem.m_ParallaxX = 0;
+		GItem.m_ParallaxY = 0;
+		GItem.m_OffsetX = 0;
+		GItem.m_OffsetY = 0;
+		GItem.m_UseClipping = 0;
+		GItem.m_ClipX = 0;
+		GItem.m_ClipY = 0;
+		GItem.m_ClipW = 0;
+		GItem.m_ClipH = 0;
+		StrToInts(GItem.m_aName, sizeof(GItem.m_aName)/sizeof(int), "");
+		CMapItemLayerQuads Item;
+		Item.m_Image = -1;
+		Item.m_NumQuads = 1;
+		Item.m_Version = 2;
+		Item.m_Layer.m_Flags = 0;
+		Item.m_Layer.m_Type = LAYERTYPE_QUADS;
+		StrToInts(Item.m_aName, sizeof(Item.m_aName)/sizeof(int), "Background");
+		CQuad QuadBkg;
+		const int Width = 1000000;
+		const int Height = 800000;
+		QuadBkg.m_ColorEnv = -1;
+		QuadBkg.m_ColorEnvOffset = -1;
+		QuadBkg.m_PosEnv = -1;
+		QuadBkg.m_PosEnvOffset = -1;
+		QuadBkg.m_aPoints[0].x = QuadBkg.m_aPoints[2].x = -Width;
+		QuadBkg.m_aPoints[1].x = QuadBkg.m_aPoints[3].x = Width;
+		QuadBkg.m_aPoints[0].y = QuadBkg.m_aPoints[1].y = -Height;
+		QuadBkg.m_aPoints[2].y = QuadBkg.m_aPoints[3].y = Height;
+		QuadBkg.m_aColors[0].r = QuadBkg.m_aColors[1].r = 94;
+		QuadBkg.m_aColors[0].g = QuadBkg.m_aColors[1].g = 132;
+		QuadBkg.m_aColors[0].b = QuadBkg.m_aColors[1].b = 174;
+		QuadBkg.m_aColors[0].a = QuadBkg.m_aColors[1].a = 255;
+		QuadBkg.m_aColors[2].r = QuadBkg.m_aColors[3].r = 204;
+		QuadBkg.m_aColors[2].g = QuadBkg.m_aColors[3].g = 232;
+		QuadBkg.m_aColors[2].b = QuadBkg.m_aColors[3].b = 255;
+		QuadBkg.m_aColors[2].a = QuadBkg.m_aColors[3].a = 255;
+		Item.m_Data = AddDataSwapped(sizeof(CQuad), &QuadBkg);
+		AddItem(MAPITEMTYPE_LAYER, LayerCount++, sizeof(Item), &Item);
+		AddItem(MAPITEMTYPE_GROUP, GroupCount++, sizeof(GItem), &GItem);
+		dbg_msg("CDataFileWriter", "saving background group");
+    }
+
+    // Game Group
+    {
+		CMapItemGroup GItem;
+		GItem.m_Version = CMapItemGroup::CURRENT_VERSION;
+		GItem.m_NumLayers = 4;
+		GItem.m_StartLayer = 1;
+		GItem.m_ParallaxX = 100;
+		GItem.m_ParallaxY = 100;
+		GItem.m_OffsetX = 0;
+		GItem.m_OffsetY = 0;
+		GItem.m_UseClipping = 0;
+		GItem.m_ClipX = 0;
+		GItem.m_ClipY = 0;
+		GItem.m_ClipW = 0;
+		GItem.m_ClipH = 0;
+		StrToInts(GItem.m_aName, sizeof(GItem.m_aName)/sizeof(int), "Game");
+
+		CMapItemLayerTilemap Item;
+		Item.m_Image = 0;
+		Item.m_Width = w;
+		Item.m_Height = h;
+		Item.m_Version = 3;
+		Item.m_Color.r=Item.m_Color.g=Item.m_Color.b=Item.m_Color.a=255;
+		Item.m_ColorEnv = -1;
+		Item.m_ColorEnvOffset = 0;
+		Item.m_Layer.m_Flags = 0;
+		Item.m_Layer.m_Type = LAYERTYPE_TILES;
+
+		// mt-bg
+		StrToInts(Item.m_aName, sizeof(Item.m_aName)/sizeof(int), "mt-bg");
+		Item.m_Data = AddData(w*h*sizeof(CTile), pTiles);
+		AddItem(MAPITEMTYPE_LAYER, LayerCount++, sizeof(Item), &Item);
+		// game
+		StrToInts(Item.m_aName, sizeof(Item.m_aName)/sizeof(int), "Game");
+		Item.m_Image = -1;
+		Item.m_Flags = TILESLAYERFLAG_GAME;
+		Item.m_Data = AddData(w*h*sizeof(CTile), pTiles);
+		AddItem(MAPITEMTYPE_LAYER, LayerCount++, sizeof(Item), &Item);
+		// mt-break
+		StrToInts(Item.m_aName, sizeof(Item.m_aName)/sizeof(int), "mt-break");
+		Item.m_Image = 0;
+		Item.m_Flags = 0;
+		Item.m_Data = AddData(w*h*sizeof(CTile), pTiles);
+		AddItem(MAPITEMTYPE_LAYER, LayerCount++, sizeof(Item), &Item);
+		// mt-fg
+		StrToInts(Item.m_aName, sizeof(Item.m_aName)/sizeof(int), "mt-fg");
+		Item.m_Data = AddData(w*h*sizeof(CTile), pTiles);
+		AddItem(MAPITEMTYPE_LAYER, LayerCount++, sizeof(Item), &Item);
+		AddItem(MAPITEMTYPE_GROUP, GroupCount++, sizeof(GItem), &GItem);
+		dbg_msg("CDataFileWriter", "saving game group");
+    }
+
+    // Ligth Group
+    {
+		CMapItemGroup GItem;
+		GItem.m_Version = CMapItemGroup::CURRENT_VERSION;
+		GItem.m_NumLayers = 1;
+		GItem.m_StartLayer = 5;
+		GItem.m_ParallaxX = 100;
+		GItem.m_ParallaxY = 100;
+		GItem.m_OffsetX = 0;
+		GItem.m_OffsetY = 0;
+		GItem.m_UseClipping = 0;
+		GItem.m_ClipX = 0;
+		GItem.m_ClipY = 0;
+		GItem.m_ClipW = 0;
+		GItem.m_ClipH = 0;
+		StrToInts(GItem.m_aName, sizeof(GItem.m_aName)/sizeof(int), "");
+
+		CMapItemLayerTilemap Item;
+		StrToInts(Item.m_aName, sizeof(Item.m_aName)/sizeof(int), "mt-light");
+		Item.m_Image = 0;
+		Item.m_Width = w;
+		Item.m_Height = h;
+		Item.m_Color.r=Item.m_Color.g=Item.m_Color.b=Item.m_Color.a=255;
+		Item.m_ColorEnv = -1;
+		Item.m_ColorEnvOffset = 0;
+		Item.m_Version = 3;
+		Item.m_Layer.m_Flags = 0;
+		Item.m_Layer.m_Type = LAYERTYPE_TILES;
+		Item.m_Data = AddData(w*h*sizeof(CTile), pTiles);
+		AddItem(MAPITEMTYPE_LAYER, LayerCount++, sizeof(Item), &Item);
+		AddItem(MAPITEMTYPE_GROUP, GroupCount++, sizeof(GItem), &GItem);
+		dbg_msg("CDataFileWriter", "saving light group");
+    }
+
+    mem_free(pTiles);
+
+    AddItem(MAPITEMTYPE_ENVPOINTS, 0, 0, 0x0);
+
+	// save json
+	if (pBlocksData && BlocksDataSize > 0)
+	{
+		CMapItemBlocksJson Item;
+		Item.m_Data = AddData(BlocksDataSize, pBlocksData);
+		AddItem(MAPITEMTYPE_JSON_BLOCKS, 0, sizeof(CMapItemBlocksJson), &Item);
+	}
+
+	// finish the data file
+	Finish();
+	dbg_msg("CDataFileWriter", "saving done");
+
+	return true;
+}

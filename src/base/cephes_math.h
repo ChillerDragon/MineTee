@@ -4,6 +4,12 @@ Copyright 1985, 1987, 1988, 1992 by Stephen L. Moshier
 Direct inquiries to 30 Frost Street, Cambridge, MA 02140
 */
 
+#ifndef BASE_CEPHES_MATH_H
+#define BASE_CEPHES_MATH_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Single precision circular sine
  * test interval: [-pi/4, +pi/4]
@@ -202,3 +208,9 @@ float cephes_cosf( float xx )
     y = -y;
   return( y );
 }
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

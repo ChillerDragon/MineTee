@@ -337,10 +337,7 @@ void CPlayer::TryRespawn()
 		const int Ny = clamp((int)(SpawnPos.y/32), 0, GameServer()->Layers()->Lights()->m_Height-1);
 		int Index = Nx + Ny*GameServer()->Layers()->Lights()->m_Width;
 		if (GameServer()->Layers()->TileLights()[Index].m_Index < 186)
-		{
-			dbg_msg("NO", "Em Tile: %d [%dx%d]", GameServer()->Layers()->TileLights()[Index].m_Index, Nx, Ny);
 			return;
-		}
 
 		m_pCharacter = new(m_ClientID) CMonster(&GameServer()->m_World);
 	}
