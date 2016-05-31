@@ -6,6 +6,7 @@
 
 // this include should perhaps be removed
 #include "entities/character.h"
+#include "entities/bots/pet.h"
 #include "gamecontext.h"
 
 // player object
@@ -99,10 +100,16 @@ public:
 
 	// MineTee
 	bool IsBot() const { return m_Bot; }
+	CPet* GetPet() { return m_pPet; }
+	void SetPet(CPet *pPet) { m_pPet = pPet; m_pPet->SetOwner(this); }
+	void SetHardTeam(int team) { m_Team = team; }
+	void SetCharacter(CCharacter *pChar) { if (!m_pCharacter) m_pCharacter = pChar; }
+	bool m_IsFirstJoin;
 
 private:
 	CCharacter *m_pCharacter;
 	CGameContext *m_pGameServer;
+	CPet *m_pPet; // MineTee
 
 	CGameContext *GameServer() const { return m_pGameServer; }
 	IServer *Server() const;

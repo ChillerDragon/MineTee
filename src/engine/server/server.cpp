@@ -12,7 +12,6 @@
 #include <engine/masterserver.h>
 #include <engine/server.h>
 #include <engine/storage.h>
-
 #include <engine/shared/compression.h>
 #include <engine/shared/config.h>
 #include <engine/shared/datafile.h>
@@ -32,6 +31,7 @@
 
 #include "register.h"
 #include "server.h"
+#include "../accountsystem.h" // MineTee
 
 #if defined(CONF_FAMILY_WINDOWS)
 	#define _WIN32_WINNT 0x0501
@@ -269,6 +269,8 @@ void CServer::CClient::Reset()
 	m_LastInputTick = -1;
 	m_SnapRate = CClient::SNAPRATE_INIT;
 	m_Score = 0;
+
+	mem_zero(m_aKey, sizeof(m_aKey)); // MineTee
 }
 
 CServer::CServer() : m_DemoRecorder(&m_SnapshotDelta)
@@ -508,6 +510,18 @@ bool CServer::ClientIngame(int ClientID)
 {
 	return ClientID >= 0 && ClientID < MAX_CLIENTS && m_aClients[ClientID].m_State == CServer::CClient::STATE_INGAME;
 }
+
+// MineTee
+const unsigned char *CServer::ClientKey(int ClientID)
+{
+	if(ClientID < 0 || ClientID >= MAX_CLIENTS || m_aClients[ClientID].m_State == CServer::CClient::STATE_EMPTY)
+		return 0x0;
+	if(m_aClients[ClientID].m_State == CServer::CClient::STATE_INGAME)
+		return m_aClients[ClientID].m_aKey;
+	else
+		return 0x0;
+}
+//
 
 int CServer::MaxClients() const
 {
@@ -871,6 +885,13 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 					m_NetServer.Drop(ClientID, "Wrong client. Need 'MineTee' Client!");
 					return;
 				}
+				const unsigned char *pClientKey = Unpacker.GetRaw(MINETEE_USER_KEY_SIZE);
+				if (!pClientKey || pClientKey[0] == 0)
+				{
+					m_NetServer.Drop(ClientID, "Wrong Client Key. Revise your configuration and try again.");
+					return;
+				}
+				mem_copy(m_aClients[ClientID].m_aKey, pClientKey, sizeof(m_aClients[ClientID].m_aKey));
 				//
 
 				m_aClients[ClientID].m_State = CClient::STATE_CONNECTING;
@@ -1734,6 +1755,7 @@ void CServer::RegisterCommands()
 	// register console commands in sub parts
 	m_ServerBan.InitServerBan(Console(), Storage(), this);
 	m_pGameServer->OnConsoleInit();
+	m_AccountSystem.Init("accounts.dat", Storage());
 }
 
 
@@ -1774,6 +1796,12 @@ int main(int argc, const char **argv) // ignore_convention
 		}
 	}
 #endif
+
+	if(secure_random_init() != 0)
+	{
+		dbg_msg("secure", "could not initialize secure RNG");
+		return -1;
+	}
 
 	CServer *pServer = CreateServer();
 	IKernel *pKernel = IKernel::Create();
@@ -1859,6 +1887,8 @@ void CServer::InitBot(int ClientID, int BType)
         str_copy(m_aClients[ClientID].m_aName , "TEECOW", MAX_NAME_LENGTH);
     else if (BType == TEAM_ANIMAL_TEEPIG)
         str_copy(m_aClients[ClientID].m_aName , "TEEPIG", MAX_NAME_LENGTH);
+    else if (BType == TEAM_PET)
+    	str_copy(m_aClients[ClientID].m_aName , "", MAX_NAME_LENGTH);
 
     str_copy(m_aClients[ClientID].m_aClan, "MineBOT", MAX_CLAN_LENGTH);
     m_aClients[ClientID].m_Country = 724;

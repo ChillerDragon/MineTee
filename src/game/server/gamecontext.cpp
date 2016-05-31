@@ -151,7 +151,7 @@ void CGameContext::CreateExplosion(vec2 Pos, int Owner, int Weapon, bool NoDamag
 	}
 
 	// MineTee: Destroy Map
-    if (str_comp_nocase(GameType(), "MineTee") == 0)
+    if (str_find_nocase(GameType(), "MineTee"))
     {
         vec2 ColTilePos = Pos;
         vec2 ColPos[] = {
@@ -631,6 +631,7 @@ void CGameContext::OnClientEnter(int ClientID)
         SendChatTarget(ClientID, " Say '/help' or '/cmdlist' to view available commands.");
         SendChatTarget(ClientID, " Say '/info craft' to view info about crafting");
         SendChatTarget(ClientID, " ");
+        m_apPlayers[ClientID]->m_IsFirstJoin = true;
     }
 }
 
@@ -665,6 +666,7 @@ void CGameContext::OnClientConnected(int ClientID)
 
 void CGameContext::OnClientDrop(int ClientID, const char *pReason)
 {
+	SaveAccount(ClientID);
 	AbortVoteKickOnDisconnect(ClientID);
 	m_apPlayers[ClientID]->OnDisconnect(pReason);
 	delete m_apPlayers[ClientID];
@@ -1654,6 +1656,9 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 
 void CGameContext::OnShutdown()
 {
+	if (str_find_nocase(GameType(), "MineTee"))
+		SaveMap("");
+
 	delete m_pController;
 	m_pController = 0;
 	Clear();
@@ -1745,6 +1750,8 @@ void CGameContext::UpdateBotInfo(int ClientID, int TEnemy)
         str_copy(NameSkin, "x_teecow", sizeof(NameSkin));
     else if (TEnemy == TEAM_ANIMAL_TEEPIG)
         str_copy(NameSkin, "x_teepig", sizeof(NameSkin));
+    else if (TEnemy == TEAM_PET)
+        str_copy(NameSkin, "x_pet", sizeof(NameSkin));
 
     Server()->InitBot(ClientID, TEnemy);
     str_copy(m_apPlayers[ClientID]->m_TeeInfos.m_SkinName, NameSkin, sizeof(m_apPlayers[ClientID]->m_TeeInfos.m_SkinName));
@@ -1917,4 +1924,32 @@ void CGameContext::GetServerTime(bool *pIsDay, int64 *pTime)
 {
     *pTime = (Server()->Tick()-m_pController->GetRoundStartTick()) / (float)Server()->TickSpeed();
     *pIsDay = (*pTime%static_cast<int>(m_Tuning.m_DayNightDuration) < m_Tuning.m_DayNightDuration/2.0f);
+}
+
+IAccountSystem::ACCOUNT_INFO* CGameContext::GetAccount(int ClientID)
+{
+	return Server()->AccountSystem()->Get(Server()->ClientKey(ClientID));
+}
+void CGameContext::SaveAccount(int ClientID)
+{
+	IAccountSystem::ACCOUNT_INFO *pAccountInfo = GetAccount(ClientID);
+
+	CPlayer *pPlayer = m_apPlayers[ClientID];
+	if (pPlayer)
+	{
+		CCharacter *pChar = pPlayer->GetCharacter();
+		if (pChar)
+		{
+			pAccountInfo->m_Pos = pChar->m_Pos;
+			mem_copy(pAccountInfo->m_aBlocks, pChar->m_aBlocks, sizeof(CCharacter::BlockStat)*255);
+		}
+
+		CPet *pPet = pPlayer->GetPet();
+		if (pPet)
+		{
+			pAccountInfo->m_PetInfo.m_Used = true;
+			pAccountInfo->m_PetInfo.m_Pos = pPet->m_Pos;
+			//AccountInfo.m_PetInfo.m_Weapon = pPet->m_ActiveWeapon;
+		}
+	}
 }

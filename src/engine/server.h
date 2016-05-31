@@ -5,6 +5,7 @@
 #define ENGINE_SERVER_H
 #include "kernel.h"
 #include "message.h"
+#include "accountsystem.h" // MineTee
 #include <base/vmath.h> // MineTee
 
 class IServer : public IInterface
@@ -81,10 +82,13 @@ public:
 	virtual bool DemoRecorder_IsRecording() = 0;
 
 	// MineTee
+	virtual IAccountSystem *AccountSystem() = 0;
 	virtual void InitBot(int ClientID, int BType) = 0;
 	virtual char *GetMapName() = 0;
 	virtual char *GetBlocksData() = 0;
 	virtual int GetBlocksDataSize() = 0;
+
+	virtual const unsigned char *ClientKey(int ClientID) = 0;
 	//
 };
 
@@ -124,6 +128,9 @@ public:
 	virtual void Teleport(int ClientID, int ToID) = 0;
 	virtual int IntersectCharacter(vec2 HookPos, vec2 NewPos, vec2 *pNewPos2, int ownID) = 0;
 	virtual void AdvanceTime(int amount) = 0;
+
+	virtual IAccountSystem::ACCOUNT_INFO* GetAccount(int ClientID) = 0;
+	virtual void SaveAccount(int ClientID) = 0;
 	//
 };
 

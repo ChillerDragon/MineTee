@@ -566,6 +566,36 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
 	if (!(ptr = strtok((char*)msg, " \n\t")) || msg[0] != '/')
 		return true;
 
+	// TODO: Delete me!
+	if (str_comp_nocase(ptr,"/pet") == 0)
+	{
+		CCharacter *pChar = GameServer()->GetPlayerChar(cid);
+		if (!pChar)
+			return false;
+
+		for (int i=MAX_CLIENTS-MAX_BOTS; i<MAX_CLIENTS; i++)
+		{
+			CPlayer *pPlayer = GameServer()->m_apPlayers[i];
+			if (!pPlayer || pPlayer->GetCharacter())
+				continue;
+
+			CPet *pPet = new(i) CPet(&GameServer()->m_World);
+			pPlayer->SetCharacter(pPet);
+			pPlayer->SetHardTeam(TEAM_PET);
+			GameServer()->UpdateBotInfo(i, TEAM_PET);
+			const vec2 spawnPos = pChar->m_Pos-vec2(CPet::ms_PhysSize*1.25f, CPet::ms_PhysSize*1.25f);
+			pPet->Spawn(pPlayer, spawnPos);
+			pPet->GetCore()->m_CanCollide = false;
+			pPet->GiveWeapon(WEAPON_RIFLE, -1);
+			pPet->SetWeapon(WEAPON_RIFLE);
+			GameServer()->CreatePlayerSpawn(spawnPos);
+			pChar->GetPlayer()->SetPet(pPet);
+			GameServer()->SendChatTarget(cid,"Pet Created!");
+			break;
+		}
+	}
+
+
 	if (str_comp_nocase(ptr,"/cmdlist") == 0 || str_comp_nocase(ptr,"/help") == 0)
 	{
 		GameServer()->SendChatTarget(cid,"--------------------------- --------- --------");

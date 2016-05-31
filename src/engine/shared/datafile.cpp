@@ -887,7 +887,7 @@ bool CDataFileWriter::SaveMap(class IStorage *pStorage, CDataFileReader *pFileMa
 // MineTee
 bool CDataFileWriter::CreateEmptyMineTeeMap(class IStorage *pStorage, const char *pFileName, int w, int h, char *pBlocksData, int BlocksDataSize)
 {
-	dbg_msg("CDataFileWriter", "saving to '%s'...", pFileName);
+	dbg_msg("CDataFileWriter", "Saving Empty MineTee Map to '%s'...", pFileName);
 
 	if(!Open(pStorage, pFileName))
 	{
@@ -1083,7 +1083,7 @@ bool CDataFileWriter::CreateEmptyMineTeeMap(class IStorage *pStorage, const char
 
 	// finish the data file
 	Finish();
-	dbg_msg("CDataFileWriter", "saving done");
+	dbg_msg("CDataFileWriter", "Saving Done!");
 
 	return true;
 }

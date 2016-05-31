@@ -5,6 +5,7 @@
 #define ENGINE_SERVER_SERVER_H
 
 #include <engine/server.h>
+#include "accountsystem.h"
 
 
 class CSnapIDPool
@@ -126,6 +127,8 @@ public:
 		const IConsole::CCommandInfo *m_pRconCmdToSend;
 
 		void Reset();
+
+		unsigned char m_aKey[MINETEE_USER_KEY_SIZE]; // MineTee
 	};
 
 	CClient m_aClients[MAX_CLIENTS];
@@ -241,6 +244,7 @@ public:
 	// MineTee
 	char *m_pCurrentBlocksData;
 	int m_CurrentBlocksSize;
+	CAccountSystem m_AccountSystem;
 
 	virtual void InitBot(int ClientID, int BType);
 	static void ConGive(IConsole::IResult *pResult, void *pUser);
@@ -251,6 +255,9 @@ public:
 	virtual char *GetMapName();
 	virtual char *GetBlocksData() { return m_pCurrentBlocksData; }
 	virtual int GetBlocksDataSize() { return m_CurrentBlocksSize; }
+
+	const unsigned char *ClientKey(int ClientID);
+	IAccountSystem *AccountSystem() { return &m_AccountSystem; }
 	//
 };
 

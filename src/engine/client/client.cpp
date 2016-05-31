@@ -23,6 +23,7 @@
 #include <engine/sound.h>
 #include <engine/storage.h>
 #include <engine/textrender.h>
+#include <engine/keystore.h> // MineTee
 
 #include <engine/shared/config.h>
 #include <engine/shared/compression.h>
@@ -44,6 +45,7 @@
 #include "friends.h"
 #include "serverbrowser.h"
 #include "client.h"
+#include "keystore.h" // MineTee
 
 #if defined(CONF_FAMILY_WINDOWS)
 	#define _WIN32_WINNT 0x0501
@@ -354,7 +356,12 @@ void CClient::SendInfo()
 	CMsgPacker Msg(NETMSG_INFO);
 	Msg.AddString(GameClient()->NetVersion(), 128);
 	Msg.AddString(g_Config.m_Password, 128);
-	Msg.AddString("MineTee", 32); // MineTee
+
+	{
+		Msg.AddString("MineTee", 12); // MineTee
+		Msg.AddRaw(m_KeyStore.Get(g_Config.m_UiServerAddress), 32); // MineTee User-Key
+	}
+
 	SendMsgEx(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 }
 
@@ -1697,6 +1704,7 @@ void CClient::RegisterInterfaces()
 	Kernel()->RegisterInterface(static_cast<IDemoPlayer*>(&m_DemoPlayer));
 	Kernel()->RegisterInterface(static_cast<IServerBrowser*>(&m_ServerBrowser));
 	Kernel()->RegisterInterface(static_cast<IFriends*>(&m_Friends));
+	Kernel()->RegisterInterface(static_cast<IKeyStore*>(&m_KeyStore));
 }
 
 void CClient::InitInterfaces()
@@ -1711,10 +1719,10 @@ void CClient::InitInterfaces()
 	m_pMap = Kernel()->RequestInterface<IEngineMap>();
 	m_pMasterServer = Kernel()->RequestInterface<IEngineMasterServer>();
 	m_pStorage = Kernel()->RequestInterface<IStorage>();
-
 	//
 	m_ServerBrowser.SetBaseInfo(&m_NetClient, m_pGameClient->NetVersion());
 	m_Friends.Init();
+	m_KeyStore.Init("keystore.keys", m_pStorage);
 }
 
 void CClient::Run()
@@ -2296,6 +2304,12 @@ int main(int argc, const char **argv) // ignore_convention
 		}
 	}
 #endif
+
+	if(secure_random_init() != 0)
+	{
+		dbg_msg("secure", "could not initialize secure RNG");
+		return -1;
+	}
 
 	CClient *pClient = CreateClient();
 	IKernel *pKernel = IKernel::Create();

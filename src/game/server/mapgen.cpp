@@ -64,14 +64,14 @@ void CMapGen::FillMap(int Seed)
 	// terrain
 	ProcessTime = time_get();
 	GenerateBasicTerrain();
-	dbg_msg("MapGen", "Terrain generated in %.3f", (time_get()-ProcessTime)/time_freq());
+	dbg_msg("MapGen", "Terrain generated in %.3fSecs", (time_get()-ProcessTime)/time_freq());
 	// ores
 	ProcessTime = time_get();
 	GenerateOre(CBlockManager::COAL_ORE, 200.0f, COAL_LEVEL, 50, 4);
 	GenerateOre(CBlockManager::IRON_ORE, 320.0f, IRON_LEVEL, 30, 2);
 	GenerateOre(CBlockManager::GOLD_ORE, 350.0f, GOLD_LEVEL, 15, 2);
 	GenerateOre(CBlockManager::DIAMOND_ORE, 680.0f, DIAMOND_LEVEL, 15, 1);
-	dbg_msg("MapGen", "Ores generated in %.3f", (time_get()-ProcessTime)/time_freq());
+	dbg_msg("MapGen", "Ores generated in %.3fSecs", (time_get()-ProcessTime)/time_freq());
 	// caves
 	ProcessTime = time_get();
 	GenerateCaves(CBlockManager::AIR);
@@ -79,14 +79,14 @@ void CMapGen::FillMap(int Seed)
 	GenerateCaves(CBlockManager::LAVA_D);
 	GenerateTunnels(rand()%10+10);
 	GenerateWater();
-	dbg_msg("MapGen", "Caves generated in %.3f", (time_get()-ProcessTime)/time_freq());
+	dbg_msg("MapGen", "Caves generated in %.3fSecs", (time_get()-ProcessTime)/time_freq());
 
 	// vegetation
 	ProcessTime = time_get();
 	GenerateFlowers();
 	GenerateMushrooms();
 	GenerateTrees();
-	dbg_msg("MapGen", "Vegetation generated in %.3f", (time_get()-ProcessTime)/time_freq());
+	dbg_msg("MapGen", "Vegetation generated in %.3fSecs", (time_get()-ProcessTime)/time_freq());
 
 	// misc
 	dbg_msg("MapGen", "Creating Limits...");
@@ -96,7 +96,7 @@ void CMapGen::FillMap(int Seed)
 	dbg_msg("MapGen", "Performing Map...");
 	GenerateSkip();
 
-	dbg_msg("MapGen", "Map generated in %.3f", (time_get()-TotalTime)/time_freq());
+	dbg_msg("MapGen", "Map generated in %.3fSecs", (time_get()-TotalTime)/time_freq());
 }
 
 void CMapGen::GenerateBasicTerrain()
@@ -231,11 +231,11 @@ void CMapGen::GenerateFlowers()
 			for(int f = x; f - x <= FieldSize; f++)
 			{
 				int y = 0;
-				while(m_pCollision->GetMineTeeTileAt(vec2(f*32, (y+1)*32)) != CBlockManager::GRASS && y < m_pLayers->MineTeeLayer()->m_Height)
+				while(m_pCollision->GetMineTeeTileAt(vec2(f*32, (y+1)*32)) != CBlockManager::GRASS && y < m_pLayers->MineTeeLayer()->m_Height-1)
 					y++;
 
-				if(y >= m_pLayers->MineTeeLayer()->m_Height)
-					break;
+				if(m_pCollision->GetMineTeeTileAt(vec2(f*32, y*32)) == CBlockManager::AIR)
+					continue;
 
 				m_pCollision->ModifTile(ivec2(f, y), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), flowers[rnd], 0);
 			}

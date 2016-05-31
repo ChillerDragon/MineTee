@@ -73,6 +73,7 @@ void CCharacterCore::Reset()
 	m_HookedPlayer = -1;
 	m_Jumped = 0;
 	m_TriggeredEvents = 0;
+	m_CanCollide = true;
 }
 
 void CCharacterCore::Tick(bool UseInput)
@@ -214,7 +215,7 @@ void CCharacterCore::Tick(bool UseInput)
 			for(int i = 0; i < MAX_CLIENTS; i++)
 			{
 				CCharacterCore *pCharCore = m_pWorld->m_apCharacters[i];
-				if(!pCharCore || pCharCore == this)
+				if(!pCharCore || pCharCore == this || !pCharCore->m_CanCollide)
 					continue;
 
 				vec2 ClosestPoint = closest_point_on_line(m_HookPos, NewPos, pCharCore->m_Pos);
@@ -303,7 +304,7 @@ void CCharacterCore::Tick(bool UseInput)
 		}
 	}
 
-	if(m_pWorld)
+	if(m_pWorld && m_CanCollide)
 	{
 		for(int i = 0; i < MAX_CLIENTS; i++)
 		{

@@ -23,6 +23,7 @@ class CCharacter : public CEntity
 	MACRO_ALLOC_POOL_ID()
 	friend class CMonster;
 	friend class CAnimal;
+	friend class CPet;
 
 public:
 

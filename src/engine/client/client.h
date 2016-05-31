@@ -3,6 +3,8 @@
 #ifndef ENGINE_CLIENT_CLIENT_H
 #define ENGINE_CLIENT_CLIENT_H
 
+#include "keystore.h" // MineTee
+
 class CGraph
 {
 public:
@@ -77,6 +79,7 @@ class CClient : public IClient, public CDemoPlayer::IListner
 	class CServerBrowser m_ServerBrowser;
 	class CFriends m_Friends;
 	class CMapChecker m_MapChecker;
+	class CKeyStore m_KeyStore; // MineTee
 
 	char m_aServerAddressStr[256];
 

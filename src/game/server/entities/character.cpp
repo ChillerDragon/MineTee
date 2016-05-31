@@ -97,6 +97,15 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 
 	GameServer()->m_pController->OnCharacterSpawn(this);
 
+	if (m_pPlayer->m_IsFirstJoin)
+	{
+        IAccountSystem::ACCOUNT_INFO *pAccountInfo = GameServer()->GetAccount(m_pPlayer->GetCID());
+        if (pAccountInfo->m_Pos != vec2(0.0f,0.0f))
+        	m_Core.m_Pos = m_Pos = pAccountInfo->m_Pos;
+
+		m_pPlayer->m_IsFirstJoin = false;
+	}
+
 	return true;
 }
 
@@ -468,7 +477,7 @@ void CCharacter::Construct()
 void CCharacter::FireWeapon()
 {
 	// MineTee
-    if (str_comp_nocase(GameServer()->GameType(), "MineTee") == 0
+    if (str_find_nocase(GameServer()->GameType(), "MineTee")
     		&& (m_ActiveWeapon >= NUM_WEAPONS || (m_ActiveWeapon == WEAPON_HAMMER && ((m_pPlayer->m_PlayerFlags&PLAYERFLAG_BGPAINT) || (m_pPlayer->m_PlayerFlags&PLAYERFLAG_FGPAINT)))))
     {
         Construct();
@@ -521,7 +530,7 @@ void CCharacter::FireWeapon()
 			m_NumObjectsHit = 0;
 			GameServer()->CreateSound(m_Pos, SOUND_HAMMER_FIRE);
 
-            if (str_comp_nocase(GameServer()->GameType(), "MineTee") == 0)
+            if (str_find_nocase(GameServer()->GameType(), "MineTee"))
             {
                 vec2 colTilePos = ProjStartPos+Direction * 80.0f;
                 if (GameServer()->Collision()->IntersectLine(ProjStartPos, colTilePos, &colTilePos, 0x0, false))

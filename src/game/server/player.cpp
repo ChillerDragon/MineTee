@@ -27,6 +27,7 @@ CPlayer::CPlayer(CGameContext *pGameServer, int ClientID, int Team)
 	m_TeamChangeTick = Server()->Tick();
 
 	m_Bot = (ClientID >= MAX_CLIENTS-MAX_BOTS); // MineTee;
+	m_IsFirstJoin = true; // MineTee
 }
 
 CPlayer::~CPlayer()
