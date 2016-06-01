@@ -11,12 +11,12 @@
 class CAccountSystem : public IAccountSystem
 {
 public:
-	~CAccountSystem();
 	void Init(const char *pFileStore, IStorage *pStorage);
 
 	ACCOUNT_INFO* Get(const unsigned char *pKey);
 	bool Remove(const unsigned char *pKey);
 	int GetNum() const { return m_lAccounts.size(); }
+	void Save();
 
 private:
 	IStorage *m_pStorage;
@@ -25,7 +25,6 @@ private:
 
 	std::list<ACCOUNT_INFO>::iterator Find(const unsigned char *pKey);
 	IAccountSystem::ACCOUNT_INFO* Create(const unsigned char *pKey);
-	void Save();
 	void Load();
 };
 

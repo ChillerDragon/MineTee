@@ -209,7 +209,7 @@ void CCharacterCore::Tick(bool UseInput)
 		}
 
 		// Check against other players first
-		if(m_pWorld && m_pWorld->m_Tuning.m_PlayerHooking)
+		if(m_pWorld && m_pWorld->m_Tuning.m_PlayerHooking && m_CanCollide)
 		{
 			float Distance = 0.0f;
 			for(int i = 0; i < MAX_CLIENTS; i++)
@@ -309,7 +309,7 @@ void CCharacterCore::Tick(bool UseInput)
 		for(int i = 0; i < MAX_CLIENTS; i++)
 		{
 			CCharacterCore *pCharCore = m_pWorld->m_apCharacters[i];
-			if(!pCharCore)
+			if(!pCharCore || !pCharCore->m_CanCollide || !pCharCore->m_CanCollide)
 				continue;
 
 			//player *p = (player*)ent;
@@ -369,7 +369,7 @@ void CCharacterCore::Move()
 
 	m_Vel.x = m_Vel.x*(1.0f/RampValue);
 
-	if(m_pWorld && m_pWorld->m_Tuning.m_PlayerCollision)
+	if(m_pWorld && m_pWorld->m_Tuning.m_PlayerCollision && m_CanCollide)
 	{
 		// check player collision
 		float Distance = distance(m_Pos, NewPos);
@@ -382,7 +382,7 @@ void CCharacterCore::Move()
 			for(int p = 0; p < MAX_CLIENTS; p++)
 			{
 				CCharacterCore *pCharCore = m_pWorld->m_apCharacters[p];
-				if(!pCharCore || pCharCore == this)
+				if(!pCharCore || pCharCore == this || !pCharCore->m_CanCollide)
 					continue;
 				float D = distance(Pos, pCharCore->m_Pos);
 				if(D < 28.0f && D > 0.0f)

@@ -53,10 +53,10 @@ public:
 	void ResetInput();
 	void FireWeapon();
 
-	void Die(int Killer, int Weapon);
+	virtual void Die(int Killer, int Weapon); // MineTee
 	virtual bool TakeDamage(vec2 Force, int Dmg, int From, int Weapon); // MineTee
 
-	bool Spawn(class CPlayer *pPlayer, vec2 Pos);
+	virtual bool Spawn(class CPlayer *pPlayer, vec2 Pos); // MineTee
 	bool Remove();
 
 	bool IncreaseHealth(int Amount);

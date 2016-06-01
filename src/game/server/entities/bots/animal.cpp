@@ -32,7 +32,7 @@ void CAnimal::Tick()
 {
 	if (g_Config.m_SvAnimals == 0)
 	{
-		CCharacter::Die(m_pPlayer->GetCID(), WEAPON_WORLD);
+		CCharacter::Die(m_pPlayer->GetCID(), WEAPON_GAME);
 		return;
 	}
 

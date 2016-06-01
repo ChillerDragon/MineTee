@@ -3,10 +3,6 @@
 #include "accountsystem.h"
 #include <game/server/entities/character.h>
 
-CAccountSystem::~CAccountSystem()
-{
-	Save();
-}
 void CAccountSystem::Init(const char *pFileStore, IStorage *pStorage)
 {
 	m_pStorage = pStorage;

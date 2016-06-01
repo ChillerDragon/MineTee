@@ -585,11 +585,11 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
 			GameServer()->UpdateBotInfo(i, TEAM_PET);
 			const vec2 spawnPos = pChar->m_Pos-vec2(CPet::ms_PhysSize*1.25f, CPet::ms_PhysSize*1.25f);
 			pPet->Spawn(pPlayer, spawnPos);
-			pPet->GetCore()->m_CanCollide = false;
 			pPet->GiveWeapon(WEAPON_RIFLE, -1);
 			pPet->SetWeapon(WEAPON_RIFLE);
 			GameServer()->CreatePlayerSpawn(spawnPos);
 			pChar->GetPlayer()->SetPet(pPet);
+			Server()->SetClientName(i, "", true);
 			GameServer()->SendChatTarget(cid,"Pet Created!");
 			break;
 		}

@@ -111,12 +111,13 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
         			if (!pPlayer || pPlayer->GetCharacter())
         				continue;
 
-        			CPet *pPet = new(i) CPet(&GameServer()->m_World);
-        			pPlayer->SetCharacter(pPet);
+        			CPet *pPet = new(pPlayer->GetCID()) CPet(&GameServer()->m_World);
         			pPlayer->SetHardTeam(TEAM_PET);
+        			pPlayer->SetCharacter(pPet);
+        			pPet->Spawn(pPlayer, pAccountInfo->m_PetInfo.m_Pos);
         			GameServer()->UpdateBotInfo(i, TEAM_PET);
-        			pPet->UseAccountPetData(&pAccountInfo->m_PetInfo);
         			GetPlayer()->SetPet(pPet);
+        			pPet->UseAccountPetData(&pAccountInfo->m_PetInfo);
         			break;
         		}
         	}

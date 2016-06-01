@@ -29,6 +29,8 @@ public:
 
 	virtual void Tick();
 	virtual bool TakeDamage(vec2 Force, int Dmg, int From, int Weapon);
+	virtual void Die(int Killer, int Weapon);
+	virtual bool Spawn(class CPlayer *pPlayer, vec2 Pos);
 
 private:
 	vec2 m_BotLastPos;

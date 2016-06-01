@@ -32,7 +32,7 @@ void CMonster::Tick()
 {
 	if (g_Config.m_SvMonsters == 0)
 	{
-		CCharacter::Die(m_pPlayer->GetCID(), WEAPON_WORLD);
+		CCharacter::Die(m_pPlayer->GetCID(), WEAPON_GAME);
 		return;
 	}
 

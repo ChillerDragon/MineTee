@@ -669,6 +669,9 @@ void CGameContext::OnClientConnected(int ClientID)
 void CGameContext::OnClientDrop(int ClientID, const char *pReason)
 {
 	SaveAccount(ClientID);
+	if (m_apPlayers[ClientID]->GetPet())
+		m_apPlayers[ClientID]->GetPet()->Destroy();
+
 	AbortVoteKickOnDisconnect(ClientID);
 	m_apPlayers[ClientID]->OnDisconnect(pReason);
 	delete m_apPlayers[ClientID];
@@ -1960,4 +1963,6 @@ void CGameContext::SaveAccount(int ClientID)
 		pPet->FillAccountPetData(&pAccountInfo->m_PetInfo);
 	else
 		pAccountInfo->m_PetInfo.m_Alive = false;
+
+	Server()->AccountSystem()->Save();
 }

@@ -166,7 +166,7 @@ public:
 
 	int TrySetClientName(int ClientID, const char *pName);
 
-	virtual void SetClientName(int ClientID, const char *pName);
+	virtual void SetClientName(int ClientID, const char *pName, bool isBot = false);
 	virtual void SetClientClan(int ClientID, char const *pClan);
 	virtual void SetClientCountry(int ClientID, int Country);
 	virtual void SetClientScore(int ClientID, int Score);

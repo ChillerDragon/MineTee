@@ -335,7 +335,7 @@ int CServer::TrySetClientName(int ClientID, const char *pName)
 
 
 
-void CServer::SetClientName(int ClientID, const char *pName)
+void CServer::SetClientName(int ClientID, const char *pName, bool isBot)
 {
 	if(ClientID < 0 || ClientID >= MAX_CLIENTS || m_aClients[ClientID].m_State < CClient::STATE_READY)
 		return;
@@ -353,15 +353,20 @@ void CServer::SetClientName(int ClientID, const char *pName)
 			*p = ' ';
 	}
 
-	if(TrySetClientName(ClientID, aCleanName))
+	if (isBot)
+		str_copy(m_aClients[ClientID].m_aName, pName, sizeof(m_aClients[ClientID].m_aName));
+	else
 	{
-		// auto rename
-		for(int i = 1;; i++)
+		if(TrySetClientName(ClientID, aCleanName))
 		{
-			char aNameTry[MAX_NAME_LENGTH];
-			str_format(aNameTry, sizeof(aCleanName), "(%d)%s", i, aCleanName);
-			if(TrySetClientName(ClientID, aNameTry) == 0)
-				break;
+			// auto rename
+			for(int i = 1;; i++)
+			{
+				char aNameTry[MAX_NAME_LENGTH];
+				str_format(aNameTry, sizeof(aCleanName), "(%d)%s", i, aCleanName);
+				if(TrySetClientName(ClientID, aNameTry) == 0)
+					break;
+			}
 		}
 	}
 }
@@ -1887,8 +1892,6 @@ void CServer::InitBot(int ClientID, int BType)
         str_copy(m_aClients[ClientID].m_aName , "TEECOW", MAX_NAME_LENGTH);
     else if (BType == TEAM_ANIMAL_TEEPIG)
         str_copy(m_aClients[ClientID].m_aName , "TEEPIG", MAX_NAME_LENGTH);
-    else if (BType == TEAM_PET)
-    	str_copy(m_aClients[ClientID].m_aName , "", MAX_NAME_LENGTH);
 
     str_copy(m_aClients[ClientID].m_aClan, "MineBOT", MAX_CLAN_LENGTH);
     m_aClients[ClientID].m_Country = 724;

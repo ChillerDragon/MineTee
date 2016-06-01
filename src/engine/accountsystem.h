@@ -42,6 +42,7 @@ public:
 			int m_Type;
 			char m_aSkinName[64];
 			char m_aName[MAX_NAME_LENGTH];
+			CCharacter::WeaponStat m_aWeapons[NUM_WEAPONS];
 			int m_ActiveWeapon;
 			bool m_Alive;
 		} m_PetInfo;
@@ -52,6 +53,7 @@ public:
 	virtual ACCOUNT_INFO* Get(const unsigned char *pKey) = 0;
 	virtual bool Remove(const unsigned char *pKey) = 0;
 	virtual int GetNum() const = 0;
+	virtual void Save() = 0;
 };
 
 #endif

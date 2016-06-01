@@ -27,6 +27,7 @@ CPet::CPet(CGameWorld *pWorld)
 	m_BotClientIDFix = -1;
 	m_BotTimeLastSound = Server()->Tick();
 	m_BotJumpTry = false;
+	m_pOwner = 0x0;
 }
 
 void CPet::Tick()
@@ -44,6 +45,20 @@ bool CPet::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 	}
 
 	return false;
+}
+
+void CPet::Die(int Killer, int Weapon)
+{
+	CCharacter::Die(Killer, Weapon);
+	if (m_pOwner)
+		m_pOwner->SetPet(0x0);
+}
+
+bool CPet::Spawn(class CPlayer *pPlayer, vec2 Pos)
+{
+	bool spawn = CCharacter::Spawn(pPlayer, Pos);
+	GetCore()->m_CanCollide = false;
+	return spawn;
 }
 
 void CPet::TickBotAI()
@@ -94,7 +109,8 @@ void CPet::TickBotAI()
 					continue;
 
 				const vec2 botPos = pPlayer->GetCharacter()->m_Pos;
-				if (length(botPos-m_Pos) < 300.0f && !GameServer()->Collision()->IntersectLine(m_Pos, botPos, 0x0, 0x0))
+				if (length(botPos-m_Pos) < 300.0f && !GameServer()->Collision()->IntersectLine(m_Pos, botPos, 0x0, 0x0) &&
+						GameServer()->IntersectCharacter(botPos, m_Pos) != m_pOwner->GetCID())
 				{
 					m_Input.m_TargetX = static_cast<int>(pPlayer->GetCharacter()->m_Pos.x - m_Pos.x);
 					m_Input.m_TargetY = static_cast<int>(pPlayer->GetCharacter()->m_Pos.y - m_Pos.y);
@@ -106,7 +122,7 @@ void CPet::TickBotAI()
 	}
 	else if (!m_pOwner)
 	{
-		Die(m_pPlayer->GetCID(), WEAPON_WORLD);
+		Die(m_pPlayer->GetCID(), WEAPON_GAME);
 		return;
 	}
 
@@ -132,13 +148,15 @@ void CPet::FillAccountPetData(void *pPetInfo)
 	pPetI->m_ActiveWeapon = m_ActiveWeapon;
 	str_copy(pPetI->m_aName, Server()->ClientName(m_pPlayer->GetCID()), sizeof(pPetI->m_aName));
 	str_copy(pPetI->m_aSkinName, m_pPlayer->m_TeeInfos.m_SkinName, sizeof(pPetI->m_aSkinName));
+	mem_copy(pPetI->m_aWeapons, m_aWeapons, sizeof(WeaponStat)*NUM_WEAPONS);
 }
 
 void CPet::UseAccountPetData(void *pPetInfo)
 {
 	IAccountSystem::ACCOUNT_INFO::PepInfo *pPetI = (IAccountSystem::ACCOUNT_INFO::PepInfo*)pPetInfo;
 	m_Core.m_Pos = m_Pos = pPetI->m_Pos;
+	mem_copy(m_aWeapons, pPetI->m_aWeapons, sizeof(WeaponStat)*NUM_WEAPONS);
 	m_ActiveWeapon = pPetI->m_ActiveWeapon;
-	Server()->SetClientName(m_pPlayer->GetCID(), pPetI->m_aName);
+	Server()->SetClientName(m_pPlayer->GetCID(), pPetI->m_aName, true);
 	str_copy(m_pPlayer->m_TeeInfos.m_SkinName, pPetI->m_aSkinName, sizeof(m_pPlayer->m_TeeInfos.m_SkinName));
 }

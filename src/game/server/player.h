@@ -101,7 +101,12 @@ public:
 	// MineTee
 	bool IsBot() const { return m_Bot; }
 	CPet* GetPet() { return m_pPet; }
-	void SetPet(CPet *pPet) { m_pPet = pPet; m_pPet->SetOwner(this); }
+	void SetPet(CPet *pPet)
+	{
+		m_pPet = pPet;
+		if (m_pPet)
+			m_pPet->SetOwner(this);
+	}
 	void SetHardTeam(int team) { m_Team = team; }
 	void SetCharacter(CCharacter *pChar) { if (!m_pCharacter) m_pCharacter = pChar; }
 	bool m_IsFirstJoin;
