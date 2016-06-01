@@ -104,6 +104,11 @@ void CPet::TickBotAI()
 			}
 		}
 	}
+	else if (!m_pOwner)
+	{
+		Die(m_pPlayer->GetCID(), WEAPON_WORLD);
+		return;
+	}
 
     //Set data
     m_Input.m_Direction = m_BotDir;
@@ -117,4 +122,23 @@ void CPet::TickBotAI()
 
 	m_LatestPrevInput = m_LatestInput = m_Input;
 	m_BotLastPos = m_Pos;
+}
+
+void CPet::FillAccountPetData(void *pPetInfo)
+{
+	IAccountSystem::ACCOUNT_INFO::PepInfo *pPetI = (IAccountSystem::ACCOUNT_INFO::PepInfo*)pPetInfo;
+	pPetI->m_Alive = true;
+	pPetI->m_Pos = m_Pos;
+	pPetI->m_ActiveWeapon = m_ActiveWeapon;
+	str_copy(pPetI->m_aName, Server()->ClientName(m_pPlayer->GetCID()), sizeof(pPetI->m_aName));
+	str_copy(pPetI->m_aSkinName, m_pPlayer->m_TeeInfos.m_SkinName, sizeof(pPetI->m_aSkinName));
+}
+
+void CPet::UseAccountPetData(void *pPetInfo)
+{
+	IAccountSystem::ACCOUNT_INFO::PepInfo *pPetI = (IAccountSystem::ACCOUNT_INFO::PepInfo*)pPetInfo;
+	m_Core.m_Pos = m_Pos = pPetI->m_Pos;
+	m_ActiveWeapon = pPetI->m_ActiveWeapon;
+	Server()->SetClientName(m_pPlayer->GetCID(), pPetI->m_aName);
+	str_copy(m_pPlayer->m_TeeInfos.m_SkinName, pPetI->m_aSkinName, sizeof(m_pPlayer->m_TeeInfos.m_SkinName));
 }

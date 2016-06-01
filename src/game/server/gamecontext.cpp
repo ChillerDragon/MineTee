@@ -625,13 +625,15 @@ void CGameContext::OnClientEnter(int ClientID)
         SendChatTarget(ClientID, " ");
         SendChatTarget(ClientID, " ");
         SendChatTarget(ClientID, " ");
-        SendChatTarget(ClientID, " ");
         SendChatTarget(ClientID, "-- WELCOME TO MINETEE v" MINETEE_VERSION);
+        str_format(aBuf, sizeof(aBuf), "Num. Players Registered In This Server: %d", Server()->AccountSystem()->GetNum());
+        SendChatTarget(ClientID, aBuf);
         SendChatTarget(ClientID, "=================================");
         SendChatTarget(ClientID, " Say '/help' or '/cmdlist' to view available commands.");
         SendChatTarget(ClientID, " Say '/info craft' to view info about crafting");
         SendChatTarget(ClientID, " ");
         m_apPlayers[ClientID]->m_IsFirstJoin = true;
+        m_apPlayers[ClientID]->FillAccountData(GetAccount(ClientID));
     }
 }
 
@@ -1928,28 +1930,34 @@ void CGameContext::GetServerTime(bool *pIsDay, int64 *pTime)
 
 IAccountSystem::ACCOUNT_INFO* CGameContext::GetAccount(int ClientID)
 {
-	return Server()->AccountSystem()->Get(Server()->ClientKey(ClientID));
+	if (m_apPlayers[ClientID] && m_apPlayers[ClientID]->GetTeam() <= TEAM_BLUE)
+		return Server()->AccountSystem()->Get(Server()->ClientKey(ClientID));
+	return 0x0;
 }
 void CGameContext::SaveAccount(int ClientID)
 {
-	IAccountSystem::ACCOUNT_INFO *pAccountInfo = GetAccount(ClientID);
-
 	CPlayer *pPlayer = m_apPlayers[ClientID];
-	if (pPlayer)
-	{
-		CCharacter *pChar = pPlayer->GetCharacter();
-		if (pChar)
-		{
-			pAccountInfo->m_Pos = pChar->m_Pos;
-			mem_copy(pAccountInfo->m_aBlocks, pChar->m_aBlocks, sizeof(CCharacter::BlockStat)*255);
-		}
+	if (!pPlayer)
+		return;
+	IAccountSystem::ACCOUNT_INFO *pAccountInfo = GetAccount(ClientID);
+	if (!pAccountInfo)
+		return;
 
-		CPet *pPet = pPlayer->GetPet();
-		if (pPet)
-		{
-			pAccountInfo->m_PetInfo.m_Used = true;
-			pAccountInfo->m_PetInfo.m_Pos = pPet->m_Pos;
-			//AccountInfo.m_PetInfo.m_Weapon = pPet->m_ActiveWeapon;
-		}
-	}
+	// Player Info
+	pPlayer->FillAccountData(pAccountInfo);
+
+	// Character Info
+	CCharacter *pChar = pPlayer->GetCharacter();
+	if (pChar)
+		pChar->FillAccountData(pAccountInfo);
+	else
+		pAccountInfo->m_Alive = false;
+
+	// Pet Info
+	mem_zero(&pAccountInfo->m_PetInfo, sizeof(IAccountSystem::ACCOUNT_INFO::PepInfo));
+	CPet *pPet = pPlayer->GetPet();
+	if (pPet)
+		pPet->FillAccountPetData(&pAccountInfo->m_PetInfo);
+	else
+		pAccountInfo->m_PetInfo.m_Alive = false;
 }

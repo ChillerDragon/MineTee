@@ -105,6 +105,9 @@ public:
 	void SetHardTeam(int team) { m_Team = team; }
 	void SetCharacter(CCharacter *pChar) { if (!m_pCharacter) m_pCharacter = pChar; }
 	bool m_IsFirstJoin;
+	int m_Level;
+	void FillAccountData(void *pAccountData);
+	void UseAccountData(void *pAccountData);
 
 private:
 	CCharacter *m_pCharacter;

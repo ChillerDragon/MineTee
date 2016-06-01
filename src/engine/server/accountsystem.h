@@ -16,6 +16,7 @@ public:
 
 	ACCOUNT_INFO* Get(const unsigned char *pKey);
 	bool Remove(const unsigned char *pKey);
+	int GetNum() const { return m_lAccounts.size(); }
 
 private:
 	IStorage *m_pStorage;

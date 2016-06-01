@@ -99,9 +99,28 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 
 	if (m_pPlayer->m_IsFirstJoin)
 	{
-        IAccountSystem::ACCOUNT_INFO *pAccountInfo = GameServer()->GetAccount(m_pPlayer->GetCID());
-        if (pAccountInfo->m_Pos != vec2(0.0f,0.0f))
-        	m_Core.m_Pos = m_Pos = pAccountInfo->m_Pos;
+		IAccountSystem::ACCOUNT_INFO *pAccountInfo = GameServer()->GetAccount(m_pPlayer->GetCID());
+        if (pAccountInfo && pAccountInfo->m_Alive)
+        {
+        	UseAccountData(pAccountInfo);
+        	if (pAccountInfo->m_PetInfo.m_Alive)
+        	{
+        		for (int i=MAX_CLIENTS-MAX_BOTS; i<MAX_CLIENTS; i++)
+        		{
+        			CPlayer *pPlayer = GameServer()->m_apPlayers[i];
+        			if (!pPlayer || pPlayer->GetCharacter())
+        				continue;
+
+        			CPet *pPet = new(i) CPet(&GameServer()->m_World);
+        			pPlayer->SetCharacter(pPet);
+        			pPlayer->SetHardTeam(TEAM_PET);
+        			GameServer()->UpdateBotInfo(i, TEAM_PET);
+        			pPet->UseAccountPetData(&pAccountInfo->m_PetInfo);
+        			GetPlayer()->SetPet(pPet);
+        			break;
+        		}
+        	}
+        }
 
 		m_pPlayer->m_IsFirstJoin = false;
 	}
@@ -1080,7 +1099,9 @@ void CCharacter::Die(int Killer, int Weapon)
 
 	// MineTee
 	if (str_find_nocase(GameServer()->GameType(), "minetee")  && m_pPlayer->GetTeam() <= TEAM_BLUE)
+	{
 	    GameServer()->CreateTombstone(m_Pos);
+	}
 }
 
 bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
@@ -1435,3 +1456,24 @@ void CCharacter::DropItem(int ItemID)
     UpdateInventory();
 }
 
+void CCharacter::FillAccountData(void *pAccountInfo)
+{
+	IAccountSystem::ACCOUNT_INFO *pInfo = (IAccountSystem::ACCOUNT_INFO*)pAccountInfo;
+	pInfo->m_Alive = m_Alive;
+	pInfo->m_Pos = m_Pos;
+	pInfo->m_Health = m_Health;
+	pInfo->m_ActiveWeapon = m_ActiveWeapon;
+	mem_copy(pInfo->m_aBlocks, m_aBlocks, sizeof(BlockStat)*CBlockManager::MAX_BLOCKS);
+	mem_copy(pInfo->m_aWeapons, m_aWeapons, sizeof(WeaponStat)*NUM_WEAPONS);
+	mem_copy(&pInfo->m_Inventory, &m_Inventory, sizeof(Inventory));
+}
+void CCharacter::UseAccountData(void *pAccountInfo)
+{
+	IAccountSystem::ACCOUNT_INFO *pInfo = (IAccountSystem::ACCOUNT_INFO*)pAccountInfo;
+	m_Core.m_Pos = m_Pos = pInfo->m_Pos;
+	m_Health = pInfo->m_Health;
+	m_ActiveWeapon = pInfo->m_ActiveWeapon;
+	mem_copy(m_aBlocks, pInfo->m_aBlocks, sizeof(BlockStat)*CBlockManager::MAX_BLOCKS);
+	mem_copy(m_aWeapons, pInfo->m_aWeapons, sizeof(WeaponStat)*NUM_WEAPONS);
+	mem_copy(&m_Inventory, &pInfo->m_Inventory, sizeof(Inventory));
+}

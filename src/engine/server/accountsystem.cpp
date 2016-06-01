@@ -1,6 +1,7 @@
 /* (c) Alexandre Díaz. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include "accountsystem.h"
+#include <game/server/entities/character.h>
 
 CAccountSystem::~CAccountSystem()
 {
@@ -36,7 +37,11 @@ IAccountSystem::ACCOUNT_INFO* CAccountSystem::Create(const unsigned char *pKey)
 {
 	ACCOUNT_INFO NewAccount;
 	mem_copy(NewAccount.m_aKey, pKey, sizeof(NewAccount.m_aKey));
+	NewAccount.m_Alive = false;
 	NewAccount.m_Pos = vec2(0.0f, 0.0f);
+	NewAccount.m_Level = 0;
+	mem_zero(NewAccount.m_aBlocks, sizeof(CCharacter::BlockStat)*255);
+	mem_zero(NewAccount.m_aWeapons, sizeof(CCharacter::WeaponStat)*NUM_WEAPONS);
 	m_lAccounts.push_back(NewAccount);
 	Save();
 	return &(*m_lAccounts.rbegin());

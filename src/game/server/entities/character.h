@@ -70,11 +70,20 @@ public:
 	bool IsAlive() const { return m_Alive; }
 	class CPlayer *GetPlayer() { return m_pPlayer; }
 
+	struct WeaponStat
+	{
+		int m_AmmoRegenStart;
+		int m_Ammo;
+		int m_Ammocost;
+		bool m_Got;
+
+	};
+
     //H-Client
 	CCharacterCore* GetCore() { return &m_Core; }
     void DropItem(int ItemID = -1);
 
-    struct {
+    struct Inventory {
         int m_Items[9];
         int m_Selected;
     } m_Inventory;
@@ -89,6 +98,8 @@ public:
 	bool IsInventoryFull();
 	bool GiveBlock(int Block, int Amount);
     int GetCurrentAmmo(int wid);
+    void FillAccountData(void *pAccountInfo);
+    void UseAccountData(void *pAccountInfo);
 
 private:
 	// player controlling this character
@@ -100,14 +111,7 @@ private:
 	CEntity *m_apHitObjects[10];
 	int m_NumObjectsHit;
 
-	struct WeaponStat
-	{
-		int m_AmmoRegenStart;
-		int m_Ammo;
-		int m_Ammocost;
-		bool m_Got;
-
-	} m_aWeapons[NUM_WEAPONS];
+	WeaponStat m_aWeapons[NUM_WEAPONS];
 
 	int m_ActiveWeapon;
 	int m_LastWeapon;

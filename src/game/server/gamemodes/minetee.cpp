@@ -489,7 +489,7 @@ int CGameControllerMineTee::OnCharacterDeath(class CCharacter *pVictim, class CP
 {
     CGameController::OnCharacterDeath(pVictim, pKiller, Weapon);
 
-    if (!(pVictim->GetPlayer()->IsBot() && pVictim->GetPlayer() == pKiller))
+    if (!(pVictim->GetPlayer()->IsBot() && pVictim->GetPlayer() == pKiller) && Weapon > WEAPON_WORLD)
     {
 		for (size_t i=0; i<NUM_ITEMS_INVENTORY; i++)
 		{

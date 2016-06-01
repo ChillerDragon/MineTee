@@ -351,3 +351,16 @@ void CPlayer::TryRespawn()
 	m_pCharacter->Spawn(this, SpawnPos);
 	GameServer()->CreatePlayerSpawn(SpawnPos);
 }
+
+void CPlayer::FillAccountData(void *pAccountInfo)
+{
+	IAccountSystem::ACCOUNT_INFO *pInfo = (IAccountSystem::ACCOUNT_INFO*)pAccountInfo;
+	pInfo->m_Level = m_Level;
+	str_copy(pInfo->m_aSkinName, m_TeeInfos.m_SkinName, sizeof(pInfo->m_aSkinName));
+}
+void CPlayer::UseAccountData(void *pAccountInfo)
+{
+	IAccountSystem::ACCOUNT_INFO *pInfo = (IAccountSystem::ACCOUNT_INFO*)pAccountInfo;
+	m_Level = pInfo->m_Level;
+	str_copy(m_TeeInfos.m_SkinName, pInfo->m_aSkinName, sizeof(pInfo->m_aSkinName));
+}
