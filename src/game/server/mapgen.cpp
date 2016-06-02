@@ -31,7 +31,7 @@ void CMapGen::FillMap(int Seed)
 	if (!m_pLayers->MineTeeLayer())
 		return;
 
-	dbg_msg("MapGen", "Start generation with seed: %d", Seed);
+	dbg_msg("mapget", "started map generation with seed=%d", Seed);
 
 	if (m_pNoise)
 		delete m_pNoise;
@@ -55,7 +55,7 @@ void CMapGen::FillMap(int Seed)
 		m_pCollision->ModifTile(TilePos, m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeFGLayerIndex(), 0, 0);
 		m_pCollision->ModifTile(TilePos, m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeBGLayerIndex(), 0, 0);
 	}
-	dbg_msg("MapGen", "Map sanitized in %.3f", (time_get()-ProcessTime)/time_freq());
+	dbg_msg("mapgen", "map sanitized in %.5fs", (time_get()-ProcessTime)/time_freq());
 
 	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	/* ~~~ Generate the world ~~~ */
@@ -64,14 +64,14 @@ void CMapGen::FillMap(int Seed)
 	// terrain
 	ProcessTime = time_get();
 	GenerateBasicTerrain();
-	dbg_msg("MapGen", "Terrain generated in %.3fSecs", (time_get()-ProcessTime)/time_freq());
+	dbg_msg("mapgen", "terrain generated in %.5fs", (time_get()-ProcessTime)/time_freq());
 	// ores
 	ProcessTime = time_get();
 	GenerateOre(CBlockManager::COAL_ORE, 200.0f, COAL_LEVEL, 50, 4);
 	GenerateOre(CBlockManager::IRON_ORE, 320.0f, IRON_LEVEL, 30, 2);
 	GenerateOre(CBlockManager::GOLD_ORE, 350.0f, GOLD_LEVEL, 15, 2);
 	GenerateOre(CBlockManager::DIAMOND_ORE, 680.0f, DIAMOND_LEVEL, 15, 1);
-	dbg_msg("MapGen", "Ores generated in %.3fSecs", (time_get()-ProcessTime)/time_freq());
+	dbg_msg("mapgen", "ores generated in %.5fs", (time_get()-ProcessTime)/time_freq());
 	// caves
 	ProcessTime = time_get();
 	GenerateCaves(CBlockManager::AIR);
@@ -79,24 +79,24 @@ void CMapGen::FillMap(int Seed)
 	GenerateCaves(CBlockManager::LAVA_D);
 	GenerateTunnels(rand()%10+10);
 	GenerateWater();
-	dbg_msg("MapGen", "Caves generated in %.3fSecs", (time_get()-ProcessTime)/time_freq());
+	dbg_msg("mapgen", "caves generated in %.5fs", (time_get()-ProcessTime)/time_freq());
 
 	// vegetation
 	ProcessTime = time_get();
 	GenerateFlowers();
 	GenerateMushrooms();
 	GenerateTrees();
-	dbg_msg("MapGen", "Vegetation generated in %.3fSecs", (time_get()-ProcessTime)/time_freq());
+	dbg_msg("mapgen", "vegetation generated in %.5fs", (time_get()-ProcessTime)/time_freq());
 
 	// misc
-	dbg_msg("MapGen", "Creating Limits...");
+	dbg_msg("mapgen", "creating boarders...");
 	GenerateBorder(); // as long as there are no infinite (chunked) maps
 
 	// Performance
-	dbg_msg("MapGen", "Performing Map...");
+	dbg_msg("mapgen", "finalizing map...");
 	GenerateSkip();
 
-	dbg_msg("MapGen", "Map generated in %.3fSecs", (time_get()-TotalTime)/time_freq());
+	dbg_msg("mapgen", "map successfully generated in %.5fs", (time_get()-TotalTime)/time_freq());
 }
 
 void CMapGen::GenerateBasicTerrain()
@@ -193,12 +193,12 @@ void CMapGen::GenerateCaves(int FillBlock)
 
 void CMapGen::GenerateTunnels(int Num)
 {
-	int TilePosY, Level, Freq, Size, StartX, EndX;
+	int TilePosY, Level, Freq, TunnelSize, StartX, EndX;
 	for (int r=0; r<Num; ++r)
 	{
 		Level = TUNNEL_LEVEL + rand()%m_pLayers->MineTeeLayer()->m_Height;
 		Freq = rand()%5+2;
-		Size = rand()%2+2;
+		TunnelSize = rand()%2+2;
 		StartX = rand()%m_pLayers->MineTeeLayer()->m_Width;
 		EndX = min(m_pLayers->MineTeeLayer()->m_Width, rand()%m_pLayers->MineTeeLayer()->m_Width+StartX);
 		for(int TilePosX = StartX; TilePosX < EndX; TilePosX++)
@@ -206,7 +206,7 @@ void CMapGen::GenerateTunnels(int Num)
 			float frequency = Freq / (float)m_pLayers->MineTeeLayer()->m_Width;
 			TilePosY = m_pNoise->Noise((float)TilePosX * frequency) * (m_pLayers->MineTeeLayer()->m_Height) + Level;
 			if (TilePosY < m_pLayers->MineTeeLayer()->m_Height-1)
-				for (int i=-Size; i<=Size; i++)
+				for (int i=-TunnelSize; i<=TunnelSize; i++)
 					m_pCollision->ModifTile(ivec2(TilePosX, TilePosY+i), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::AIR, 0);
 		}
 	}
@@ -221,11 +221,11 @@ void CMapGen::GenerateWater()
 
 void CMapGen::GenerateFlowers()
 {
-	const int flowers[] = {CBlockManager::ROSE, CBlockManager::DAISY, CBlockManager::BROWN_TREE_SAPLING, CBlockManager::GRASS_A};
+	const int aFlowers[] = {CBlockManager::ROSE, CBlockManager::DAISY, CBlockManager::BROWN_TREE_SAPLING, CBlockManager::GRASS_A};
 	for(int x = 1; x < m_pLayers->MineTeeLayer()->m_Width-1; x++)
 	{
 		int FieldSize = 2+(rand()%3);
-		int rnd = rand()%(sizeof(flowers)/sizeof(int));
+		int rnd = rand()%(sizeof(aFlowers)/sizeof(int));
 		if(!(rand()%32))
 		{
 			for(int f = x; f - x <= FieldSize; f++)
@@ -234,10 +234,10 @@ void CMapGen::GenerateFlowers()
 				while(m_pCollision->GetMineTeeTileAt(vec2(f*32, (y+1)*32)) != CBlockManager::GRASS && y < m_pLayers->MineTeeLayer()->m_Height-1)
 					y++;
 
-				if(m_pCollision->GetMineTeeTileAt(vec2(f*32, y*32)) == CBlockManager::AIR)
+				if(m_pCollision->GetMineTeeTileAt(vec2(f*32, y*32)) != CBlockManager::AIR)
 					continue;
 
-				m_pCollision->ModifTile(ivec2(f, y), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), flowers[rnd], 0);
+				m_pCollision->ModifTile(ivec2(f, y), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), aFlowers[rnd], 0);
 			}
 
 			x += FieldSize;
@@ -265,6 +265,9 @@ void CMapGen::GenerateMushrooms()
 				if(y >= m_pLayers->MineTeeLayer()->m_Height)
 					break;
 
+				if(m_pCollision->GetMineTeeTileAt(vec2(x*32, f*32)) != CBlockManager::AIR)
+					continue;
+
 				m_pCollision->ModifTile(ivec2(f, y), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::MUSHROOM_RED + rand()%2, 0);
 			}
 
@@ -290,6 +293,9 @@ void CMapGen::GenerateTrees()
 			}
 
 			if(TempTileY >= m_pLayers->MineTeeLayer()->m_Height)
+				continue;
+
+			if(m_pCollision->GetMineTeeTileAt(vec2(x*32, TempTileY*32)) != CBlockManager::AIR)
 				continue;
 
 			GenerateTree(ivec2(x, TempTileY));
