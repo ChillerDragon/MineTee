@@ -1772,6 +1772,28 @@ void CGameContext::CreateBot(int ClientID)
     m_apPlayers[BotClientID]->TryRespawn();
 }
 
+CPet* CGameContext::CreatePet(CPlayer *pOwner, vec2 Pos)
+{
+	CPet *pPet = 0x0;
+	for (int i=MAX_CLIENTS-MAX_BOTS; i<MAX_CLIENTS; i++)
+	{
+		CPlayer *pPlayer = m_apPlayers[i];
+		if (!pPlayer || pPlayer->GetCharacter())
+			continue;
+
+		pPet = new(pPlayer->GetCID()) CPet(&m_World);
+		pPlayer->SetHardTeam(TEAM_PET);
+		pPlayer->SetCharacter(pPet);
+		pPet->Spawn(pPlayer, Pos);
+		UpdateBotInfo(pPlayer->GetCID(), TEAM_PET);
+		pOwner->SetPet(pPet);
+		Server()->SetClientName(pPlayer->GetCID(), "", true);
+		break;
+	}
+
+	return pPet;
+}
+
 bool CGameContext::OnSendMap(int ClientID) // MineTee
 {
 	// load complete map into memory for download

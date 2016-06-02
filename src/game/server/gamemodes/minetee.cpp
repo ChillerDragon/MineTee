@@ -566,37 +566,69 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
 	if (!(ptr = strtok((char*)msg, " \n\t")) || msg[0] != '/')
 		return true;
 
-	// TODO: Delete me!
 	if (str_comp_nocase(ptr,"/pet") == 0)
 	{
-		CCharacter *pChar = GameServer()->GetPlayerChar(cid);
-		if (!pChar)
-			return false;
-
-		for (int i=MAX_CLIENTS-MAX_BOTS; i<MAX_CLIENTS; i++)
+		if ((ptr=strtok(NULL, " \n\t")) == NULL)
 		{
-			CPlayer *pPlayer = GameServer()->m_apPlayers[i];
-			if (!pPlayer || pPlayer->GetCharacter())
-				continue;
+			char aBuf[128];
+			GameServer()->SendChatTarget(cid,"--------------------------- --------- --------");
+			GameServer()->SendChatTarget(cid, "AVAILABLE PET COMMANDS");
+			GameServer()->SendChatTarget(cid,"======================================");
+			GameServer()->SendChatTarget(cid," ");
+			GameServer()->SendChatTarget(cid," - /pet create : Create a new pet (Only for Dev. Version)");
+			GameServer()->SendChatTarget(cid," - /pet name <name> : Change the pet name");
+			GameServer()->SendChatTarget(cid," - /pet die : Kill your pet");
+			GameServer()->SendChatTarget(cid," - /pet info : Know your pet");
 
-			CPet *pPet = new(i) CPet(&GameServer()->m_World);
-			pPlayer->SetCharacter(pPet);
-			pPlayer->SetHardTeam(TEAM_PET);
-			GameServer()->UpdateBotInfo(i, TEAM_PET);
-			const vec2 spawnPos = pChar->m_Pos-vec2(CPet::ms_PhysSize*1.25f, CPet::ms_PhysSize*1.25f);
-			pPet->Spawn(pPlayer, spawnPos);
-			pPet->GiveWeapon(WEAPON_RIFLE, -1);
-			pPet->SetWeapon(WEAPON_RIFLE);
-			GameServer()->CreatePlayerSpawn(spawnPos);
-			pChar->GetPlayer()->SetPet(pPet);
-			Server()->SetClientName(i, "", true);
-			GameServer()->SendChatTarget(cid,"Pet Created!");
-			break;
+			return false;
+		}
+		else
+		{
+			do
+			{
+				if (str_comp_nocase(ptr,"create") == 0)
+				{
+					CCharacter *pChar = GameServer()->GetPlayerChar(cid);
+					if (!pChar)
+						return false;
+					const vec2 spawnPos = pChar->m_Pos-vec2(CPet::ms_PhysSize*1.25f, CPet::ms_PhysSize*1.25f);
+					if (GameServer()->CreatePet(pChar->GetPlayer(), spawnPos))
+						GameServer()->SendChatTarget(cid,"Pet Created!");
+					return false;
+				}
+				else if (str_comp_nocase(ptr,"name") == 0)
+				{
+					if ((ptr = strtok(NULL, "\n\t")) != 0x0)
+					{
+						CPlayer *pPlayer = GameServer()->m_apPlayers[cid];
+						if (!pPlayer || !pPlayer->GetPet())
+							return false;
+						Server()->SetClientName(pPlayer->GetPet()->GetPlayer()->GetCID(), ptr, true);
+					}
+					return false;
+				}
+				else if (str_comp_nocase(ptr,"die") == 0)
+				{
+					CPlayer *pPlayer = GameServer()->m_apPlayers[cid];
+					if (!pPlayer || pPlayer->GetPet())
+						return false;
+					pPlayer->GetPet()->Die(cid, WEAPON_GAME);
+					return false;
+				}
+				else if (str_comp_nocase(ptr,"info") == 0)
+				{
+					CPlayer *pPlayer = GameServer()->m_apPlayers[cid];
+					if (!pPlayer || pPlayer->GetPet())
+						return false;
+					GameServer()->SendChatTarget(cid,"--------------------------- --------- --------");
+					GameServer()->SendChatTarget(cid, "PET INFORMATION");
+					GameServer()->SendChatTarget(cid,"======================================");
+					return false;
+				}
+			} while ((ptr = strtok(NULL, " \n\t")) != NULL);
 		}
 	}
-
-
-	if (str_comp_nocase(ptr,"/cmdlist") == 0 || str_comp_nocase(ptr,"/help") == 0)
+	else if (str_comp_nocase(ptr,"/cmdlist") == 0 || str_comp_nocase(ptr,"/help") == 0)
 	{
 		GameServer()->SendChatTarget(cid,"--------------------------- --------- --------");
         GameServer()->SendChatTarget(cid,"COMMANDS LIST");

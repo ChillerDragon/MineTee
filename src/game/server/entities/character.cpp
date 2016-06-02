@@ -105,21 +105,11 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
         	UseAccountData(pAccountInfo);
         	if (pAccountInfo->m_PetInfo.m_Alive)
         	{
-        		for (int i=MAX_CLIENTS-MAX_BOTS; i<MAX_CLIENTS; i++)
-        		{
-        			CPlayer *pPlayer = GameServer()->m_apPlayers[i];
-        			if (!pPlayer || pPlayer->GetCharacter())
-        				continue;
-
-        			CPet *pPet = new(pPlayer->GetCID()) CPet(&GameServer()->m_World);
-        			pPlayer->SetHardTeam(TEAM_PET);
-        			pPlayer->SetCharacter(pPet);
-        			pPet->Spawn(pPlayer, pAccountInfo->m_PetInfo.m_Pos);
-        			GameServer()->UpdateBotInfo(i, TEAM_PET);
-        			GetPlayer()->SetPet(pPet);
+        		CPet *pPet = GameServer()->CreatePet(GetPlayer(), pAccountInfo->m_PetInfo.m_Pos);
+        		if (pPet)
         			pPet->UseAccountPetData(&pAccountInfo->m_PetInfo);
-        			break;
-        		}
+        		else
+        			GameServer()->SendChatTarget(GetPlayer()->GetCID(), "Oops! I need fix this! Sry but your pet is lost :/");
         	}
         }
 
