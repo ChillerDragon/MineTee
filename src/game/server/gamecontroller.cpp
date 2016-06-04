@@ -107,7 +107,7 @@ bool CGameController::CanSpawn(int Team, vec2 *pOutPos)
 	if (str_find_nocase(m_pGameType, "minetee"))
 	{
 
-		if (Team > TEAM_BLUE && ((g_Config.m_SvMonsters == 0 && Team >= TEAM_ENEMY_TEEPER && Team <= TEAM_ENEMY_SPIDERTEE) ||
+		if (Team > TEAM_BLUE && ((g_Config.m_SvMonsters == 0 && Team >= TEAM_ENEMY_TEEPER && Team <= TEAM_ENEMY_EYE) ||
 			(g_Config.m_SvAnimals == 0 && Team >= TEAM_ANIMAL_TEECOW && Team <= TEAM_ANIMAL_TEEPIG)))
 			return false;
 
@@ -758,9 +758,10 @@ void CGameController::GenerateRandomSpawn(CSpawnEval *pEval, int Team)
 {
 	vec2 P;
 	bool IsBot = (Team >= TEAM_BLUE);
+	bool IsAnimal = (Team >= TEAM_ANIMAL_TEECOW && Team <= TEAM_ANIMAL_TEEPIG);
 
 	// TODO: Need do that ONLY SPAWN IN DARK ZONES!
-	if (IsBot && Team>TEAM_BLUE && Team<TEAM_ANIMAL_TEECOW) // Enemies can spawn underground or outside
+	if (IsBot && !IsAnimal) // Enemies can spawn underground or outside
 	{
 		P = vec2(rand()%m_pGameServer->Collision()->GetWidth(), rand()%m_pGameServer->Collision()->GetHeight());
 		P = vec2(P.x*32.0f + 16.0f, P.y*32.0f + 16.0f);
@@ -803,10 +804,15 @@ void CGameController::GenerateRandomSpawn(CSpawnEval *pEval, int Team)
 	if (!CanSpawn)
 		return;
 
-	CTile *pMTLTiles = GameServer()->Layers()->TileLights();
-	int TileLightIndex = static_cast<int>(P.y/32)*GameServer()->Layers()->Lights()->m_Width+static_cast<int>(P.y/32);
-	if (IsBot && pMTLTiles[TileLightIndex].m_Index == 202)
-		return;
+	if (IsBot)
+	{
+		CTile *pMTLTiles = GameServer()->Layers()->TileLights();
+		int TileLightIndex = static_cast<int>(P.y/32)*GameServer()->Layers()->Lights()->m_Width+static_cast<int>(P.y/32);
+		if (IsAnimal && pMTLTiles[TileLightIndex].m_Index != 0)
+			return;
+		else if (!IsAnimal && pMTLTiles[TileLightIndex].m_Index != 202)
+			return;
+	}
 
 	if (m_pGameServer->Collision()->GetCollisionAt(P.x, P.y+32) == CCollision::COLFLAG_SOLID)
 	{

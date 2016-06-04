@@ -1880,7 +1880,7 @@ int main(int argc, const char **argv) // ignore_convention
 // MineTee
 void CServer::InitBot(int ClientID, int BType)
 {
-    if (BType == TEAM_ENEMY_TEEPER)
+    /*if (BType == TEAM_ENEMY_TEEPER)
         str_copy(m_aClients[ClientID].m_aName , "TEEPER", MAX_NAME_LENGTH);
     else if (BType == TEAM_ENEMY_ZOMBITEE)
         str_copy(m_aClients[ClientID].m_aName , "ZOMBITEE", MAX_NAME_LENGTH);
@@ -1891,7 +1891,11 @@ void CServer::InitBot(int ClientID, int BType)
     else if (BType == TEAM_ANIMAL_TEECOW)
         str_copy(m_aClients[ClientID].m_aName , "TEECOW", MAX_NAME_LENGTH);
     else if (BType == TEAM_ANIMAL_TEEPIG)
-        str_copy(m_aClients[ClientID].m_aName , "TEEPIG", MAX_NAME_LENGTH);
+        str_copy(m_aClients[ClientID].m_aName , "TEEPIG", MAX_NAME_LENGTH);*/
+    if (BType == TEAM_BOSS_DUNE)
+    	str_copy(m_aClients[ClientID].m_aName , "DUNE BOSS", MAX_NAME_LENGTH);
+    else
+    	str_copy(m_aClients[ClientID].m_aName , "", MAX_NAME_LENGTH);
 
     str_copy(m_aClients[ClientID].m_aClan, "MineBOT", MAX_CLAN_LENGTH);
     m_aClients[ClientID].m_Country = 724;

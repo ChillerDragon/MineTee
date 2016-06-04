@@ -303,8 +303,9 @@ void CPlayer::TryRespawn()
         }
         else
         {
-            int Teams[3] = { TEAM_ENEMY_TEEPER, TEAM_ENEMY_ZOMBITEE, TEAM_ENEMY_SKELETEE };
-            m_Team = Teams[rand()%3];
+            int Teams[4] = { TEAM_ENEMY_TEEPER, TEAM_ENEMY_ZOMBITEE, TEAM_ENEMY_SKELETEE, TEAM_ENEMY_EYE };
+            m_Team = Teams[rand()%4];
+        	//m_Team = TEAM_ENEMY_EYE;
         }
 
         GameServer()->UpdateBotInfo(m_ClientID, m_Team);
@@ -329,7 +330,7 @@ void CPlayer::TryRespawn()
 		}
 	}
 
-	if (m_Team >= TEAM_ENEMY_TEEPER && m_Team <= TEAM_ENEMY_SPIDERTEE)
+	if (m_Team >= TEAM_ENEMY_TEEPER && m_Team <= TEAM_ENEMY_EYE)
 	{
 		// In Dark?
 		CGameControllerMineTee *pControllerMT = (CGameControllerMineTee*)GameServer()->m_pController;

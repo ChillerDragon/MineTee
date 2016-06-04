@@ -200,7 +200,8 @@ public:
 
 	virtual IAccountSystem::ACCOUNT_INFO* GetAccount(int ClientID);
 	virtual void SaveAccount(int ClientID);
-	virtual CPet* CreatePet(CPlayer *pOwner, vec2 Pos);
+	virtual CPet* SpawnPet(CPlayer *pOwner, vec2 Pos);
+	virtual CBoss* SpawnBoss(vec2 Pos, int Type);
 	//
 };
 

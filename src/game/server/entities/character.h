@@ -24,6 +24,7 @@ class CCharacter : public CEntity
 	friend class CMonster;
 	friend class CAnimal;
 	friend class CPet;
+	friend class CBossDune;
 
 public:
 

@@ -105,7 +105,7 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
         	UseAccountData(pAccountInfo);
         	if (pAccountInfo->m_PetInfo.m_Alive)
         	{
-        		CPet *pPet = GameServer()->CreatePet(GetPlayer(), pAccountInfo->m_PetInfo.m_Pos);
+        		CPet *pPet = GameServer()->SpawnPet(GetPlayer(), pAccountInfo->m_PetInfo.m_Pos);
         		if (pPet)
         			pPet->UseAccountPetData(&pAccountInfo->m_PetInfo);
         		else
@@ -1195,7 +1195,7 @@ void CCharacter::Snap(int SnappingClient)
 		return;
 
 	// MineTee
-    if ((g_Config.m_SvMonsters == 0 && m_pPlayer->GetTeam() >= TEAM_ENEMY_TEEPER && m_pPlayer->GetTeam() <= TEAM_ENEMY_SPIDERTEE) ||
+    if ((g_Config.m_SvMonsters == 0 && m_pPlayer->GetTeam() >= TEAM_ENEMY_TEEPER && m_pPlayer->GetTeam() <= TEAM_ENEMY_EYE) ||
         (g_Config.m_SvAnimals == 0 && m_pPlayer->GetTeam() >= TEAM_ANIMAL_TEECOW && m_pPlayer->GetTeam() <= TEAM_ANIMAL_TEEPIG))
         return;
     //

@@ -466,6 +466,7 @@ void CGameControllerMineTee::OnCharacterSpawn(class CCharacter *pChr)
 
         case TEAM_ENEMY_ZOMBITEE:
         case TEAM_ENEMY_SPIDERTEE:
+        case TEAM_ENEMY_EYE:
             pChr->GiveWeapon(WEAPON_HAMMER, -1);
             pChr->SetWeapon(WEAPON_HAMMER);
             break;
@@ -592,7 +593,7 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
 					if (!pChar)
 						return false;
 					const vec2 spawnPos = pChar->m_Pos-vec2(CPet::ms_PhysSize*1.25f, CPet::ms_PhysSize*1.25f);
-					if (GameServer()->CreatePet(pChar->GetPlayer(), spawnPos))
+					if (GameServer()->SpawnPet(pChar->GetPlayer(), spawnPos))
 						GameServer()->SendChatTarget(cid,"Pet Created!");
 					return false;
 				}

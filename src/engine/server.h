@@ -8,6 +8,7 @@
 #include "accountsystem.h" // MineTee
 #include <base/vmath.h> // MineTee
 #include <game/server/entities/bots/pet.h> // MineTee
+#include <game/server/entities/bots/boss.h> // MineTee
 
 class IServer : public IInterface
 {
@@ -132,7 +133,8 @@ public:
 
 	virtual IAccountSystem::ACCOUNT_INFO* GetAccount(int ClientID) = 0;
 	virtual void SaveAccount(int ClientID) = 0;
-	virtual CPet* CreatePet(CPlayer *pOwner, vec2 Pos) = 0;
+	virtual CPet* SpawnPet(CPlayer *pOwner, vec2 Pos) = 0;
+	virtual CBoss* SpawnBoss(vec2 Pos, int Type) = 0;
 	//
 };
 

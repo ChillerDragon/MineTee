@@ -286,6 +286,7 @@
     },
     {
         "name": "SUGAR CANE",
+        "playerCollide": false,
         "place": [[-2],[-2],[-2],[-2],[73,86],[-2],[-2],[-2]]
     },
     {

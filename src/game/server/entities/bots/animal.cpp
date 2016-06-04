@@ -88,8 +88,7 @@ void CAnimal::TickBotAI()
         {
             if (Dist > 120.0f)
             {
-                vec2 DirPlayer = normalize(pPlayer->GetCharacter()->m_Pos - m_Pos);
-
+                /*vec2 DirPlayer = normalize(pPlayer->GetCharacter()->m_Pos - m_Pos);
                 bool isHooked = false;
                 for (int e=0; e<MAX_CLIENTS-MAX_BOTS; e++)
                 {
@@ -105,7 +104,7 @@ void CAnimal::TickBotAI()
                         isHooked = true;
                         break;
                     }
-                }
+                }*/
 
                 m_BotDir = 0;
             }

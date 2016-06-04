@@ -15,6 +15,7 @@
 #include "gamemodes/mod.h"
 #include "gamemodes/minetee.h" // MineTee
 #include "entities/pickup.h" // MineTee
+#include "entities/bots/bossdune.h" // MineTee
 #include <zlib.h> // MineTee
 
 enum
@@ -1751,12 +1752,16 @@ void CGameContext::UpdateBotInfo(int ClientID, int TEnemy)
         str_copy(NameSkin, "x_spidertee", sizeof(NameSkin));
     else if (TEnemy == TEAM_ENEMY_SKELETEE)
         str_copy(NameSkin, "x_skeletee", sizeof(NameSkin));
+    else if (TEnemy == TEAM_ENEMY_EYE)
+            str_copy(NameSkin, "x_enemy_eye", sizeof(NameSkin));
     else if (TEnemy == TEAM_ANIMAL_TEECOW)
         str_copy(NameSkin, "x_teecow", sizeof(NameSkin));
     else if (TEnemy == TEAM_ANIMAL_TEEPIG)
         str_copy(NameSkin, "x_teepig", sizeof(NameSkin));
     else if (TEnemy == TEAM_PET)
         str_copy(NameSkin, "x_pet", sizeof(NameSkin));
+    else if (TEnemy == TEAM_BOSS_DUNE)
+    	str_copy(NameSkin, "x_boss_dune", sizeof(NameSkin));
 
     Server()->InitBot(ClientID, TEnemy);
     str_copy(m_apPlayers[ClientID]->m_TeeInfos.m_SkinName, NameSkin, sizeof(m_apPlayers[ClientID]->m_TeeInfos.m_SkinName));
@@ -1772,7 +1777,7 @@ void CGameContext::CreateBot(int ClientID)
     m_apPlayers[BotClientID]->TryRespawn();
 }
 
-CPet* CGameContext::CreatePet(CPlayer *pOwner, vec2 Pos)
+CPet* CGameContext::SpawnPet(CPlayer *pOwner, vec2 Pos)
 {
 	CPet *pPet = 0x0;
 	for (int i=MAX_CLIENTS-MAX_BOTS; i<MAX_CLIENTS; i++)
@@ -1787,11 +1792,31 @@ CPet* CGameContext::CreatePet(CPlayer *pOwner, vec2 Pos)
 		pPet->Spawn(pPlayer, Pos);
 		UpdateBotInfo(pPlayer->GetCID(), TEAM_PET);
 		pOwner->SetPet(pPet);
-		Server()->SetClientName(pPlayer->GetCID(), "", true);
 		break;
 	}
 
 	return pPet;
+}
+
+CBoss* CGameContext::SpawnBoss(vec2 Pos, int Type)
+{
+	CBoss *pBoss = 0x0;
+	for (int i=MAX_CLIENTS-MAX_BOTS; i<MAX_CLIENTS; i++)
+	{
+		CPlayer *pPlayer = m_apPlayers[i];
+		if (!pPlayer || pPlayer->GetCharacter())
+			continue;
+
+		if (Type == TEAM_BOSS_DUNE)
+			pBoss = new(pPlayer->GetCID()) CBossDune(&m_World);
+		pPlayer->SetHardTeam(Type);
+		pPlayer->SetCharacter(pBoss);
+		pBoss->Spawn(pPlayer, Pos);
+		UpdateBotInfo(pPlayer->GetCID(), Type);
+		break;
+	}
+
+	return pBoss;
 }
 
 bool CGameContext::OnSendMap(int ClientID) // MineTee
@@ -1871,15 +1896,12 @@ int CGameContext::IntersectCharacter(vec2 HookPos, vec2 NewPos, vec2 *pNewPos2, 
 
 		vec2 Position = pChar->GetCore()->m_Pos;
 		vec2 ClosestPoint = closest_point_on_line(HookPos, NewPos, Position);
-		if(distance(Position, ClosestPoint) < PhysSize+2.0f)
+		if(distance(Position, ClosestPoint) < PhysSize+2.0f && distance(HookPos, Position) < Distance)
 		{
-			if(ClosestID == -1 || distance(HookPos, Position) < Distance)
-			{
-				if (pNewPos2)
-					*pNewPos2 = Position;
-				ClosestID = i;
-				Distance = distance(HookPos, Position);
-			}
+			if (pNewPos2)
+				*pNewPos2 = Position;
+			ClosestID = i;
+			Distance = distance(HookPos, Position);
 		}
 	}
 
