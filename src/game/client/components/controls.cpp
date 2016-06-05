@@ -29,6 +29,7 @@ void CControls::OnReset()
 	m_LastData.m_Fire &= INPUT_STATE_MASK;
 	m_LastData.m_Jump = 0;
 	m_InputData = m_LastData;
+	m_SlowMouse = false;
 
 	m_InputDirectionLeft = 0;
 	m_InputDirectionRight = 0;
@@ -86,6 +87,7 @@ void CControls::OnConsoleInit()
 	Console()->Register("+jump", "", CFGFLAG_CLIENT, ConKeyInputState, &m_InputData.m_Jump, "Jump");
 	Console()->Register("+hook", "", CFGFLAG_CLIENT, ConKeyInputState, &m_InputData.m_Hook, "Hook");
 	Console()->Register("+fire", "", CFGFLAG_CLIENT, ConKeyInputCounter, &m_InputData.m_Fire, "Fire");
+	Console()->Register("+slow_mouse", "", CFGFLAG_CLIENT, ConKeyInputState, &m_SlowMouse, "Slow mouse for building precision");
 
 	{ static CInputSet s_Set = {this, &m_InputData.m_WantedWeapon, 1}; Console()->Register("+weapon1", "", CFGFLAG_CLIENT, ConKeyInputSet, (void *)&s_Set, "Switch to hammer"); }
 	{ static CInputSet s_Set = {this, &m_InputData.m_WantedWeapon, 2}; Console()->Register("+weapon2", "", CFGFLAG_CLIENT, ConKeyInputSet, (void *)&s_Set, "Switch to gun"); }
@@ -221,7 +223,8 @@ bool CControls::OnMouseMove(float x, float y)
 		(m_pClient->m_Snap.m_SpecInfo.m_Active && m_pClient->m_pChat->IsActive()))
 		return false;
 
-	m_MousePos += vec2(x, y); // TODO: ugly
+	float SlowMouseModifier = ((float)g_Config.m_InpSlowMouseVal/100.0f)*m_SlowMouse;
+	m_MousePos += vec2(x-x*SlowMouseModifier, y-y*SlowMouseModifier); // TODO: ugly
 	ClampMousePos();
 
 	return true;
