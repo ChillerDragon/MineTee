@@ -10,6 +10,42 @@
 #include <game/server/entities/bots/pet.h> // MineTee
 #include <game/server/entities/bots/boss.h> // MineTee
 
+enum
+{
+	BOT_ANIMAL=0,
+	BOT_MONSTER,
+	BOT_PET,
+	BOT_BOSS,
+
+	BOT_ANIMAL_COW=0,
+	BOT_ANIMAL_PIG,
+	NUM_ANIMALS,
+
+	BOT_MONSTER_TEEPER=0,
+	BOT_MONSTER_ZOMBITEE,
+	BOT_MONSTER_SKELETEE,
+	//BOT_MONSTER_SPIDERTEE,
+	BOT_MONSTER_EYE,
+	//BOT_MONSTER_CLOUD,
+	NUM_MONSTERS,
+
+	BOT_PET_DEFAULT=0,
+	BOT_PET_FIRE,
+	BOT_PET_GHOST,
+	BOT_PET_GRIFFIN,
+	BOT_PET_ICE,
+	BOT_PET_NOSEY,
+	BOT_PET_ONION,
+	BOT_PET_PIG,
+	NUM_PETS,
+
+	BOT_BOSS_DUNE=0,
+	BOT_BOSS_GREYFOX,
+	BOT_BOSS_PEDOBEAR,
+	BOT_BOSS_ZOMBIE,
+	NUM_BOSSES,
+};
+
 class IServer : public IInterface
 {
 	MACRO_INTERFACE("server", 0)
@@ -134,7 +170,7 @@ public:
 	virtual IAccountSystem::ACCOUNT_INFO* GetAccount(int ClientID) = 0;
 	virtual void SaveAccount(int ClientID) = 0;
 	virtual CPet* SpawnPet(CPlayer *pOwner, vec2 Pos) = 0;
-	virtual CBoss* SpawnBoss(vec2 Pos, int Type) = 0;
+	virtual IBoss* SpawnBoss(vec2 Pos, int Type) = 0;
 	//
 };
 

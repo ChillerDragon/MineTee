@@ -457,25 +457,25 @@ void CGameControllerMineTee::OnCharacterSpawn(class CCharacter *pChr)
 	// Zombies Weapons
 	if (pChr->GetPlayer()->IsBot())
 	{
-		if (pChr->GetPlayer()->GetBotType() == CPlayer::BOT_MONSTER)
+		if (pChr->GetPlayer()->GetBotType() == BOT_MONSTER)
 		{
 			switch (pChr->GetPlayer()->GetBotSubType())
 			{
-				case CPlayer::BOT_MONSTER_TEEPER:
+				case BOT_MONSTER_TEEPER:
 					pChr->IncreaseHealth(10);
 					pChr->GiveBlock(CBlockManager::TNT, 1);
 					pChr->SetWeapon(NUM_WEAPONS+CBlockManager::TNT);
 					break;
 
-				case CPlayer::BOT_MONSTER_ZOMBITEE:
+				case BOT_MONSTER_ZOMBITEE:
 				//case CPlayer::BOT_MONSTER_SPIDERTEE:
-				case CPlayer::BOT_MONSTER_EYE:
+				case BOT_MONSTER_EYE:
 					pChr->IncreaseHealth(15);
 					pChr->GiveWeapon(WEAPON_HAMMER, -1);
 					pChr->SetWeapon(WEAPON_HAMMER);
 					break;
 
-				case CPlayer::BOT_MONSTER_SKELETEE:
+				case BOT_MONSTER_SKELETEE:
 					pChr->IncreaseHealth(20);
 					pChr->GiveWeapon(WEAPON_GRENADE, -1);
 					pChr->SetWeapon(WEAPON_GRENADE);
@@ -525,9 +525,9 @@ int CGameControllerMineTee::OnCharacterDeath(class CCharacter *pVictim, class CP
     if (pVictim->GetPlayer() == pKiller)
         return 1;
 
-    if (pVictim->GetPlayer()->GetBotType() == CPlayer::BOT_ANIMAL)
+    if (pVictim->GetPlayer()->GetBotType() == BOT_ANIMAL)
     {
-		if (pVictim->GetPlayer()->GetBotSubType() == CPlayer::BOT_ANIMAL_COW)
+		if (pVictim->GetPlayer()->GetBotSubType() == BOT_ANIMAL_COW)
 		{
 			CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_FOOD, FOOD_COW);
 			pPickup->m_Pos = pVictim->m_Pos;
@@ -536,22 +536,22 @@ int CGameControllerMineTee::OnCharacterDeath(class CCharacter *pVictim, class CP
 
 			return 0;
 		}
-		else if (pVictim->GetPlayer()->GetBotSubType() == CPlayer::BOT_ANIMAL_PIG)
+		else if (pVictim->GetPlayer()->GetBotSubType() == BOT_ANIMAL_PIG)
 		{
 			CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_FOOD, FOOD_PIG);
 			pPickup->m_Pos = pVictim->m_Pos;
 			return 0;
 		}
     }
-    else if(pVictim->GetPlayer()->GetBotType() == CPlayer::BOT_MONSTER)
+    else if(pVictim->GetPlayer()->GetBotType() == BOT_MONSTER)
     {
-		if (pVictim->GetPlayer()->GetBotSubType() == CPlayer::BOT_MONSTER_TEEPER)
+		if (pVictim->GetPlayer()->GetBotSubType() == BOT_MONSTER_TEEPER)
 		{
 			CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, CBlockManager::GUNPOWDER);
 			pPickup->m_Pos = pVictim->m_Pos;
 			return 0;
 		}
-		else if (pVictim->GetPlayer()->GetBotSubType() == CPlayer::BOT_MONSTER_SKELETEE)
+		else if (pVictim->GetPlayer()->GetBotSubType() == BOT_MONSTER_SKELETEE)
 		{
 			CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, CBlockManager::BONE);
 			pPickup->m_Pos = pVictim->m_Pos;
@@ -581,8 +581,8 @@ bool CGameControllerMineTee::CanSpawn(int Team, vec2 *pOutPos, int BotType)
 	if(Team == TEAM_SPECTATORS)
 		return false;
 
-	if ((g_Config.m_SvMonsters == 0 && BotType == CPlayer::BOT_MONSTER) ||
-		(g_Config.m_SvAnimals == 0 && BotType == CPlayer::BOT_ANIMAL))
+	if ((g_Config.m_SvMonsters == 0 && BotType == BOT_MONSTER) ||
+		(g_Config.m_SvAnimals == 0 && BotType == BOT_ANIMAL))
 		return false;
 
 	GenerateRandomSpawn(&Eval, BotType);
@@ -906,7 +906,7 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 	bool IsBot = (BotType != -1);
 
 	// TODO: Need do that ONLY SPAWN IN DARK ZONES!
-	if (IsBot && BotType != CPlayer::BOT_ANIMAL) // Enemies can spawn underground or outside
+	if (IsBot && BotType != BOT_ANIMAL) // Enemies can spawn underground or outside
 	{
 		P = vec2(rand()%GameServer()->Collision()->GetWidth(), rand()%GameServer()->Collision()->GetHeight());
 		P = vec2(P.x*32.0f + 16.0f, P.y*32.0f + 16.0f);
@@ -963,9 +963,9 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 		// Good Light?
 		CTile *pMTLTiles = GameServer()->Layers()->TileLights();
 		int TileLightIndex = static_cast<int>(P.y/32)*GameServer()->Layers()->Lights()->m_Width+static_cast<int>(P.y/32);
-		if (BotType == CPlayer::BOT_ANIMAL && pMTLTiles[TileLightIndex].m_Index != 0)
+		if (BotType == BOT_ANIMAL && pMTLTiles[TileLightIndex].m_Index != 0)
 			return;
-		else if (BotType != CPlayer::BOT_ANIMAL && pMTLTiles[TileLightIndex].m_Index != 202)
+		else if (BotType != BOT_ANIMAL && pMTLTiles[TileLightIndex].m_Index != 202)
 			return;
 	}
 

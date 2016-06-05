@@ -11,9 +11,22 @@
 #include "../laser.h"
 #include "../projectile.h"
 
+MACRO_ALLOC_POOL_ID_IMPL(CBossDune, MAX_CLIENTS)
+
 CBossDune::CBossDune(CGameWorld *pWorld)
-: CBoss(pWorld)
+: CCharacter(pWorld)
 {
+	m_BotDir = 1;
+	m_BotLastPos = m_Pos;
+	m_BotLastStuckTime = 0.0f;
+	m_BotStuckCount = 0;
+	m_BotTimePlayerFound = Server()->Tick();
+	m_BotTimeGrounded = Server()->Tick();
+	m_BotTimeLastOption = Server()->Tick();
+	m_BotTimeLastDamage = 0.0f;
+	m_BotClientIDFix = -1;
+	m_BotTimeLastSound = Server()->Tick();
+	m_BotJumpTry = false;
 }
 
 void CBossDune::Tick()

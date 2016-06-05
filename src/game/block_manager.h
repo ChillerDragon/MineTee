@@ -157,6 +157,8 @@ public:
 		LAVA_B,
 		LAVA_C,
 		LAVA_D,
+		PET,
+		SKIN,
 		MAX_BLOCKS=256,
 
 		FLUID_WATER=1,

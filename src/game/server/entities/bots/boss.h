@@ -11,18 +11,11 @@
 #include <game/gamecore.h>
 #include "../character.h"
 
-class CBoss : public CCharacter
+class IBoss
 {
-	MACRO_ALLOC_POOL_ID()
-
 public:
 	//character's size
 	static const int ms_PhysSize = 28;
-
-	CBoss(CGameWorld *pWorld);
-
-	virtual void Tick() = 0;
-	virtual bool TakeDamage(vec2 Force, int Dmg, int From, int Weapon);
 
 	vec2 m_BotLastPos;
     int m_BotDir;

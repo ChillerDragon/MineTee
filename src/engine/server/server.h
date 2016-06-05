@@ -7,7 +7,6 @@
 #include <engine/server.h>
 #include "accountsystem.h"
 
-
 class CSnapIDPool
 {
 	enum

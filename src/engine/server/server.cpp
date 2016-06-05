@@ -1881,7 +1881,7 @@ int main(int argc, const char **argv) // ignore_convention
 // MineTee
 void CServer::ResetBotInfo(int ClientID, int BotType, int BotSubType)
 {
-    if (BotType == CPlayer::BOT_BOSS && BotSubType == CPlayer::BOT_BOSS_DUNE)
+    if (BotType == BOT_BOSS && BotSubType == BOT_BOSS_DUNE)
     	str_copy(m_aClients[ClientID].m_aName , "DUNE BOSS", MAX_NAME_LENGTH);
     else
     	str_copy(m_aClients[ClientID].m_aName , "", MAX_NAME_LENGTH);

@@ -7,6 +7,7 @@
 #include <base/math.h>
 #include <base/vmath.h>
 #include <base/system.h>
+#include <engine/server.h> // MineTee
 
 /*
 	Class: Game Controller
@@ -17,6 +18,8 @@ class CGameController
 {
 	vec2 m_aaSpawnPoints[3][64];
 	int m_aNumSpawnPoints[3];
+
+	vec2 m_aBossSpawnPoints[NUM_BOSSES];
 
 	class CGameContext *m_pGameServer;
 	class IServer *m_pServer;

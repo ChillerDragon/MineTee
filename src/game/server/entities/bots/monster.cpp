@@ -55,7 +55,7 @@ void CMonster::PlaySound()
 {
 	switch(m_pPlayer->GetBotSubType())
 	{
-		case CPlayer::BOT_MONSTER_ZOMBITEE:
+		case BOT_MONSTER_ZOMBITEE:
 			GameServer()->CreateSound(m_Pos, SOUND_ENEMY_ZOMBITEE);
 			break;
 	}
@@ -65,7 +65,7 @@ void CMonster::RunAction()
 {
 	switch(m_pPlayer->GetBotSubType())
 	{
-		case CPlayer::BOT_MONSTER_TEEPER:
+		case BOT_MONSTER_TEEPER:
 			if ((Server()->Tick() - m_BotTimePlayerFound > Server()->TickSpeed()*0.35f || Server()->Tick()-m_BotTimeGrounded > Server()->TickSpeed()*4))
 			{ // Kill-Self
 
@@ -75,9 +75,9 @@ void CMonster::RunAction()
 			}
 			break;
 
-		case CPlayer::BOT_MONSTER_EYE:
-		case CPlayer::BOT_MONSTER_ZOMBITEE:
-			if (m_pPlayer->GetBotSubType() == CPlayer::BOT_MONSTER_EYE)
+		case BOT_MONSTER_EYE:
+		case BOT_MONSTER_ZOMBITEE:
+			if (m_pPlayer->GetBotSubType() == BOT_MONSTER_EYE)
 			{
 				if (m_BotClientIDFix == -1)
 		            m_Core.m_Vel = vec2(rand()%2,rand()%2);
@@ -115,7 +115,7 @@ void CMonster::RunAction()
 	        }
 			break;
 
-		case CPlayer::BOT_MONSTER_SKELETEE:
+		case BOT_MONSTER_SKELETEE:
 	        if (Server()->Tick()-m_BotTimeGrounded > Server()->TickSpeed()*4)
 	        {
 	            Die(m_pPlayer->GetCID(), WEAPON_WORLD);
@@ -172,7 +172,7 @@ void CMonster::TickBotAI()
         else
             continue;
 
-        if (m_pPlayer->GetBotSubType() == CPlayer::BOT_MONSTER_EYE && Dist < 600.0f)
+        if (m_pPlayer->GetBotSubType() == BOT_MONSTER_EYE && Dist < 600.0f)
         {
         	const vec2 dir = normalize(pPlayer->GetCharacter()->m_Pos-m_Pos);
         	m_Core.m_Vel = dir*6.0f;
@@ -183,7 +183,7 @@ void CMonster::TickBotAI()
             if (Dist > 120.0f)
             {
                 vec2 DirPlayer = normalize(pPlayer->GetCharacter()->m_Pos - m_Pos);
-                if (m_pPlayer->GetBotSubType() == CPlayer::BOT_MONSTER_SKELETEE)
+                if (m_pPlayer->GetBotSubType() == BOT_MONSTER_SKELETEE)
                 {
                     m_BotDir = 0;
                     m_BotClientIDFix = pPlayer->GetCID();
@@ -200,9 +200,9 @@ void CMonster::TickBotAI()
             {
                 PlayerClose = true;
 
-                if (m_pPlayer->GetBotSubType() == CPlayer::BOT_MONSTER_TEEPER)
+                if (m_pPlayer->GetBotSubType() == BOT_MONSTER_TEEPER)
                     m_BotDir = 0;
-                else if ((m_pPlayer->GetBotSubType() == CPlayer::BOT_MONSTER_ZOMBITEE || m_pPlayer->GetBotSubType() == CPlayer::BOT_MONSTER_EYE) && Dist < 42.0f)
+                else if ((m_pPlayer->GetBotSubType() == BOT_MONSTER_ZOMBITEE || m_pPlayer->GetBotSubType() == BOT_MONSTER_EYE) && Dist < 42.0f)
                 {
                     m_BotDir = 0;
                     m_BotClientIDFix = pPlayer->GetCID();
@@ -277,7 +277,7 @@ void CMonster::TickBotAI()
         m_BotTimeGrounded = Server()->Tick();
 
     //Falls
-    if (m_pPlayer->GetBotSubType() != CPlayer::BOT_MONSTER_ZOMBITEE && m_Core.m_Vel.y > GameServer()->Tuning()->m_Gravity)
+    if (m_pPlayer->GetBotSubType() != BOT_MONSTER_ZOMBITEE && m_Core.m_Vel.y > GameServer()->Tuning()->m_Gravity)
     {
     	if (m_BotClientIDFix != -1)
     	{
@@ -307,7 +307,7 @@ void CMonster::TickBotAI()
         m_BotTimePlayerFound = Server()->Tick();
 
     // Disables
-    if (m_pPlayer->GetBotSubType() == CPlayer::BOT_MONSTER_EYE)
+    if (m_pPlayer->GetBotSubType() == BOT_MONSTER_EYE)
     {
     	m_Input.m_Jump = 0;
     }

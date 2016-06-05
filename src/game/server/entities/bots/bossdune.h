@@ -11,9 +11,14 @@
 #include <game/gamecore.h>
 #include "boss.h"
 
-class CBossDune : public CBoss
+class CBossDune : public IBoss, public CCharacter
 {
+	MACRO_ALLOC_POOL_ID()
+
 public:
+	//character's size
+	static const int ms_PhysSize = 28;
+
 	CBossDune(CGameWorld *pWorld);
 
 	virtual void Tick();
@@ -21,6 +26,18 @@ public:
 
 private:
 	void TickBotAI();
+
+	vec2 m_BotLastPos;
+    int m_BotDir;
+    int m_BotStuckCount;
+    int m_BotClientIDFix;
+    float m_BotLastStuckTime;
+    float m_BotTimePlayerFound;
+    float m_BotTimeGrounded;
+    float m_BotTimeLastOption;
+    float m_BotTimeLastDamage;
+    float m_BotTimeLastSound;
+    bool m_BotJumpTry;
 };
 
 #endif

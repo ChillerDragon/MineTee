@@ -163,6 +163,15 @@ bool CGameController::OnEntity(int Index, vec2 Pos)
 		Type = POWERUP_NINJA;
 		SubType = WEAPON_NINJA;
 	}
+	else if (Index == ENTITY_SPAWN_BOSS_DUNE)
+	{
+		m_aBossSpawnPoints[BOT_BOSS_DUNE] = Pos;
+		GameServer()->SpawnBoss(Pos, BOT_BOSS_DUNE);
+	}
+	else if (Index == ENTITY_SPAWN_BOSS_GREYFOX)
+		m_aBossSpawnPoints[BOT_BOSS_GREYFOX] = Pos;
+	else if (Index == ENTITY_SPAWN_BOSS_ZOMBIE)
+		m_aBossSpawnPoints[BOT_BOSS_ZOMBIE] = Pos;
 
 	if(Type != -1)
 	{

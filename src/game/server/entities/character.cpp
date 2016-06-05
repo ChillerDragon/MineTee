@@ -1018,7 +1018,7 @@ void CCharacter::TickDefered()
 
 	// MineTee: Check Hook State
     int plHooked = m_Core.m_HookedPlayer;
-	if (plHooked >= MAX_CLIENTS-MAX_BOTS && plHooked < MAX_CLIENTS && GameServer()->m_apPlayers[plHooked] && GameServer()->m_apPlayers[plHooked]->GetBotType() == CPlayer::BOT_ANIMAL)
+	if (plHooked >= MAX_CLIENTS-MAX_BOTS && plHooked < MAX_CLIENTS && GameServer()->m_apPlayers[plHooked] && GameServer()->m_apPlayers[plHooked]->GetBotType() == BOT_ANIMAL)
 	    m_Core.m_HookTick = 0;
 }
 

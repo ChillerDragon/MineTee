@@ -1626,6 +1626,13 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 	num_spawn_points[2] = 0;
 	*/
 
+	// MineTee: Create Bot Players
+    if (str_find_nocase(GameType(), "minetee"))
+    {
+        for (int o=0; o<MAX_BOTS; o++)
+            CreateBot(o);
+    }
+
 	for(int y = 0; y < pTileMap->m_Height; y++)
 	{
 		for(int x = 0; x < pTileMap->m_Width; x++)
@@ -1639,13 +1646,6 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 			}
 		}
 	}
-
-	// MineTee: Add Bots
-    if (str_find_nocase(GameType(), "minetee"))
-    {
-        for (int o=0; o<MAX_BOTS; o++)
-            CreateBot(o);
-    }
 
 	//game.world.insert_entity(game.Controller);
 
@@ -1747,38 +1747,57 @@ void CGameContext::UpdateBotInfo(int ClientID)
 	const int BotType = m_apPlayers[ClientID]->GetBotType();
 	const int BotSubType = m_apPlayers[ClientID]->GetBotSubType();
 
-	if (BotType == CPlayer::BOT_ANIMAL)
+	if (BotType == BOT_ANIMAL)
 	{
-		if (BotSubType == CPlayer::BOT_ANIMAL_COW)
+		if (BotSubType == BOT_ANIMAL_COW)
 			str_copy(NameSkin, "x_animal_teecow", sizeof(NameSkin));
-		else if (BotSubType == CPlayer::BOT_ANIMAL_PIG)
+		else if (BotSubType == BOT_ANIMAL_PIG)
 			str_copy(NameSkin, "x_animal_teepig", sizeof(NameSkin));
 	}
-	else if (BotType == CPlayer::BOT_MONSTER)
+	else if (BotType == BOT_MONSTER)
 	{
-		if (BotSubType == CPlayer::BOT_MONSTER_SKELETEE)
+		if (BotSubType == BOT_MONSTER_SKELETEE)
 			str_copy(NameSkin, "x_monster_skeletee", sizeof(NameSkin));
 		//else if (BotSubType == CPlayer::BOT_MONSTER_SPIDERTEE)
 		//	str_copy(NameSkin, "x_monster_spidertee", sizeof(NameSkin));
-		else if (BotSubType == CPlayer::BOT_MONSTER_TEEPER)
+		else if (BotSubType == BOT_MONSTER_TEEPER)
 			str_copy(NameSkin, "x_monster_teeper", sizeof(NameSkin));
-		else if (BotSubType == CPlayer::BOT_MONSTER_ZOMBITEE)
+		else if (BotSubType == BOT_MONSTER_ZOMBITEE)
 			str_copy(NameSkin, "x_monster_zombitee", sizeof(NameSkin));
 		//else if (BotSubType == CPlayer::BOT_MONSTER_CLOUD)
 		//	str_copy(NameSkin, "x_monster_cloud", sizeof(NameSkin));
-		else if (BotSubType == CPlayer::BOT_MONSTER_EYE)
+		else if (BotSubType == BOT_MONSTER_EYE)
 			str_copy(NameSkin, "x_monster_eye", sizeof(NameSkin));
 	}
-	else if (BotType == CPlayer::BOT_BOSS)
+	else if (BotType == BOT_BOSS)
 	{
-		if (BotSubType == CPlayer::BOT_BOSS_DUNE)
+		if (BotSubType == BOT_BOSS_DUNE)
 			str_copy(NameSkin, "x_boss_dune", sizeof(NameSkin));
-		else if (BotSubType == CPlayer::BOT_BOSS_GREYFOX)
+		else if (BotSubType == BOT_BOSS_GREYFOX)
 			str_copy(NameSkin, "x_boss_greyfox", sizeof(NameSkin));
-		else if (BotSubType == CPlayer::BOT_BOSS_PEDOBEAR)
+		else if (BotSubType == BOT_BOSS_PEDOBEAR)
 			str_copy(NameSkin, "x_boss_pedobear", sizeof(NameSkin));
-		else if (BotSubType == CPlayer::BOT_BOSS_ZOMBIE)
+		else if (BotSubType == BOT_BOSS_ZOMBIE)
 			str_copy(NameSkin, "x_boss_zombie", sizeof(NameSkin));
+	}
+	else if (BotType == BOT_PET)
+	{
+		if (BotSubType == BOT_PET_DEFAULT)
+			str_copy(NameSkin, "x_pet_default", sizeof(NameSkin));
+		else if (BotSubType == BOT_PET_FIRE)
+			str_copy(NameSkin, "x_pet_fire", sizeof(NameSkin));
+		else if (BotSubType == BOT_PET_GHOST)
+			str_copy(NameSkin, "x_pet_ghost", sizeof(NameSkin));
+		else if (BotSubType == BOT_PET_GRIFFIN)
+			str_copy(NameSkin, "x_pet_griffin", sizeof(NameSkin));
+		else if (BotSubType == BOT_PET_ICE)
+			str_copy(NameSkin, "x_pet_ice", sizeof(NameSkin));
+		else if (BotSubType == BOT_PET_NOSEY)
+			str_copy(NameSkin, "x_pet_nosey", sizeof(NameSkin));
+		else if (BotSubType == BOT_PET_ONION)
+			str_copy(NameSkin, "x_pet_onion", sizeof(NameSkin));
+		else if (BotSubType == BOT_PET_PIG)
+			str_copy(NameSkin, "x_pet_pig", sizeof(NameSkin));
 	}
 	else
 		str_copy(NameSkin, "default", sizeof(NameSkin));
@@ -1794,11 +1813,14 @@ void CGameContext::CreateBot(int ClientID)
 {
     int BotClientID = (MAX_CLIENTS-MAX_BOTS)+ClientID;
     m_apPlayers[BotClientID] = new(BotClientID) CPlayer(this, BotClientID, TEAM_BOT);
-    m_apPlayers[BotClientID]->TryRespawn();
+    //m_apPlayers[BotClientID]->TryRespawn();
 }
 
 CPet* CGameContext::SpawnPet(CPlayer *pOwner, vec2 Pos)
 {
+	if (pOwner->GetPet())
+		return 0x0;
+
 	CPet *pPet = 0x0;
 	for (int i=MAX_CLIENTS-MAX_BOTS; i<MAX_CLIENTS; i++)
 	{
@@ -1807,8 +1829,8 @@ CPet* CGameContext::SpawnPet(CPlayer *pOwner, vec2 Pos)
 			continue;
 
 		pPet = new(pPlayer->GetCID()) CPet(&m_World);
-		pPlayer->SetBotType(CPlayer::BOT_PET);
-		pPlayer->SetBotSubType(CPlayer::BOT_PET_DEFAULT);
+		pPlayer->SetBotType(BOT_PET);
+		pPlayer->SetBotSubType(BOT_PET_DEFAULT);
 		pPlayer->SetCharacter(pPet);
 		pPet->Spawn(pPlayer, Pos);
 		pOwner->SetPet(pPet);
@@ -1819,23 +1841,27 @@ CPet* CGameContext::SpawnPet(CPlayer *pOwner, vec2 Pos)
 	return pPet;
 }
 
-CBoss* CGameContext::SpawnBoss(vec2 Pos, int Type)
+IBoss* CGameContext::SpawnBoss(vec2 Pos, int Type)
 {
-	CBoss *pBoss = 0x0;
+	IBoss *pBoss = 0x0;
 	for (int i=MAX_CLIENTS-MAX_BOTS; i<MAX_CLIENTS; i++)
 	{
 		CPlayer *pPlayer = m_apPlayers[i];
 		if (!pPlayer || pPlayer->GetCharacter())
 			continue;
 
-		if (Type == CPlayer::BOT_BOSS_DUNE)
-			pBoss = new(pPlayer->GetCID()) CBossDune(&m_World);
+		if (Type == BOT_BOSS_DUNE)
+		{
+			CBossDune *pBossDune = new(pPlayer->GetCID()) CBossDune(&m_World);
+			pBoss = (IBoss*)pBossDune;
+			pPlayer->SetCharacter(pBossDune);
+			pBossDune->Spawn(pPlayer, Pos);
+		}
 
-		pPlayer->SetBotType(CPlayer::BOT_BOSS);
+		pPlayer->SetBotType(BOT_BOSS);
 		pPlayer->SetBotSubType(Type);
-		pPlayer->SetCharacter(pBoss);
-		pBoss->Spawn(pPlayer, Pos);
 		UpdateBotInfo(pPlayer->GetCID());
+
 		break;
 	}
 
