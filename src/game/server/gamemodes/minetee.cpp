@@ -931,24 +931,6 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 		}
 	}
 
-	CCharacter *aEnts[MAX_CLIENTS];
-	int Num = GameServer()->m_World.FindEntities(P, 32*48, (CEntity**)aEnts, MAX_CLIENTS, CGameWorld::ENTTYPE_CHARACTER);
-
-	if (GameServer()->Collision()->CheckPoint(P, true) || GameServer()->m_BlockManager.IsFluid(GameServer()->Collision()->GetMineTeeTileAt(P)))
-		return;
-
-	bool CanSpawn = !IsBot;
-	for (int i=0; i<Num; i++)
-	{
-		if (IsBot && !aEnts[i]->GetPlayer()->IsBot() &&
-			distance(aEnts[i]->m_Pos, P) > aEnts[i]->m_ProximityRadius*28)
-			CanSpawn = true;
-		if (distance(aEnts[i]->m_Pos, P) < aEnts[i]->m_ProximityRadius)
-			CanSpawn = false;
-	}
-	if (!CanSpawn)
-		return;
-
 	if (IsBot)
 	{
 		// Other bots near?

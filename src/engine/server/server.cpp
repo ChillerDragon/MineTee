@@ -527,6 +527,13 @@ const unsigned char *CServer::ClientKey(int ClientID)
 	else
 		return 0x0;
 }
+
+void CServer::InitClientBot(int ClientID)
+{
+	if (ClientID < MAX_CLIENTS-MAX_BOTS || ClientID > MAX_CLIENTS)
+		return;
+	m_aClients[ClientID].m_State = CServer::CClient::STATE_INGAME;
+}
 //
 
 int CServer::MaxClients() const

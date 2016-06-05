@@ -1813,6 +1813,7 @@ void CGameContext::CreateBot(int ClientID)
 {
     int BotClientID = (MAX_CLIENTS-MAX_BOTS)+ClientID;
     m_apPlayers[BotClientID] = new(BotClientID) CPlayer(this, BotClientID, TEAM_BOT);
+    Server()->InitClientBot(BotClientID);
     //m_apPlayers[BotClientID]->TryRespawn();
 }
 

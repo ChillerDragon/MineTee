@@ -257,6 +257,7 @@ public:
 
 	const unsigned char *ClientKey(int ClientID);
 	IAccountSystem *AccountSystem() { return &m_AccountSystem; }
+	virtual void InitClientBot(int ClientID);
 	//
 };
 

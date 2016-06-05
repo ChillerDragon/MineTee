@@ -127,6 +127,7 @@ public:
 	virtual int GetBlocksDataSize() = 0;
 
 	virtual const unsigned char *ClientKey(int ClientID) = 0;
+	virtual void InitClientBot(int ClientID) = 0;
 	//
 };
 

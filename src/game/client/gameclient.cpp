@@ -930,9 +930,9 @@ void CGameClient::OnNewSnapshot()
 		}
 	}
 	// MineTee: sort player infos by team
-	int Teams[9] = { TEAM_RED, TEAM_BLUE, TEAM_SPECTATORS, TEAM_BOT };
+	int Teams[4] = { TEAM_RED, TEAM_BLUE, TEAM_SPECTATORS, TEAM_BOT };
 	int Index = 0;
-	for(int Team = 0; Team < 9; ++Team)
+	for(int Team = 0; Team < 4; ++Team)
 	{
 		for(int i = 0; i < MAX_CLIENTS && Index < MAX_CLIENTS; ++i)
 		{
