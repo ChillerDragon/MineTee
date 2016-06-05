@@ -10,6 +10,7 @@ class CControls : public CComponent
 public:
 	vec2 m_MousePos;
 	vec2 m_TargetPos;
+	int m_SlowMouse;
 
 	CNetObj_PlayerInput m_InputData;
 	CNetObj_PlayerInput m_LastData;
