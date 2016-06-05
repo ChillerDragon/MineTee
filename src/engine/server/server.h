@@ -246,7 +246,7 @@ public:
 	int m_CurrentBlocksSize;
 	CAccountSystem m_AccountSystem;
 
-	virtual void InitBot(int ClientID, int BType);
+	virtual void ResetBotInfo(int ClientID, int BotType, int BotSubType);
 	static void ConGive(IConsole::IResult *pResult, void *pUser);
 	static void ConMapSave(IConsole::IResult *pResult, void *pUser);
 	static void ConTeleport(IConsole::IResult *pResult, void *pUser);

@@ -26,8 +26,12 @@ CPlayer::CPlayer(CGameContext *pGameServer, int ClientID, int Team)
 	m_LastActionTick = Server()->Tick();
 	m_TeamChangeTick = Server()->Tick();
 
-	m_Bot = (ClientID >= MAX_CLIENTS-MAX_BOTS); // MineTee;
-	m_IsFirstJoin = true; // MineTee
+	// MineTee
+	m_Bot = (ClientID >= MAX_CLIENTS-MAX_BOTS);
+	m_IsFirstJoin = true;
+	m_BotType = -1;
+	m_BotSubType = -1;
+	//
 }
 
 CPlayer::~CPlayer()
@@ -217,7 +221,7 @@ void CPlayer::OnDirectInput(CNetObj_PlayerInput *NewInput)
 	// check for activity
 	if(NewInput->m_Direction || m_LatestActivity.m_TargetX != NewInput->m_TargetX ||
 		m_LatestActivity.m_TargetY != NewInput->m_TargetY || NewInput->m_Jump ||
-		NewInput->m_Fire&1 || NewInput->m_Hook)
+		(NewInput->m_Fire&1) || NewInput->m_Hook)
 	{
 		m_LatestActivity.m_TargetX = NewInput->m_TargetX;
 		m_LatestActivity.m_TargetY = NewInput->m_TargetY;
@@ -290,63 +294,34 @@ void CPlayer::TryRespawn()
 	vec2 SpawnPos;
 
 	// MineTee
-    if (str_find_nocase(GameServer()->GameType(),"minetee") && IsBot())
+    if (IsBot())
     {
         int64 Time = -1;
         bool IsDay = false;
         GameServer()->GetServerTime(&IsDay, &Time);
-
-        if (!IsDay)
-        {
-            int Teams[2] = { TEAM_ANIMAL_TEECOW, TEAM_ANIMAL_TEEPIG };
-            m_Team = Teams[rand()%2];
-        }
-        else
-        {
-            int Teams[4] = { TEAM_ENEMY_TEEPER, TEAM_ENEMY_ZOMBITEE, TEAM_ENEMY_SKELETEE, TEAM_ENEMY_EYE };
-            m_Team = Teams[rand()%4];
-        	//m_Team = TEAM_ENEMY_EYE;
-        }
-
-        GameServer()->UpdateBotInfo(m_ClientID, m_Team);
+        m_BotType = IsDay?BOT_ANIMAL:BOT_MONSTER;
+        m_BotSubType = rand()%(IsDay?NUM_ANIMALS:NUM_MONSTERS);
+        GameServer()->UpdateBotInfo(m_ClientID);
     }
     //
 
-	if(!GameServer()->m_pController->CanSpawn(m_Team, &SpawnPos))
+	if(!GameServer()->m_pController->CanSpawn(m_Team, &SpawnPos, m_BotType))
 		return;
 
 	m_Spawning = false;
 
 	// MineTee
-	if (IsBot())
+	if (!IsBot())
 	{
-		// Other bots near?
-		CCharacter *aEnts[MAX_BOTS];
-		int Num = GameServer()->m_World.FindEntities(SpawnPos, 1250.0f, (CEntity**)aEnts, MAX_BOTS, CGameWorld::ENTTYPE_CHARACTER);
-		for (int i=0; i<Num; i++)
-		{
-			if (aEnts[i]->GetPlayer()->IsBot())
-				return;
-		}
-	}
-
-	if (m_Team >= TEAM_ENEMY_TEEPER && m_Team <= TEAM_ENEMY_EYE)
-	{
-		// In Dark?
-		CGameControllerMineTee *pControllerMT = (CGameControllerMineTee*)GameServer()->m_pController;
-		pControllerMT->UpdateLayerLights(SpawnPos);
-		const int Nx = clamp((int)(SpawnPos.x/32), 0, GameServer()->Layers()->Lights()->m_Width-1);
-		const int Ny = clamp((int)(SpawnPos.y/32), 0, GameServer()->Layers()->Lights()->m_Height-1);
-		int Index = Nx + Ny*GameServer()->Layers()->Lights()->m_Width;
-		if (GameServer()->Layers()->TileLights()[Index].m_Index < 186)
-			return;
-
-		m_pCharacter = new(m_ClientID) CMonster(&GameServer()->m_World);
-	}
-	else if (m_Team >= TEAM_ANIMAL_TEECOW && m_Team <= TEAM_ANIMAL_TEEPIG)
-		m_pCharacter = new(m_ClientID) CAnimal(&GameServer()->m_World);
-	else
 		m_pCharacter = new(m_ClientID) CCharacter(&GameServer()->m_World);
+	}
+	else
+	{
+		if (m_BotType == BOT_MONSTER)
+			m_pCharacter = new(m_ClientID) CMonster(&GameServer()->m_World);
+		else if (m_BotType == BOT_ANIMAL)
+			m_pCharacter = new(m_ClientID) CAnimal(&GameServer()->m_World);
+	}
 	//
 
 	m_pCharacter->Spawn(this, SpawnPos);

@@ -15,6 +15,42 @@ class CPlayer
 	MACRO_ALLOC_POOL_ID()
 
 public:
+	enum
+	{
+		BOT_ANIMAL=0,
+		BOT_MONSTER,
+		BOT_PET,
+		BOT_BOSS,
+
+		BOT_ANIMAL_COW=0,
+		BOT_ANIMAL_PIG,
+		NUM_ANIMALS,
+
+		BOT_MONSTER_TEEPER=0,
+		BOT_MONSTER_ZOMBITEE,
+		BOT_MONSTER_SKELETEE,
+		//BOT_MONSTER_SPIDERTEE,
+		BOT_MONSTER_EYE,
+		//BOT_MONSTER_CLOUD,
+		NUM_MONSTERS,
+
+		BOT_PET_DEFAULT=0,
+		BOT_PET_FIRE,
+		BOT_PET_GHOST,
+		BOT_PET_GRIFFIN,
+		BOT_PET_ICE,
+		BOT_PET_NOSEY,
+		BOT_PET_ONION,
+		BOT_PET_PIG,
+		NUM_PETS,
+
+		BOT_BOSS_DUNE=0,
+		BOT_BOSS_GREYFOX,
+		BOT_BOSS_PEDOBEAR,
+		BOT_BOSS_ZOMBIE,
+		NUM_BOSSES,
+	};
+
 	CPlayer(CGameContext *pGameServer, int ClientID, int Team);
 	~CPlayer();
 
@@ -99,7 +135,11 @@ public:
 	} m_Latency;
 
 	// MineTee
+	bool m_IsFirstJoin;
+	int m_Level;
 	bool IsBot() const { return m_Bot; }
+	int GetBotType() const { return m_BotType; }
+	int GetBotSubType() const { return m_BotSubType; }
 	CPet* GetPet() { return m_pPet; }
 	void SetPet(CPet *pPet)
 	{
@@ -109,10 +149,10 @@ public:
 	}
 	void SetHardTeam(int team) { m_Team = team; }
 	void SetCharacter(CCharacter *pChar) { if (!m_pCharacter) m_pCharacter = pChar; }
-	bool m_IsFirstJoin;
-	int m_Level;
 	void FillAccountData(void *pAccountData);
 	void UseAccountData(void *pAccountData);
+	void SetBotType(int BotType) { m_BotType = BotType; }
+	void SetBotSubType(int BotSubType) { m_BotSubType = BotSubType; }
 
 private:
 	CCharacter *m_pCharacter;
@@ -127,7 +167,11 @@ private:
 	int m_ClientID;
 	int m_Team;
 
-	bool m_Bot; // MineTee
+	// MineTee
+	bool m_Bot;
+	int m_BotType;
+	int m_BotSubType;
+	//
 };
 
 #endif

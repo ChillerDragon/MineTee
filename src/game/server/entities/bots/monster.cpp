@@ -26,7 +26,6 @@ CMonster::CMonster(CGameWorld *pWorld)
 	m_BotClientIDFix = -1;
 	m_BotTimeLastSound = Server()->Tick();
 	m_BotJumpTry = false;
-	m_BotVel = vec2(rand()%2,rand()%2);
 }
 
 void CMonster::Tick()
@@ -52,83 +51,103 @@ bool CMonster::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 	return false;
 }
 
+void CMonster::PlaySound()
+{
+	switch(m_pPlayer->GetBotSubType())
+	{
+		case CPlayer::BOT_MONSTER_ZOMBITEE:
+			GameServer()->CreateSound(m_Pos, SOUND_ENEMY_ZOMBITEE);
+			break;
+	}
+}
+
+void CMonster::RunAction()
+{
+	switch(m_pPlayer->GetBotSubType())
+	{
+		case CPlayer::BOT_MONSTER_TEEPER:
+			if ((Server()->Tick() - m_BotTimePlayerFound > Server()->TickSpeed()*0.35f || Server()->Tick()-m_BotTimeGrounded > Server()->TickSpeed()*4))
+			{ // Kill-Self
+
+				Die(m_pPlayer->GetCID(), WEAPON_WORLD);
+				GameServer()->CreateExplosion(m_Pos, m_pPlayer->GetCID(), WEAPON_WORLD, false);
+				GameServer()->CreateSound(m_Pos, SOUND_GRENADE_EXPLODE);
+			}
+			break;
+
+		case CPlayer::BOT_MONSTER_EYE:
+		case CPlayer::BOT_MONSTER_ZOMBITEE:
+			if (m_pPlayer->GetBotSubType() == CPlayer::BOT_MONSTER_EYE)
+			{
+				if (m_BotClientIDFix == -1)
+		            m_Core.m_Vel = vec2(rand()%2,rand()%2);
+				else
+					m_Core.m_Vel.y = -GameServer()->Tuning()->m_Gravity;
+			}
+	        else if (Server()->Tick()-m_BotTimeGrounded > Server()->TickSpeed()*4)
+	        {
+	            Die(m_pPlayer->GetCID(), WEAPON_WORLD);
+	            break;
+	        }
+
+	        if (m_BotClientIDFix != -1 && GameServer()->m_apPlayers[m_BotClientIDFix])
+	        {
+	        	CCharacter *pChar = GameServer()->m_apPlayers[m_BotClientIDFix]->GetCharacter();
+	            if (!pChar)
+	            {
+	                m_BotClientIDFix = -1;
+	                return;
+	            }
+
+	            if (Server()->Tick() - m_BotTimePlayerFound > Server()->TickSpeed()*0.45f)
+	            {
+					vec2 DirHit = vec2(0.f, -1.f);
+					if (length(pChar->m_Pos - m_Pos) > 0.0f)
+						DirHit = normalize(pChar->m_Pos - m_Pos);
+					pChar->TakeDamage(vec2(0.f, -1.f) + normalize(DirHit + vec2(0.f, -1.1f)) * 10.0f, 3, m_pPlayer->GetCID(), WEAPON_WORLD);
+					GameServer()->CreateHammerHit(m_Pos);
+					GameServer()->CreateSound(m_Pos, SOUND_HIT);
+					m_BotDir = 0;
+					m_BotTimePlayerFound = Server()->Tick();
+	            }
+
+	            m_BotClientIDFix = -1;
+	        }
+			break;
+
+		case CPlayer::BOT_MONSTER_SKELETEE:
+	        if (Server()->Tick()-m_BotTimeGrounded > Server()->TickSpeed()*4)
+	        {
+	            Die(m_pPlayer->GetCID(), WEAPON_WORLD);
+	        }
+	        if (m_BotClientIDFix != -1 && GameServer()->m_apPlayers[m_BotClientIDFix])
+	        {
+	            CCharacter *pChar = GameServer()->m_apPlayers[m_BotClientIDFix]->GetCharacter();
+	            if (pChar && !GameServer()->Collision()->IntersectLine(m_Pos, pChar->m_Pos, 0x0, 0x0) && GameServer()->IntersectCharacter(m_Pos, pChar->m_Pos, 0x0, m_pPlayer->GetCID()) == m_BotClientIDFix)
+	            {
+					m_LatestInput.m_Fire = 1;
+					m_LatestPrevInput.m_Fire = 1;
+					m_Input.m_Fire = 1;
+					m_BotDir = 0;
+	            }
+
+	            m_BotClientIDFix = -1;
+	        }
+	        break;
+	}
+}
+
 void CMonster::TickBotAI()
 {
     //Sounds
     if (Server()->Tick() - m_BotTimeLastSound > Server()->TickSpeed()*5.0f)
     {
-        if (m_pPlayer->GetTeam() == TEAM_ENEMY_ZOMBITEE)
-            GameServer()->CreateSound(m_Pos, SOUND_ENEMY_ZOMBITEE);
+        PlaySound();
         m_BotTimeLastSound = Server()->Tick();
     }
 
     //Run actions
-    if (m_pPlayer->GetTeam() == TEAM_ENEMY_TEEPER && (Server()->Tick() - m_BotTimePlayerFound > Server()->TickSpeed()*0.35f || Server()->Tick()-m_BotTimeGrounded > Server()->TickSpeed()*4))
-    {
-
-        Die(m_pPlayer->GetCID(), WEAPON_WORLD);
-        GameServer()->CreateExplosion(m_Pos, m_pPlayer->GetCID(), WEAPON_WORLD, false);
-        GameServer()->CreateSound(m_Pos, SOUND_GRENADE_EXPLODE);
-        return;
-    }
-    else if (m_pPlayer->GetTeam() == TEAM_ENEMY_ZOMBITEE || m_pPlayer->GetTeam() == TEAM_ENEMY_EYE)
-    {
-    	if (m_pPlayer->GetTeam() == TEAM_ENEMY_EYE)
-    		m_Core.m_Vel.y = -GameServer()->Tuning()->m_Gravity;
-
-        if (m_pPlayer->GetTeam() != TEAM_ENEMY_EYE && Server()->Tick()-m_BotTimeGrounded > Server()->TickSpeed()*4)
-        {
-            Die(m_pPlayer->GetCID(), WEAPON_WORLD);
-            return;
-        }
-
-        if (m_BotClientIDFix != -1 && GameServer()->m_apPlayers[m_BotClientIDFix])
-        {
-        	CCharacter *pChar = GameServer()->m_apPlayers[m_BotClientIDFix]->GetCharacter();
-            if (!pChar)
-            {
-                m_BotClientIDFix = -1;
-                return;
-            }
-
-            if (Server()->Tick() - m_BotTimePlayerFound > Server()->TickSpeed()*0.85f)
-            {
-				vec2 DirHit = vec2(0.f, -1.f);
-				if (length(pChar->m_Pos - m_Pos) > 0.0f)
-					DirHit = normalize(pChar->m_Pos - m_Pos);
-				pChar->TakeDamage(vec2(0.f, -1.f) + normalize(DirHit + vec2(0.f, -1.1f)) * 10.0f, 3, m_pPlayer->GetCID(), WEAPON_WORLD);
-				GameServer()->CreateHammerHit(m_Pos);
-				GameServer()->CreateSound(m_Pos, SOUND_HIT);
-				m_BotDir = 0;
-				m_BotTimePlayerFound = Server()->Tick();
-            }
-
-            m_BotClientIDFix = -1;
-            return;
-        }
-    }
-    else if (m_pPlayer->GetTeam() == TEAM_ENEMY_SKELETEE)
-    {
-        if (Server()->Tick()-m_BotTimeGrounded > Server()->TickSpeed()*4)
-        {
-            Die(m_pPlayer->GetCID(), WEAPON_WORLD);
-            return;
-        }
-        if (m_BotClientIDFix != -1 && GameServer()->m_apPlayers[m_BotClientIDFix])
-        {
-            CCharacter *pChar = GameServer()->m_apPlayers[m_BotClientIDFix]->GetCharacter();
-            if (pChar && !GameServer()->Collision()->IntersectLine(m_Pos, pChar->m_Pos, 0x0, 0x0) && GameServer()->IntersectCharacter(m_Pos, pChar->m_Pos, 0x0, m_pPlayer->GetCID()) == m_BotClientIDFix)
-            {
-				m_LatestInput.m_Fire = 1;
-				m_LatestPrevInput.m_Fire = 1;
-				m_Input.m_Fire = 1;
-				m_BotDir = 0;
-            }
-
-            m_BotClientIDFix = -1;
-            return;
-        }
-    }
+    RunAction();
 
     //Clean m_Input
 	m_Input.m_Hook = 0;
@@ -153,7 +172,7 @@ void CMonster::TickBotAI()
         else
             continue;
 
-        if (m_pPlayer->GetTeam() == TEAM_ENEMY_EYE && Dist < 600.0f)
+        if (m_pPlayer->GetBotSubType() == CPlayer::BOT_MONSTER_EYE && Dist < 600.0f)
         {
         	const vec2 dir = normalize(pPlayer->GetCharacter()->m_Pos-m_Pos);
         	m_Core.m_Vel = dir*6.0f;
@@ -164,25 +183,7 @@ void CMonster::TickBotAI()
             if (Dist > 120.0f)
             {
                 vec2 DirPlayer = normalize(pPlayer->GetCharacter()->m_Pos - m_Pos);
-
-                /*bool isHooked = false;
-                for (int e=0; e<MAX_CLIENTS-MAX_BOTS; e++)
-                {
-                    if (!GameServer()->m_apPlayers[e] || !GameServer()->m_apPlayers[e]->GetCharacter())
-                        continue;
-
-                    int HookedPL = GameServer()->m_apPlayers[e]->GetCharacter()->GetCore()->m_HookedPlayer;
-                    if (HookedPL < 0 || HookedPL != m_pPlayer->GetCID() || !GameServer()->m_apPlayers[HookedPL])
-                        continue;
-
-                    if (GameServer()->m_apPlayers[HookedPL]->GetTeam() == TEAM_ANIMAL_TEECOW || GameServer()->m_apPlayers[HookedPL]->GetTeam() == TEAM_ANIMAL_TEEPIG)
-                    {
-                        isHooked = true;
-                        break;
-                    }
-                }*/
-
-                if (m_pPlayer->GetTeam() == TEAM_ENEMY_SKELETEE)
+                if (m_pPlayer->GetBotSubType() == CPlayer::BOT_MONSTER_SKELETEE)
                 {
                     m_BotDir = 0;
                     m_BotClientIDFix = pPlayer->GetCID();
@@ -199,9 +200,9 @@ void CMonster::TickBotAI()
             {
                 PlayerClose = true;
 
-                if (m_pPlayer->GetTeam() == TEAM_ENEMY_TEEPER)
+                if (m_pPlayer->GetBotSubType() == CPlayer::BOT_MONSTER_TEEPER)
                     m_BotDir = 0;
-                else if ((m_pPlayer->GetTeam() == TEAM_ENEMY_ZOMBITEE || m_pPlayer->GetTeam() == TEAM_ENEMY_EYE) && Dist < 42.0f)
+                else if ((m_pPlayer->GetBotSubType() == CPlayer::BOT_MONSTER_ZOMBITEE || m_pPlayer->GetBotSubType() == CPlayer::BOT_MONSTER_EYE) && Dist < 42.0f)
                 {
                     m_BotDir = 0;
                     m_BotClientIDFix = pPlayer->GetCID();
@@ -241,12 +242,8 @@ void CMonster::TickBotAI()
             else if (Action == 2)
                 m_BotDir = 0;
 
-            if (m_pPlayer->GetTeam() == TEAM_ENEMY_EYE)
-            	m_BotVel = vec2(rand()%2,rand()%2);
-
             m_BotTimeLastOption = Server()->Tick();
         }
-        m_Core.m_Vel = m_BotVel;
 	}
 
     //Interact with the envirionment
@@ -280,7 +277,7 @@ void CMonster::TickBotAI()
         m_BotTimeGrounded = Server()->Tick();
 
     //Falls
-    if (m_pPlayer->GetTeam() != TEAM_ENEMY_ZOMBITEE && m_Core.m_Vel.y > GameServer()->Tuning()->m_Gravity)
+    if (m_pPlayer->GetBotSubType() != CPlayer::BOT_MONSTER_ZOMBITEE && m_Core.m_Vel.y > GameServer()->Tuning()->m_Gravity)
     {
     	if (m_BotClientIDFix != -1)
     	{
@@ -310,7 +307,7 @@ void CMonster::TickBotAI()
         m_BotTimePlayerFound = Server()->Tick();
 
     // Disables
-    if (m_pPlayer->GetTeam() == TEAM_ENEMY_EYE)
+    if (m_pPlayer->GetBotSubType() == CPlayer::BOT_MONSTER_EYE)
     {
     	m_Input.m_Jump = 0;
     }

@@ -76,7 +76,7 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 	m_EmoteStop = -1;
 	m_LastAction = -1;
 	m_LastNoAmmoSound = -1;
-	m_ActiveWeapon = WEAPON_GUN;
+	m_ActiveWeapon = -1;
 	m_LastWeapon = WEAPON_HAMMER;
 	m_QueuedWeapon = -1;
 
@@ -1018,8 +1018,7 @@ void CCharacter::TickDefered()
 
 	// MineTee: Check Hook State
     int plHooked = m_Core.m_HookedPlayer;
-	if (plHooked >= MAX_CLIENTS-MAX_BOTS && plHooked < MAX_CLIENTS && GameServer()->m_apPlayers[plHooked] &&
-     (GameServer()->m_apPlayers[plHooked]->GetTeam() == TEAM_ANIMAL_TEECOW || GameServer()->m_apPlayers[plHooked]->GetTeam() == TEAM_ANIMAL_TEEPIG))
+	if (plHooked >= MAX_CLIENTS-MAX_BOTS && plHooked < MAX_CLIENTS && GameServer()->m_apPlayers[plHooked] && GameServer()->m_apPlayers[plHooked]->GetBotType() == CPlayer::BOT_ANIMAL)
 	    m_Core.m_HookTick = 0;
 }
 
@@ -1193,12 +1192,6 @@ void CCharacter::Snap(int SnappingClient)
 {
 	if(NetworkClipped(SnappingClient))
 		return;
-
-	// MineTee
-    if ((g_Config.m_SvMonsters == 0 && m_pPlayer->GetTeam() >= TEAM_ENEMY_TEEPER && m_pPlayer->GetTeam() <= TEAM_ENEMY_EYE) ||
-        (g_Config.m_SvAnimals == 0 && m_pPlayer->GetTeam() >= TEAM_ANIMAL_TEECOW && m_pPlayer->GetTeam() <= TEAM_ANIMAL_TEEPIG))
-        return;
-    //
 
 	CNetObj_Character *pCharacter = static_cast<CNetObj_Character *>(Server()->SnapNewItem(NETOBJTYPE_CHARACTER, m_pPlayer->GetCID(), sizeof(CNetObj_Character)));
 	if(!pCharacter)

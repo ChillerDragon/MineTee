@@ -95,26 +95,13 @@ void CGameController::EvaluateSpawnType(CSpawnEval *pEval, int Type)
 	}
 }
 
-bool CGameController::CanSpawn(int Team, vec2 *pOutPos)
+bool CGameController::CanSpawn(int Team, vec2 *pOutPos, int BotType)
 {
 	CSpawnEval Eval;
 
 	// spectators can't spawn
 	if(Team == TEAM_SPECTATORS)
 		return false;
-
-    // MineTee: Spawn Bots
-	if (str_find_nocase(m_pGameType, "minetee"))
-	{
-
-		if (Team > TEAM_BLUE && ((g_Config.m_SvMonsters == 0 && Team >= TEAM_ENEMY_TEEPER && Team <= TEAM_ENEMY_EYE) ||
-			(g_Config.m_SvAnimals == 0 && Team >= TEAM_ANIMAL_TEECOW && Team <= TEAM_ANIMAL_TEEPIG)))
-			return false;
-
-		GenerateRandomSpawn(&Eval, Team);
-		*pOutPos = Eval.m_Pos;
-		return Eval.m_Got;
-	}
 
 	if(IsTeamplay())
 	{
@@ -751,78 +738,4 @@ int CGameController::ClampTeam(int Team)
 	if(IsTeamplay())
 		return Team&1;
 	return 0;
-}
-
-// MineTee
-void CGameController::GenerateRandomSpawn(CSpawnEval *pEval, int Team)
-{
-	vec2 P;
-	bool IsBot = (Team >= TEAM_BLUE);
-	bool IsAnimal = (Team >= TEAM_ANIMAL_TEECOW && Team <= TEAM_ANIMAL_TEEPIG);
-
-	// TODO: Need do that ONLY SPAWN IN DARK ZONES!
-	if (IsBot && !IsAnimal) // Enemies can spawn underground or outside
-	{
-		P = vec2(rand()%m_pGameServer->Collision()->GetWidth(), rand()%m_pGameServer->Collision()->GetHeight());
-		P = vec2(P.x*32.0f + 16.0f, P.y*32.0f + 16.0f);
-
-		if (m_pGameServer->Collision()->GetCollisionAt(P.x-32, P.y) != 0 ||
-			m_pGameServer->Collision()->GetCollisionAt(P.x+32, P.y) != 0 ||
-			m_pGameServer->Collision()->GetCollisionAt(P.x, P.y-32) != 0)
-			return;
-	}
-	else // Players & Animals only spawn in the outside
-	{
-		P = vec2(rand()%m_pGameServer->Collision()->GetWidth(), 0);
-		P = vec2(P.x*32.0f + 16.0f, 16.0f);
-		const int TotalH = m_pGameServer->Collision()->GetHeight()*32;
-		for (int i=P.y; i<TotalH-1; i+=32)
-		{
-			if (m_pGameServer->Collision()->CheckPoint(vec2(P.x, i), true))
-			{
-				P.y = i-32;
-				break;
-			}
-		}
-	}
-
-	CCharacter *aEnts[MAX_CLIENTS];
-	int Num = GameServer()->m_World.FindEntities(P, 32*48, (CEntity**)aEnts, MAX_CLIENTS, CGameWorld::ENTTYPE_CHARACTER);
-
-	if (m_pGameServer->Collision()->CheckPoint(P, true) || m_pGameServer->m_BlockManager.IsFluid(m_pGameServer->Collision()->GetMineTeeTileAt(P)))
-		return;
-
-	bool CanSpawn = !IsBot;
-	for (int i=0; i<Num; i++)
-	{
-		if (IsBot && !aEnts[i]->GetPlayer()->IsBot() &&
-			distance(aEnts[i]->m_Pos, P) > aEnts[i]->m_ProximityRadius*28)
-			CanSpawn = true;
-		if (distance(aEnts[i]->m_Pos, P) < aEnts[i]->m_ProximityRadius)
-			CanSpawn = false;
-	}
-	if (!CanSpawn)
-		return;
-
-	if (IsBot)
-	{
-		CTile *pMTLTiles = GameServer()->Layers()->TileLights();
-		int TileLightIndex = static_cast<int>(P.y/32)*GameServer()->Layers()->Lights()->m_Width+static_cast<int>(P.y/32);
-		if (IsAnimal && pMTLTiles[TileLightIndex].m_Index != 0)
-			return;
-		else if (!IsAnimal && pMTLTiles[TileLightIndex].m_Index != 202)
-			return;
-	}
-
-	if (m_pGameServer->Collision()->GetCollisionAt(P.x, P.y+32) == CCollision::COLFLAG_SOLID)
-	{
-		float S = EvaluateSpawnPos(pEval, P);
-		if(!pEval->m_Got || pEval->m_Score > S)
-		{
-			pEval->m_Got = true;
-			pEval->m_Score = S;
-			P.y -= 8; // Be secure that not spawn stuck
-			pEval->m_Pos = P;
-		}
-	}
 }

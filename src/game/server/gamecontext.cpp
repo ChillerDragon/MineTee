@@ -1741,29 +1741,49 @@ void CGameContext::CreateTombstone(vec2 Pos)
 	}
 }
 
-void CGameContext::UpdateBotInfo(int ClientID, int TEnemy)
+void CGameContext::UpdateBotInfo(int ClientID)
 {
-    char NameSkin[64];
-    if (TEnemy == TEAM_ENEMY_TEEPER)
-        str_copy(NameSkin, "x_teeper", sizeof(NameSkin));
-    else if (TEnemy == TEAM_ENEMY_ZOMBITEE)
-        str_copy(NameSkin, "x_zombitee", sizeof(NameSkin));
-    else if (TEnemy == TEAM_ENEMY_SPIDERTEE)
-        str_copy(NameSkin, "x_spidertee", sizeof(NameSkin));
-    else if (TEnemy == TEAM_ENEMY_SKELETEE)
-        str_copy(NameSkin, "x_skeletee", sizeof(NameSkin));
-    else if (TEnemy == TEAM_ENEMY_EYE)
-            str_copy(NameSkin, "x_enemy_eye", sizeof(NameSkin));
-    else if (TEnemy == TEAM_ANIMAL_TEECOW)
-        str_copy(NameSkin, "x_teecow", sizeof(NameSkin));
-    else if (TEnemy == TEAM_ANIMAL_TEEPIG)
-        str_copy(NameSkin, "x_teepig", sizeof(NameSkin));
-    else if (TEnemy == TEAM_PET)
-        str_copy(NameSkin, "x_pet", sizeof(NameSkin));
-    else if (TEnemy == TEAM_BOSS_DUNE)
-    	str_copy(NameSkin, "x_boss_dune", sizeof(NameSkin));
+	char NameSkin[64];
+	const int BotType = m_apPlayers[ClientID]->GetBotType();
+	const int BotSubType = m_apPlayers[ClientID]->GetBotSubType();
 
-    Server()->InitBot(ClientID, TEnemy);
+	if (BotType == CPlayer::BOT_ANIMAL)
+	{
+		if (BotSubType == CPlayer::BOT_ANIMAL_COW)
+			str_copy(NameSkin, "x_animal_teecow", sizeof(NameSkin));
+		else if (BotSubType == CPlayer::BOT_ANIMAL_PIG)
+			str_copy(NameSkin, "x_animal_teepig", sizeof(NameSkin));
+	}
+	else if (BotType == CPlayer::BOT_MONSTER)
+	{
+		if (BotSubType == CPlayer::BOT_MONSTER_SKELETEE)
+			str_copy(NameSkin, "x_monster_skeletee", sizeof(NameSkin));
+		//else if (BotSubType == CPlayer::BOT_MONSTER_SPIDERTEE)
+		//	str_copy(NameSkin, "x_monster_spidertee", sizeof(NameSkin));
+		else if (BotSubType == CPlayer::BOT_MONSTER_TEEPER)
+			str_copy(NameSkin, "x_monster_teeper", sizeof(NameSkin));
+		else if (BotSubType == CPlayer::BOT_MONSTER_ZOMBITEE)
+			str_copy(NameSkin, "x_monster_zombitee", sizeof(NameSkin));
+		//else if (BotSubType == CPlayer::BOT_MONSTER_CLOUD)
+		//	str_copy(NameSkin, "x_monster_cloud", sizeof(NameSkin));
+		else if (BotSubType == CPlayer::BOT_MONSTER_EYE)
+			str_copy(NameSkin, "x_monster_eye", sizeof(NameSkin));
+	}
+	else if (BotType == CPlayer::BOT_BOSS)
+	{
+		if (BotSubType == CPlayer::BOT_BOSS_DUNE)
+			str_copy(NameSkin, "x_boss_dune", sizeof(NameSkin));
+		else if (BotSubType == CPlayer::BOT_BOSS_GREYFOX)
+			str_copy(NameSkin, "x_boss_greyfox", sizeof(NameSkin));
+		else if (BotSubType == CPlayer::BOT_BOSS_PEDOBEAR)
+			str_copy(NameSkin, "x_boss_pedobear", sizeof(NameSkin));
+		else if (BotSubType == CPlayer::BOT_BOSS_ZOMBIE)
+			str_copy(NameSkin, "x_boss_zombie", sizeof(NameSkin));
+	}
+	else
+		str_copy(NameSkin, "default", sizeof(NameSkin));
+
+    Server()->ResetBotInfo(ClientID, m_apPlayers[ClientID]->GetBotType(), m_apPlayers[ClientID]->GetBotSubType());
     str_copy(m_apPlayers[ClientID]->m_TeeInfos.m_SkinName, NameSkin, sizeof(m_apPlayers[ClientID]->m_TeeInfos.m_SkinName));
     m_apPlayers[ClientID]->m_TeeInfos.m_UseCustomColor = false;
     m_pController->OnPlayerInfoChange(m_apPlayers[ClientID]);
@@ -1773,7 +1793,7 @@ void CGameContext::UpdateBotInfo(int ClientID, int TEnemy)
 void CGameContext::CreateBot(int ClientID)
 {
     int BotClientID = (MAX_CLIENTS-MAX_BOTS)+ClientID;
-    m_apPlayers[BotClientID] = new(BotClientID) CPlayer(this, BotClientID, TEAM_ENEMY_TEEPER); //TODO: Need be fixed
+    m_apPlayers[BotClientID] = new(BotClientID) CPlayer(this, BotClientID, TEAM_BOT);
     m_apPlayers[BotClientID]->TryRespawn();
 }
 
@@ -1787,11 +1807,12 @@ CPet* CGameContext::SpawnPet(CPlayer *pOwner, vec2 Pos)
 			continue;
 
 		pPet = new(pPlayer->GetCID()) CPet(&m_World);
-		pPlayer->SetHardTeam(TEAM_PET);
+		pPlayer->SetBotType(CPlayer::BOT_PET);
+		pPlayer->SetBotSubType(CPlayer::BOT_PET_DEFAULT);
 		pPlayer->SetCharacter(pPet);
 		pPet->Spawn(pPlayer, Pos);
-		UpdateBotInfo(pPlayer->GetCID(), TEAM_PET);
 		pOwner->SetPet(pPet);
+		UpdateBotInfo(pPlayer->GetCID());
 		break;
 	}
 
@@ -1807,12 +1828,14 @@ CBoss* CGameContext::SpawnBoss(vec2 Pos, int Type)
 		if (!pPlayer || pPlayer->GetCharacter())
 			continue;
 
-		if (Type == TEAM_BOSS_DUNE)
+		if (Type == CPlayer::BOT_BOSS_DUNE)
 			pBoss = new(pPlayer->GetCID()) CBossDune(&m_World);
-		pPlayer->SetHardTeam(Type);
+
+		pPlayer->SetBotType(CPlayer::BOT_BOSS);
+		pPlayer->SetBotSubType(Type);
 		pPlayer->SetCharacter(pBoss);
 		pBoss->Spawn(pPlayer, Pos);
-		UpdateBotInfo(pPlayer->GetCID(), Type);
+		UpdateBotInfo(pPlayer->GetCID());
 		break;
 	}
 

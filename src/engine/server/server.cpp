@@ -26,6 +26,7 @@
 #include <engine/shared/snapshot.h>
 
 #include <game/generated/protocol.h> // MineTee
+#include <game/server/player.h> // MineTee
 
 #include <mastersrv/mastersrv.h>
 
@@ -1878,21 +1879,9 @@ int main(int argc, const char **argv) // ignore_convention
 
 
 // MineTee
-void CServer::InitBot(int ClientID, int BType)
+void CServer::ResetBotInfo(int ClientID, int BotType, int BotSubType)
 {
-    /*if (BType == TEAM_ENEMY_TEEPER)
-        str_copy(m_aClients[ClientID].m_aName , "TEEPER", MAX_NAME_LENGTH);
-    else if (BType == TEAM_ENEMY_ZOMBITEE)
-        str_copy(m_aClients[ClientID].m_aName , "ZOMBITEE", MAX_NAME_LENGTH);
-    else if (BType == TEAM_ENEMY_SKELETEE)
-        str_copy(m_aClients[ClientID].m_aName , "SKELETEE", MAX_NAME_LENGTH);
-    else if (BType == TEAM_ENEMY_SPIDERTEE)
-        str_copy(m_aClients[ClientID].m_aName , "SPIDERTEE", MAX_NAME_LENGTH);
-    else if (BType == TEAM_ANIMAL_TEECOW)
-        str_copy(m_aClients[ClientID].m_aName , "TEECOW", MAX_NAME_LENGTH);
-    else if (BType == TEAM_ANIMAL_TEEPIG)
-        str_copy(m_aClients[ClientID].m_aName , "TEEPIG", MAX_NAME_LENGTH);*/
-    if (BType == TEAM_BOSS_DUNE)
+    if (BotType == CPlayer::BOT_BOSS && BotSubType == CPlayer::BOT_BOSS_DUNE)
     	str_copy(m_aClients[ClientID].m_aName , "DUNE BOSS", MAX_NAME_LENGTH);
     else
     	str_copy(m_aClients[ClientID].m_aName , "", MAX_NAME_LENGTH);

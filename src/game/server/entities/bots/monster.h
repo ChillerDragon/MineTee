@@ -36,9 +36,10 @@ private:
     float m_BotTimeLastDamage;
     float m_BotTimeLastSound;
     bool m_BotJumpTry;
-    vec2 m_BotVel;
 
 	void TickBotAI();
+	void PlaySound();
+	void RunAction();
 };
 
 #endif

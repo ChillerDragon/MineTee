@@ -37,6 +37,7 @@ public:
 	virtual void OnCharacterSpawn(class CCharacter *pChr);
 	virtual int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon);
 	virtual bool OnChat(int cid, int team, const char *msg);
+	virtual bool CanSpawn(int Team, vec2 *pPos, int BotType);
 	bool CanJoinTeam(int Team, int NotThisID);
 
 private:
@@ -51,6 +52,8 @@ private:
     void DestructionTick(CTile *pTempTiles, const int *pTileIndex, int x, int y, const CBlockManager::CBlockInfo *pBlockInfo);
     void WearTick(CTile *pTempTiles, const int *pTileIndex, int x, int y, const CBlockManager::CBlockInfo *pBlockInfo);
     void CookTick(CTile *pTempTiles, const int *pTileIndex, int x, int y, const CBlockManager::CBlockInfo *pBlockInfo);
+
+    void GenerateRandomSpawn(CSpawnEval *pEval, int Team);
 };
 
 #endif

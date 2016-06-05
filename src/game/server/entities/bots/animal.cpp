@@ -56,7 +56,7 @@ void CAnimal::TickBotAI()
     //Sounds
     if (Server()->Tick() - m_BotTimeLastSound > Server()->TickSpeed()*5.0f)
     {
-        if (m_pPlayer->GetTeam() == TEAM_ANIMAL_TEECOW)
+        if (m_pPlayer->GetBotSubType() == CPlayer::BOT_ANIMAL_COW)
             GameServer()->CreateSound(m_Pos, SOUND_ANIMAL_TEECOW);
         m_BotTimeLastSound = Server()->Tick();
     }

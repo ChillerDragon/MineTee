@@ -85,7 +85,7 @@ public:
 
 	// MineTee
 	virtual IAccountSystem *AccountSystem() = 0;
-	virtual void InitBot(int ClientID, int BType) = 0;
+	virtual void ResetBotInfo(int ClientID, int BotType, int BotSubType) = 0;
 	virtual char *GetMapName() = 0;
 	virtual char *GetBlocksData() = 0;
 	virtual int GetBlocksDataSize() = 0;

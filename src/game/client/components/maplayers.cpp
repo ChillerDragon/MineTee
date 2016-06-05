@@ -293,15 +293,15 @@ void CMapLayers::OnRender()
 		tt/=m_pClient->m_Tuning.m_DayNightDuration;
 
 		if (tt-itt < 0.02)
-			s_LightLevel=(IsDay)?0:3;
-		else if (tt-itt < 0.025)
-			s_LightLevel=(IsDay)?1:2;
-		else if (tt-itt < 0.035)
-			s_LightLevel=(IsDay)?2:1;
-		else if (tt-itt < 0.045)
 			s_LightLevel=(IsDay)?3:0;
+		else if (tt-itt < 0.025)
+			s_LightLevel=(IsDay)?2:1;
+		else if (tt-itt < 0.035)
+			s_LightLevel=(IsDay)?1:2;
+		else if (tt-itt < 0.045)
+			s_LightLevel=(IsDay)?0:3;
 		else
-			s_LightLevel=(IsDay)?4:0;
+			s_LightLevel=(IsDay)?0:4;
 
 
         if (s_LightLevel >= 0)

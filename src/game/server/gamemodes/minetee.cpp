@@ -454,35 +454,43 @@ void CGameControllerMineTee::VegetationTick(CTile *pTempTiles, const int *pTileI
 
 void CGameControllerMineTee::OnCharacterSpawn(class CCharacter *pChr)
 {
-	pChr->IncreaseHealth(10);
-
 	// Zombies Weapons
-	switch (pChr->GetPlayer()->GetTeam())
+	if (pChr->GetPlayer()->IsBot())
 	{
-        case TEAM_ENEMY_TEEPER:
-            pChr->GiveBlock(CBlockManager::TNT, 1);
-            pChr->SetWeapon(NUM_WEAPONS+CBlockManager::TNT);
-            break;
+		if (pChr->GetPlayer()->GetBotType() == CPlayer::BOT_MONSTER)
+		{
+			switch (pChr->GetPlayer()->GetBotSubType())
+			{
+				case CPlayer::BOT_MONSTER_TEEPER:
+					pChr->IncreaseHealth(10);
+					pChr->GiveBlock(CBlockManager::TNT, 1);
+					pChr->SetWeapon(NUM_WEAPONS+CBlockManager::TNT);
+					break;
 
-        case TEAM_ENEMY_ZOMBITEE:
-        case TEAM_ENEMY_SPIDERTEE:
-        case TEAM_ENEMY_EYE:
-            pChr->GiveWeapon(WEAPON_HAMMER, -1);
-            pChr->SetWeapon(WEAPON_HAMMER);
-            break;
+				case CPlayer::BOT_MONSTER_ZOMBITEE:
+				//case CPlayer::BOT_MONSTER_SPIDERTEE:
+				case CPlayer::BOT_MONSTER_EYE:
+					pChr->IncreaseHealth(15);
+					pChr->GiveWeapon(WEAPON_HAMMER, -1);
+					pChr->SetWeapon(WEAPON_HAMMER);
+					break;
 
-        case TEAM_ENEMY_SKELETEE:
-            pChr->GiveWeapon(WEAPON_GRENADE, -1);
-            pChr->SetWeapon(WEAPON_GRENADE);
-            break;
-
-        default:
-        	if (!pChr->GetPlayer()->IsBot())
-        	{
-				pChr->GiveWeapon(WEAPON_HAMMER, -1);
-				pChr->GiveBlock(CBlockManager::TORCH, 1);
-				pChr->SetWeapon(NUM_WEAPONS+CBlockManager::TORCH);
-        	}
+				case CPlayer::BOT_MONSTER_SKELETEE:
+					pChr->IncreaseHealth(20);
+					pChr->GiveWeapon(WEAPON_GRENADE, -1);
+					pChr->SetWeapon(WEAPON_GRENADE);
+					break;
+			}
+		}
+		else
+			pChr->IncreaseHealth(5);
+	}
+	else if (!pChr->GetPlayer()->IsBot())
+	{
+		pChr->IncreaseHealth(10);
+		pChr->GiveWeapon(WEAPON_HAMMER, -1);
+		pChr->GiveBlock(CBlockManager::TORCH, 1);
+		pChr->SetWeapon(NUM_WEAPONS+CBlockManager::TORCH);
 	}
 }
 
@@ -517,32 +525,38 @@ int CGameControllerMineTee::OnCharacterDeath(class CCharacter *pVictim, class CP
     if (pVictim->GetPlayer() == pKiller)
         return 1;
 
-    if (pVictim->GetPlayer()->GetTeam() == TEAM_ANIMAL_TEECOW)
+    if (pVictim->GetPlayer()->GetBotType() == CPlayer::BOT_ANIMAL)
     {
-		CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_FOOD, FOOD_COW);
-		pPickup->m_Pos = pVictim->m_Pos;
-        pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, CBlockManager::COW_LEATHER);
-		pPickup->m_Pos = pVictim->m_Pos;
+		if (pVictim->GetPlayer()->GetBotSubType() == CPlayer::BOT_ANIMAL_COW)
+		{
+			CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_FOOD, FOOD_COW);
+			pPickup->m_Pos = pVictim->m_Pos;
+			pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, CBlockManager::COW_LEATHER);
+			pPickup->m_Pos = pVictim->m_Pos;
 
-		return 0;
+			return 0;
+		}
+		else if (pVictim->GetPlayer()->GetBotSubType() == CPlayer::BOT_ANIMAL_PIG)
+		{
+			CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_FOOD, FOOD_PIG);
+			pPickup->m_Pos = pVictim->m_Pos;
+			return 0;
+		}
     }
-    else if (pVictim->GetPlayer()->GetTeam() == TEAM_ANIMAL_TEEPIG)
+    else if(pVictim->GetPlayer()->GetBotType() == CPlayer::BOT_MONSTER)
     {
-		CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_FOOD, FOOD_PIG);
-		pPickup->m_Pos = pVictim->m_Pos;
-		return 0;
-    }
-    else if (pVictim->GetPlayer()->GetTeam() == TEAM_ENEMY_TEEPER)
-    {
-		CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, CBlockManager::GUNPOWDER);
-		pPickup->m_Pos = pVictim->m_Pos;
-		return 0;
-    }
-    else if (pVictim->GetPlayer()->GetTeam() == TEAM_ENEMY_SKELETEE)
-    {
-		CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, CBlockManager::BONE);
-		pPickup->m_Pos = pVictim->m_Pos;
-		return 0;
+		if (pVictim->GetPlayer()->GetBotSubType() == CPlayer::BOT_MONSTER_TEEPER)
+		{
+			CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, CBlockManager::GUNPOWDER);
+			pPickup->m_Pos = pVictim->m_Pos;
+			return 0;
+		}
+		else if (pVictim->GetPlayer()->GetBotSubType() == CPlayer::BOT_MONSTER_SKELETEE)
+		{
+			CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, CBlockManager::BONE);
+			pPickup->m_Pos = pVictim->m_Pos;
+			return 0;
+		}
     }
 
     return 1;
@@ -559,6 +573,23 @@ bool CGameControllerMineTee::CanJoinTeam(int Team, int NotThisID)
     return CGameController::CanJoinTeam(Team, NotThisID);
 }
 
+bool CGameControllerMineTee::CanSpawn(int Team, vec2 *pOutPos, int BotType)
+{
+	CSpawnEval Eval;
+
+	// spectators can't spawn
+	if(Team == TEAM_SPECTATORS)
+		return false;
+
+	if ((g_Config.m_SvMonsters == 0 && BotType == CPlayer::BOT_MONSTER) ||
+		(g_Config.m_SvAnimals == 0 && BotType == CPlayer::BOT_ANIMAL))
+		return false;
+
+	GenerateRandomSpawn(&Eval, BotType);
+	*pOutPos = Eval.m_Pos;
+	return Eval.m_Got;
+}
+
 bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
 {
     char aBuff[255];
@@ -571,7 +602,6 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
 	{
 		if ((ptr=strtok(NULL, " \n\t")) == NULL)
 		{
-			char aBuf[128];
 			GameServer()->SendChatTarget(cid,"--------------------------- --------- --------");
 			GameServer()->SendChatTarget(cid, "AVAILABLE PET COMMANDS");
 			GameServer()->SendChatTarget(cid,"======================================");
@@ -611,7 +641,7 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
 				else if (str_comp_nocase(ptr,"die") == 0)
 				{
 					CPlayer *pPlayer = GameServer()->m_apPlayers[cid];
-					if (!pPlayer || pPlayer->GetPet())
+					if (!pPlayer || !pPlayer->GetPet())
 						return false;
 					pPlayer->GetPet()->Die(cid, WEAPON_GAME);
 					return false;
@@ -870,6 +900,88 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
     return true;
 }
 
+void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
+{
+	vec2 P;
+	bool IsBot = (BotType != -1);
+
+	// TODO: Need do that ONLY SPAWN IN DARK ZONES!
+	if (IsBot && BotType != CPlayer::BOT_ANIMAL) // Enemies can spawn underground or outside
+	{
+		P = vec2(rand()%GameServer()->Collision()->GetWidth(), rand()%GameServer()->Collision()->GetHeight());
+		P = vec2(P.x*32.0f + 16.0f, P.y*32.0f + 16.0f);
+
+		if (GameServer()->Collision()->GetCollisionAt(P.x-32, P.y) != 0 ||
+			GameServer()->Collision()->GetCollisionAt(P.x+32, P.y) != 0 ||
+			GameServer()->Collision()->GetCollisionAt(P.x, P.y-32) != 0)
+			return;
+	}
+	else // Players & Animals only spawn in the outside
+	{
+		P = vec2(rand()%GameServer()->Collision()->GetWidth(), 0);
+		P = vec2(P.x*32.0f + 16.0f, 16.0f);
+		const int TotalH = GameServer()->Collision()->GetHeight()*32;
+		for (int i=P.y; i<TotalH-1; i+=32)
+		{
+			if (GameServer()->Collision()->CheckPoint(vec2(P.x, i), true))
+			{
+				P.y = i-32;
+				break;
+			}
+		}
+	}
+
+	CCharacter *aEnts[MAX_CLIENTS];
+	int Num = GameServer()->m_World.FindEntities(P, 32*48, (CEntity**)aEnts, MAX_CLIENTS, CGameWorld::ENTTYPE_CHARACTER);
+
+	if (GameServer()->Collision()->CheckPoint(P, true) || GameServer()->m_BlockManager.IsFluid(GameServer()->Collision()->GetMineTeeTileAt(P)))
+		return;
+
+	bool CanSpawn = !IsBot;
+	for (int i=0; i<Num; i++)
+	{
+		if (IsBot && !aEnts[i]->GetPlayer()->IsBot() &&
+			distance(aEnts[i]->m_Pos, P) > aEnts[i]->m_ProximityRadius*28)
+			CanSpawn = true;
+		if (distance(aEnts[i]->m_Pos, P) < aEnts[i]->m_ProximityRadius)
+			CanSpawn = false;
+	}
+	if (!CanSpawn)
+		return;
+
+	if (IsBot)
+	{
+		// Other bots near?
+		CCharacter *aEnts[MAX_BOTS];
+		int Num = GameServer()->m_World.FindEntities(P, 1250.0f, (CEntity**)aEnts, MAX_BOTS, CGameWorld::ENTTYPE_CHARACTER);
+		for (int i=0; i<Num; i++)
+		{
+			if (aEnts[i]->GetPlayer()->IsBot())
+				return;
+		}
+
+		// Good Light?
+		CTile *pMTLTiles = GameServer()->Layers()->TileLights();
+		int TileLightIndex = static_cast<int>(P.y/32)*GameServer()->Layers()->Lights()->m_Width+static_cast<int>(P.y/32);
+		if (BotType == CPlayer::BOT_ANIMAL && pMTLTiles[TileLightIndex].m_Index != 0)
+			return;
+		else if (BotType != CPlayer::BOT_ANIMAL && pMTLTiles[TileLightIndex].m_Index != 202)
+			return;
+	}
+
+	if (GameServer()->Collision()->GetCollisionAt(P.x, P.y+32) == CCollision::COLFLAG_SOLID)
+	{
+		float S = EvaluateSpawnPos(pEval, P);
+		if(!pEval->m_Got || pEval->m_Score > S)
+		{
+			pEval->m_Got = true;
+			pEval->m_Score = S;
+			P.y -= 8; // Be secure that not spawn stuck
+			pEval->m_Pos = P;
+		}
+	}
+}
+
 void CGameControllerMineTee::ModifTile(ivec2 MapPos, int TileIndex)
 {
 	//dbg_msg("MineTee", "MODIF TILE: %d [%dx%d]", TileIndex, MapPos.x, MapPos.y);
@@ -920,15 +1032,15 @@ void CGameControllerMineTee::UpdateLayerLights(vec2 Pos)
 	tt/=GameServer()->m_World.m_Core.m_Tuning.m_DayNightDuration;
 
 	if (tt-itt < 0.02)
-		s_LightLevel=(IsDay)?0:3;
-	else if (tt-itt < 0.025)
-		s_LightLevel=(IsDay)?1:2;
-	else if (tt-itt < 0.035)
-		s_LightLevel=(IsDay)?2:1;
-	else if (tt-itt < 0.045)
 		s_LightLevel=(IsDay)?3:0;
+	else if (tt-itt < 0.025)
+		s_LightLevel=(IsDay)?2:1;
+	else if (tt-itt < 0.035)
+		s_LightLevel=(IsDay)?1:2;
+	else if (tt-itt < 0.045)
+		s_LightLevel=(IsDay)?0:3;
 	else
-		s_LightLevel=(IsDay)?4:0;
+		s_LightLevel=(IsDay)?0:4;
 
 
 	if (s_LightLevel >= 0)

@@ -45,8 +45,6 @@ protected:
 	void EvaluateSpawnType(CSpawnEval *pEval, int Type);
 	bool EvaluateSpawn(class CPlayer *pP, vec2 *pPos);
 
-	void GenerateRandomSpawn(CSpawnEval *pEval, int Team);
-
 	void CycleMap();
 	void ResetGame();
 
@@ -135,7 +133,7 @@ public:
 	virtual void OnPlayerInfoChange(class CPlayer *pP);
 
 	//
-	virtual bool CanSpawn(int Team, vec2 *pPos);
+	virtual bool CanSpawn(int Team, vec2 *pPos, int BotType);
 
 	/*
 
