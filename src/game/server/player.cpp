@@ -299,8 +299,15 @@ void CPlayer::TryRespawn()
         int64 Time = -1;
         bool IsDay = false;
         GameServer()->GetServerTime(&IsDay, &Time);
-        m_BotType = IsDay?BOT_ANIMAL:BOT_MONSTER;
-        m_BotSubType = rand()%(IsDay?NUM_ANIMALS:NUM_MONSTERS);
+        if (m_BotType == BOT_ANIMAL)
+        {
+        	if (!IsDay)
+        		return;
+        	m_BotSubType = rand()%NUM_ANIMALS;
+        }
+        else if (m_BotType == BOT_MONSTER)
+        	m_BotSubType = rand()%NUM_MONSTERS;
+
         GameServer()->UpdateBotInfo(m_ClientID);
     }
     //
@@ -321,6 +328,8 @@ void CPlayer::TryRespawn()
 			m_pCharacter = new(m_ClientID) CMonster(&GameServer()->m_World);
 		else if (m_BotType == BOT_ANIMAL)
 			m_pCharacter = new(m_ClientID) CAnimal(&GameServer()->m_World);
+		else
+			return;
 	}
 	//
 

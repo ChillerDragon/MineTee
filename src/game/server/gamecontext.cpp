@@ -1629,8 +1629,15 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 	// MineTee: Create Bot Players
     if (str_find_nocase(GameType(), "minetee"))
     {
-        for (int o=0; o<MAX_BOTS; o++)
-            CreateBot(o);
+    	int CurID = 0;
+    	for (int o=0; o<NUM_BOTS_ANIMAL; o++,CurID++)
+    		CreateBot(CurID, BOT_ANIMAL);
+    	for (int o=0; o<NUM_BOTS_MONSTER; o++,CurID++)
+    	    CreateBot(CurID, BOT_MONSTER);
+    	for (int o=0; o<NUM_BOTS_PET; o++,CurID++)
+    		CreateBot(CurID, BOT_PET);
+    	for (int o=0; o<NUM_BOTS_BOSS; o++,CurID++)
+    	    CreateBot(CurID, BOT_BOSS);
     }
 
 	for(int y = 0; y < pTileMap->m_Height; y++)
@@ -1809,12 +1816,12 @@ void CGameContext::UpdateBotInfo(int ClientID)
 
 }
 
-void CGameContext::CreateBot(int ClientID)
+void CGameContext::CreateBot(int ClientID, int BotType)
 {
     int BotClientID = (MAX_CLIENTS-MAX_BOTS)+ClientID;
     m_apPlayers[BotClientID] = new(BotClientID) CPlayer(this, BotClientID, TEAM_BOT);
+    m_apPlayers[BotClientID]->SetBotType(BotType);
     Server()->InitClientBot(BotClientID);
-    //m_apPlayers[BotClientID]->TryRespawn();
 }
 
 CPet* CGameContext::SpawnPet(CPlayer *pOwner, vec2 Pos)
@@ -1826,7 +1833,7 @@ CPet* CGameContext::SpawnPet(CPlayer *pOwner, vec2 Pos)
 	for (int i=MAX_CLIENTS-MAX_BOTS; i<MAX_CLIENTS; i++)
 	{
 		CPlayer *pPlayer = m_apPlayers[i];
-		if (!pPlayer || pPlayer->GetCharacter())
+		if (!pPlayer || pPlayer->GetBotType() != BOT_PET || pPlayer->GetCharacter())
 			continue;
 
 		pPet = new(pPlayer->GetCID()) CPet(&m_World);
@@ -1848,7 +1855,7 @@ IBoss* CGameContext::SpawnBoss(vec2 Pos, int Type)
 	for (int i=MAX_CLIENTS-MAX_BOTS; i<MAX_CLIENTS; i++)
 	{
 		CPlayer *pPlayer = m_apPlayers[i];
-		if (!pPlayer || pPlayer->GetCharacter())
+		if (!pPlayer || pPlayer->GetBotType() != BOT_BOSS || pPlayer->GetCharacter())
 			continue;
 
 		if (Type == BOT_BOSS_DUNE)

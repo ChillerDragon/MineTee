@@ -289,17 +289,17 @@ void CMapLayers::OnRender()
 		m_pClient->GetServerTime(&IsDay, &Time);
 
 		float tt = Time;
-		int itt = tt/m_pClient->m_Tuning.m_DayNightDuration;
-		tt/=m_pClient->m_Tuning.m_DayNightDuration;
+		int itt = (int)tt%(int)m_pClient->m_Tuning.m_DayNightDuration;
+		tt = itt/m_pClient->m_Tuning.m_DayNightDuration;
 
-		if (tt-itt < 0.02)
-			s_LightLevel=(IsDay)?3:0;
-		else if (tt-itt < 0.025)
-			s_LightLevel=(IsDay)?2:1;
-		else if (tt-itt < 0.035)
-			s_LightLevel=(IsDay)?1:2;
-		else if (tt-itt < 0.045)
-			s_LightLevel=(IsDay)?0:3;
+		if (tt < 0.01f)
+			s_LightLevel=(IsDay)?4:0;
+		else if (tt < 0.02f)
+			s_LightLevel=(IsDay)?3:1;
+		else if (tt < 0.03f)
+			s_LightLevel=(IsDay)?2:2;
+		else if (tt < 0.04f)
+			s_LightLevel=(IsDay)?1:3;
 		else
 			s_LightLevel=(IsDay)?0:4;
 

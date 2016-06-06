@@ -905,7 +905,6 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 	vec2 P;
 	bool IsBot = (BotType != -1);
 
-	// TODO: Need do that ONLY SPAWN IN DARK ZONES!
 	if (IsBot && BotType != BOT_ANIMAL) // Enemies can spawn underground or outside
 	{
 		P = vec2(rand()%GameServer()->Collision()->GetWidth(), rand()%GameServer()->Collision()->GetHeight());
@@ -918,37 +917,20 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 	}
 	else // Players & Animals only spawn in the outside
 	{
-		P = vec2(rand()%GameServer()->Collision()->GetWidth(), 0);
-		P = vec2(P.x*32.0f + 16.0f, 16.0f);
-		const int TotalH = GameServer()->Collision()->GetHeight()*32;
-		for (int i=P.y; i<TotalH-1; i+=32)
+		do
 		{
-			if (GameServer()->Collision()->CheckPoint(vec2(P.x, i), true))
+			P = vec2(rand()%GameServer()->Collision()->GetWidth(), 0);
+			P = vec2(P.x*32.0f + 16.0f, 16.0f);
+			const int TotalH = GameServer()->Collision()->GetHeight()*32;
+			for (int i=P.y; i<TotalH-1; i+=32)
 			{
-				P.y = i-32;
-				break;
+				if (GameServer()->Collision()->CheckPoint(vec2(P.x, i), true))
+				{
+					P.y = i-32;
+					break;
+				}
 			}
-		}
-	}
-
-	if (IsBot)
-	{
-		// Other bots near?
-		CCharacter *aEnts[MAX_BOTS];
-		int Num = GameServer()->m_World.FindEntities(P, 1250.0f, (CEntity**)aEnts, MAX_BOTS, CGameWorld::ENTTYPE_CHARACTER);
-		for (int i=0; i<Num; i++)
-		{
-			if (aEnts[i]->GetPlayer()->IsBot())
-				return;
-		}
-
-		// Good Light?
-		CTile *pMTLTiles = GameServer()->Layers()->TileLights();
-		int TileLightIndex = static_cast<int>(P.y/32)*GameServer()->Layers()->Lights()->m_Width+static_cast<int>(P.y/32);
-		if (BotType == BOT_ANIMAL && pMTLTiles[TileLightIndex].m_Index != 0)
-			return;
-		else if (BotType != BOT_ANIMAL && pMTLTiles[TileLightIndex].m_Index != 202)
-			return;
+		} while (GameServer()->Collision()->GetMineTeeTileAt(P) != CBlockManager::AIR);
 	}
 
 	if (GameServer()->Collision()->GetCollisionAt(P.x, P.y+32) == CCollision::COLFLAG_SOLID)
@@ -961,6 +943,27 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 			P.y -= 8; // Be secure that not spawn stuck
 			pEval->m_Pos = P;
 		}
+	}
+
+	if (IsBot && pEval->m_Got)
+	{
+		// Other bots near?
+		CCharacter *aEnts[MAX_BOTS];
+		int Num = GameServer()->m_World.FindEntities(P, 1250.0f, (CEntity**)aEnts, MAX_BOTS, CGameWorld::ENTTYPE_CHARACTER);
+		for (int i=0; i<Num; i++)
+		{
+			if (aEnts[i]->GetPlayer()->IsBot())
+				return;
+		}
+
+		// Good Light?
+		UpdateLayerLights(P);
+		CTile *pMTLTiles = GameServer()->Layers()->TileLights();
+		int TileLightIndex = static_cast<int>(P.y/32)*GameServer()->Layers()->Lights()->m_Width+static_cast<int>(P.y/32);
+		if (BotType == BOT_ANIMAL && pMTLTiles[TileLightIndex].m_Index != 0)
+			return;
+		else if (BotType != BOT_ANIMAL && pMTLTiles[TileLightIndex].m_Index != 202)
+			return;
 	}
 }
 
@@ -1010,17 +1013,17 @@ void CGameControllerMineTee::UpdateLayerLights(vec2 Pos)
 	GameServer()->GetServerTime(&IsDay, &Time);
 
 	float tt = Time;
-	int itt = tt/GameServer()->m_World.m_Core.m_Tuning.m_DayNightDuration;
-	tt/=GameServer()->m_World.m_Core.m_Tuning.m_DayNightDuration;
+	int itt = (int)tt%(int)GameServer()->m_World.m_Core.m_Tuning.m_DayNightDuration;
+	tt = itt/GameServer()->m_World.m_Core.m_Tuning.m_DayNightDuration;
 
-	if (tt-itt < 0.02)
-		s_LightLevel=(IsDay)?3:0;
-	else if (tt-itt < 0.025)
-		s_LightLevel=(IsDay)?2:1;
-	else if (tt-itt < 0.035)
-		s_LightLevel=(IsDay)?1:2;
-	else if (tt-itt < 0.045)
-		s_LightLevel=(IsDay)?0:3;
+	if (tt < 0.01f)
+		s_LightLevel=(IsDay)?4:0;
+	else if (tt < 0.02f)
+		s_LightLevel=(IsDay)?3:1;
+	else if (tt < 0.03f)
+		s_LightLevel=(IsDay)?2:2;
+	else if (tt < 0.04f)
+		s_LightLevel=(IsDay)?1:3;
 	else
 		s_LightLevel=(IsDay)?0:4;
 
