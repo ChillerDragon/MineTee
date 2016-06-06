@@ -52,6 +52,7 @@ CCharacter::CCharacter(CGameWorld *pWorld)
     m_NeedSendInventory = true;
 	m_TimerFluidDamage = Server()->Tick();
 	m_InWater = false;
+	m_TimeStuck = Server()->Tick();
     //
 }
 

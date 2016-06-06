@@ -37,6 +37,7 @@ private:
     float m_BotTimeLastOption;
     float m_BotTimeLastDamage;
     float m_BotTimeLastSound;
+    float m_BotTimeLastChat;
     bool m_BotJumpTry;
 };
 

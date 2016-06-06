@@ -146,13 +146,13 @@ void CMonster::TickBotAI()
         m_BotTimeLastSound = Server()->Tick();
     }
 
-    //Run actions
-    RunAction();
-
     //Clean m_Input
 	m_Input.m_Hook = 0;
 	m_Input.m_Fire = 0;
 	m_Input.m_Jump = 0;
+
+    //Run actions
+    RunAction();
 
     //Interact with users
     bool PlayerClose = false;

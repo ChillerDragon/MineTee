@@ -81,6 +81,7 @@ public:
 	};
 
     //H-Client
+	float m_TimeStuck;
 	CCharacterCore* GetCore() { return &m_Core; }
     void DropItem(int ItemID = -1);
 

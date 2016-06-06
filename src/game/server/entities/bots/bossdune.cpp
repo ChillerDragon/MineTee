@@ -26,6 +26,7 @@ CBossDune::CBossDune(CGameWorld *pWorld)
 	m_BotTimeLastDamage = 0.0f;
 	m_BotClientIDFix = -1;
 	m_BotTimeLastSound = Server()->Tick();
+	m_BotTimeLastChat = Server()->Tick();
 	m_BotJumpTry = false;
 }
 
@@ -52,6 +53,35 @@ void CBossDune::TickBotAI()
     //Fix Stuck
     if (IsGrounded())
         m_BotTimeGrounded = Server()->Tick();
+
+    // Chat
+    if (Server()->Tick()-m_BotTimeLastChat > 60*Server()->TickSpeed())
+    {
+		char aBuff[255];
+		CCharacter *aEnts[MAX_BOTS], *aEntsPlayers[MAX_BOTS];
+		static const char *pPhrases[5] = {
+			"[DUNE BOSS] Hi %s, you use Gamer Client?\0",
+			"[DUNE BOSS] What %s?! Why you are playing this mod? This is not Teeworlds!\0",
+			"[DUNE BOSS] Ei %s tell to everybody that Gamer Client is the best client!\0",
+			"[DUNE BOSS] Knock %s! Fight with me if you can die... muahahahaha\0",
+			"[DUNE BOSS] Please %s, i'm a boss... run and safe your life!\0",
+		};
+		int Num = GameServer()->m_World.FindEntities(m_Pos, 800.0f, (CEntity**)aEnts, MAX_BOTS, CGameWorld::ENTTYPE_CHARACTER);
+		int NumPlayers = 0;
+		for (int i=0; i<Num; i++)
+		{
+			if (aEnts[i]->GetPlayer()->IsBot())
+				continue;
+			aEntsPlayers[NumPlayers++] = aEnts[i];
+		}
+		if (NumPlayers > 0)
+		{
+			int SelPlayerID = aEntsPlayers[rand()%NumPlayers]->GetPlayer()->GetCID();
+			str_format(aBuff, sizeof(aBuff), pPhrases[rand()%5], Server()->ClientName(SelPlayerID));
+			GameServer()->SendChatTarget(SelPlayerID, aBuff);
+		}
+		m_BotTimeLastChat = Server()->Tick();
+    }
 
     //Falls
     if (m_Core.m_Vel.y > GameServer()->Tuning()->m_Gravity)

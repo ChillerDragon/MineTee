@@ -68,6 +68,14 @@ void CGameControllerMineTee::Tick()
 				if (!GetPlayerArea(q, &StartX, &EndX, &StartY, &EndY))
 					continue;
 
+				CCharacter *pChar = GameServer()->GetPlayerChar(q);
+				// STUCK
+				if (pChar && Server()->Tick()-pChar->m_TimeStuck > 5*Server()->TickSpeed() && GameServer()->Collision()->TestBox(pChar->GetCore()->m_Pos, vec2(28.0f, 28.0f)))
+				{
+					pChar->TakeDamage(vec2(0.0f, 0.0f), 1, q, WEAPON_GAME);
+					pChar->m_TimeStuck = Server()->Tick();
+				}
+
 				for(int y = StartY; y < EndY; y++)
 					for(int x = StartX; x < EndX; x++)
 					{
@@ -957,13 +965,13 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 		}
 
 		// Good Light?
-		UpdateLayerLights(P);
+		UpdateLayerLights(P); // TODO: Can decrease performance... because slow light implementation :/
 		CTile *pMTLTiles = GameServer()->Layers()->TileLights();
-		int TileLightIndex = static_cast<int>(P.y/32)*GameServer()->Layers()->Lights()->m_Width+static_cast<int>(P.y/32);
+		int TileLightIndex = static_cast<int>(P.y/32)*GameServer()->Layers()->Lights()->m_Width+static_cast<int>(P.x/32);
 		if (BotType == BOT_ANIMAL && pMTLTiles[TileLightIndex].m_Index != 0)
-			return;
+			pEval->m_Got = false;
 		else if (BotType != BOT_ANIMAL && pMTLTiles[TileLightIndex].m_Index != 202)
-			return;
+			pEval->m_Got = false;
 	}
 }
 
