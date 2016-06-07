@@ -315,8 +315,6 @@ void CPlayer::TryRespawn()
 	if(!GameServer()->m_pController->CanSpawn(m_Team, &SpawnPos, m_BotType))
 		return;
 
-	m_Spawning = false;
-
 	// MineTee
 	if (!IsBot())
 	{
@@ -332,6 +330,8 @@ void CPlayer::TryRespawn()
 			return;
 	}
 	//
+
+	m_Spawning = false;
 
 	m_pCharacter->Spawn(this, SpawnPos);
 	GameServer()->CreatePlayerSpawn(SpawnPos);

@@ -1672,6 +1672,15 @@ void CGameContext::OnShutdown()
 	if (str_find_nocase(GameType(), "MineTee"))
 		SaveMap("");
 
+	for (int i=0; i<MAX_CLIENTS-MAX_BOTS; i++)
+	{
+		if (!m_apPlayers[i])
+			continue;
+
+		delete m_apPlayers[i];
+		m_apPlayers[i] = 0x0;
+	}
+
 	delete m_pController;
 	m_pController = 0;
 	Clear();
@@ -1819,9 +1828,12 @@ void CGameContext::UpdateBotInfo(int ClientID)
 void CGameContext::CreateBot(int ClientID, int BotType)
 {
     int BotClientID = (MAX_CLIENTS-MAX_BOTS)+ClientID;
-    m_apPlayers[BotClientID] = new(BotClientID) CPlayer(this, BotClientID, TEAM_BOT);
-    m_apPlayers[BotClientID]->SetBotType(BotType);
-    Server()->InitClientBot(BotClientID);
+    if (!m_apPlayers[BotClientID])
+    {
+		m_apPlayers[BotClientID] = new(BotClientID) CPlayer(this, BotClientID, TEAM_BOT);
+		m_apPlayers[BotClientID]->SetBotType(BotType);
+		Server()->InitClientBot(BotClientID);
+    }
 }
 
 CPet* CGameContext::SpawnPet(CPlayer *pOwner, vec2 Pos)
