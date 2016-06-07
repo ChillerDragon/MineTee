@@ -1,23 +1,27 @@
 #include <algorithm>
-#include <random>
 #include <ctime> // time()
 
 #include <base/math.h>
 #include "noise.h"
 
 CPerlin::CPerlin(uint32_t seed)
+: m_Engine(seed)
 {
     if(!seed)
         seed = time(0);
 
     auto mid_range = m_aNumsPerlin.begin() + 256;
 
-    std::mt19937 engine(seed);
-
     std::iota(m_aNumsPerlin.begin(), mid_range, 0); //Generate sequential numbers in the lower half
-    std::shuffle(m_aNumsPerlin.begin(), mid_range, engine); //Shuffle the lower half
+    std::shuffle(m_aNumsPerlin.begin(), mid_range, m_Engine); //Shuffle the lower half
     std::copy(m_aNumsPerlin.begin(), mid_range, mid_range); //Copy the lower half to the upper half
     //p now has the numbers 0-255, shuffled, and duplicated
+}
+
+int CPerlin::GetURandom(int Max, int Min)
+{
+	std::uniform_int_distribution<int> uni(Max,Min);
+	return uni(m_Engine);
 }
 
 double CPerlin::Noise(double x, double y, double z) const

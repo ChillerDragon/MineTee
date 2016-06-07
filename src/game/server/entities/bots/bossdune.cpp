@@ -63,7 +63,7 @@ void CBossDune::TickBotAI()
 			"[DUNE BOSS] Hi %s, you use Gamer Client?\0",
 			"[DUNE BOSS] What %s?! Why you are playing this mod? This is not Teeworlds!\0",
 			"[DUNE BOSS] Ei %s tell to everybody that Gamer Client is the best client!\0",
-			"[DUNE BOSS] Knock %s! Fight with me if you can die... muahahahaha\0",
+			"[DUNE BOSS] Knock %s! Fight with me if you like die... muahahahaha\0",
 			"[DUNE BOSS] Please %s, i'm a boss... run and safe your life!\0",
 		};
 		int Num = GameServer()->m_World.FindEntities(m_Pos, 800.0f, (CEntity**)aEnts, MAX_BOTS, CGameWorld::ENTTYPE_CHARACTER);

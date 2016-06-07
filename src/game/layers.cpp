@@ -22,6 +22,8 @@ CLayers::CLayers()
 	m_pMineTeeFGLayer = 0;
 	m_pMineTeeLights = 0;
 	m_pMineTeeLightsTiles = 0;
+	m_GameGroupIndex = 0;
+	m_GameLayerIndex = 0;
 }
 
 void CLayers::Init(class IKernel *pKernel)
@@ -86,6 +88,8 @@ void CLayers::Init(class IKernel *pKernel)
 
 				if(pTilemap->m_Flags&TILESLAYERFLAG_GAME)
 				{
+					m_GameGroupIndex = g;
+					m_GameLayerIndex = l;
 					m_pGameLayer = pTilemap;
 					m_pGameGroup = pGroup;
 

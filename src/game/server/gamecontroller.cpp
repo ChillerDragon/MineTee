@@ -168,10 +168,10 @@ bool CGameController::OnEntity(int Index, vec2 Pos)
 		m_aBossSpawnPoints[BOT_BOSS_DUNE] = Pos;
 		GameServer()->SpawnBoss(Pos, BOT_BOSS_DUNE);
 	}
-	else if (Index == ENTITY_SPAWN_BOSS_GREYFOX)
+	/*else if (Index == ENTITY_SPAWN_BOSS_GREYFOX)
 		m_aBossSpawnPoints[BOT_BOSS_GREYFOX] = Pos;
 	else if (Index == ENTITY_SPAWN_BOSS_ZOMBIE)
-		m_aBossSpawnPoints[BOT_BOSS_ZOMBIE] = Pos;
+		m_aBossSpawnPoints[BOT_BOSS_ZOMBIE] = Pos;*/
 
 	if(Type != -1)
 	{

@@ -7,21 +7,21 @@
 
 enum
 {
-	SNOW_LEVEL = 30,
-	DIRT_LEVEL = 40,
-	STONE_LEVEL = 90,
-	LAVA_LEVEL = 110,
-	TUNNEL_LEVEL = 40,
+	SNOW_LEVEL = 0,
+	DIRT_LEVEL = 20,
+	STONE_LEVEL = 40,
+	LAVA_LEVEL = 70,
+	TUNNEL_LEVEL = 30,
 
-	WATER_LEVEL_MAX = 75,
-	WATER_LEVEL_MIN = 90,
+	WATER_LEVEL = 25,
 
-	COAL_LEVEL = 115,
-	IRON_LEVEL = 125,
-	GOLD_LEVEL = 140,
-	DIAMOND_LEVEL = 160,
+	COAL_LEVEL = 60,
+	IRON_LEVEL = 70,
+	GOLD_LEVEL = 80,
+	DIAMOND_LEVEL = 90,
 
-	LEVEL_TOLERANCE = 10
+	LEVEL_TOLERANCE = 10,
+	BOSS_LEVEL = 75
 };
 
 class CMapGenBiome
@@ -56,10 +56,11 @@ class CMapGen
 	void GenerateMushrooms();
 	void GenerateTrees();
 	void GenerateTunnels(int Num);
-
 	void GenerateBorder();
-
 	void GenerateSkip();
+	void GenerateBossZones();
+
+	void CreateStructure(int StructureID, ivec2 Pos);
 
 public:
 	CMapGen();
@@ -70,5 +71,7 @@ public:
 	void FillMap(int Seed);
 	void Init(CLayers *pLayers, CCollision *pCollision);
 };
+
+inline int PercOf(int Prc, int Total) { return Prc*Total*0.01f; }
 
 #endif

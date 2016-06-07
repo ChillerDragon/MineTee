@@ -21,7 +21,7 @@ inline float sign(float f)
 	return f<0.0f?-1.0f:1.0f;
 }
 
-inline int round(float f)
+inline int int_round(float f)
 {
 	if(f > 0)
 		return (int)(f+0.5f);

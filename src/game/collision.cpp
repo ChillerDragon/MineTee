@@ -2,8 +2,6 @@
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 /* File modified by Alexandre Díaz */
 #include <base/system.h>
-#include <base/math.h>
-#include <base/vmath.h>
 
 #include <math.h>
 #include <engine/map.h>

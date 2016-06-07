@@ -1780,12 +1780,12 @@ void CGameContext::UpdateBotInfo(int ClientID)
 	{
 		if (BotSubType == BOT_BOSS_DUNE)
 			str_copy(NameSkin, "x_boss_dune", sizeof(NameSkin));
-		else if (BotSubType == BOT_BOSS_GREYFOX)
+		/*else if (BotSubType == BOT_BOSS_GREYFOX)
 			str_copy(NameSkin, "x_boss_greyfox", sizeof(NameSkin));
 		else if (BotSubType == BOT_BOSS_PEDOBEAR)
 			str_copy(NameSkin, "x_boss_pedobear", sizeof(NameSkin));
 		else if (BotSubType == BOT_BOSS_ZOMBIE)
-			str_copy(NameSkin, "x_boss_zombie", sizeof(NameSkin));
+			str_copy(NameSkin, "x_boss_zombie", sizeof(NameSkin));*/
 	}
 	else if (BotType == BOT_PET)
 	{

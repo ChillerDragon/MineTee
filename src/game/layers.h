@@ -18,6 +18,8 @@ class CLayers
 	class IMap *m_pMap;
 
 	// MineTee
+	int m_GameGroupIndex;
+	int m_GameLayerIndex;
 	int m_MineTeeGroupIndex;
 	int m_MineTeeLayerIndex;
 	int m_MineTeeBGLayerIndex;
@@ -40,6 +42,8 @@ public:
 	CMapItemLayer *GetLayer(int Index) const;
 
 	// MineTee
+	int GetGameGroupIndex() const { return m_GameGroupIndex; }
+	int GetGameLayerIndex() const { return m_GameLayerIndex; }
 	int GetMineTeeGroupIndex() const { return m_MineTeeGroupIndex; }
 	int GetMineTeeLayerIndex() const { return m_MineTeeLayerIndex; }
 	int GetMineTeeBGLayerIndex() const { return m_MineTeeBGLayerIndex; }

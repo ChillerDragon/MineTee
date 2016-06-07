@@ -423,17 +423,17 @@ void CCharacterCore::Move()
 
 void CCharacterCore::Write(CNetObj_CharacterCore *pObjCore)
 {
-	pObjCore->m_X = round(m_Pos.x);
-	pObjCore->m_Y = round(m_Pos.y);
+	pObjCore->m_X = int_round(m_Pos.x);
+	pObjCore->m_Y = int_round(m_Pos.y);
 
-	pObjCore->m_VelX = round(m_Vel.x*256.0f);
-	pObjCore->m_VelY = round(m_Vel.y*256.0f);
+	pObjCore->m_VelX = int_round(m_Vel.x*256.0f);
+	pObjCore->m_VelY = int_round(m_Vel.y*256.0f);
 	pObjCore->m_HookState = m_HookState;
 	pObjCore->m_HookTick = m_HookTick;
-	pObjCore->m_HookX = round(m_HookPos.x);
-	pObjCore->m_HookY = round(m_HookPos.y);
-	pObjCore->m_HookDx = round(m_HookDir.x*256.0f);
-	pObjCore->m_HookDy = round(m_HookDir.y*256.0f);
+	pObjCore->m_HookX = int_round(m_HookPos.x);
+	pObjCore->m_HookY = int_round(m_HookPos.y);
+	pObjCore->m_HookDx = int_round(m_HookDir.x*256.0f);
+	pObjCore->m_HookDy = int_round(m_HookDir.y*256.0f);
 	pObjCore->m_HookedPlayer = m_HookedPlayer;
 	pObjCore->m_Jumped = m_Jumped;
 	pObjCore->m_Direction = m_Direction;
