@@ -913,20 +913,90 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 	vec2 P;
 	bool IsBot = (BotType != -1);
 
-	if (IsBot && BotType != BOT_ANIMAL) // Enemies can spawn underground or outside
+	if (IsBot)
 	{
-		P = vec2(rand()%GameServer()->Collision()->GetWidth(), rand()%GameServer()->Collision()->GetHeight());
-		P = vec2(P.x*32.0f + 16.0f, P.y*32.0f + 16.0f);
+		for (int q=0; q<MAX_CLIENTS-MAX_BOTS;q++)
+		{
+			int StartX, StartY, EndX, EndY;
+			if (!GetPlayerArea(q, &StartX, &EndX, &StartY, &EndY))
+				continue;
 
-		if (GameServer()->Collision()->GetCollisionAt(P.x-32, P.y) != 0 ||
-			GameServer()->Collision()->GetCollisionAt(P.x+32, P.y) != 0 ||
-			GameServer()->Collision()->GetCollisionAt(P.x, P.y-32) != 0)
-			return;
+
+			if (BotType != BOT_ANIMAL) // Enemies can spawn underground or outside
+			{
+				P = vec2(int_rand(StartX, EndX), int_rand(StartY, EndY));
+				P = vec2(P.x*32.0f + 16.0f, P.y*32.0f + 16.0f);
+
+				if (GameServer()->Collision()->GetCollisionAt(P.x-32, P.y) != 0 ||
+					GameServer()->Collision()->GetCollisionAt(P.x+32, P.y) != 0 ||
+					GameServer()->Collision()->GetCollisionAt(P.x, P.y-32) != 0)
+					return;
+			}
+			else // Animals only spawn in the outside
+			{
+				bool found = false;
+				do
+				{
+					found = false;
+					P = vec2(int_rand(StartX, EndX), 0);
+					P = vec2(P.x*32.0f + 16.0f, 16.0f);
+					const int TotalH = GameServer()->Collision()->GetHeight()*32;
+					for (int i=P.y; i<TotalH-1; i+=32)
+					{
+						if (GameServer()->Collision()->CheckPoint(vec2(P.x, i), true))
+						{
+							P.y = i-32;
+							found = true;
+							break;
+						}
+					}
+				} while (!found);
+			}
+
+			if (GameServer()->Collision()->GetCollisionAt(P.x, P.y+32) == CCollision::COLFLAG_SOLID)
+			{
+				float S = EvaluateSpawnPos(pEval, P);
+				if(!pEval->m_Got || pEval->m_Score > S)
+				{
+					pEval->m_Got = true;
+					pEval->m_Score = S;
+					P.y -= 8; // Be secure that not spawn stuck
+					pEval->m_Pos = P;
+				}
+			}
+
+			if (pEval->m_Got)
+			{
+				// Other bots near?
+				CCharacter *aEnts[MAX_BOTS];
+				int Num = GameServer()->m_World.FindEntities(P, 1250.0f, (CEntity**)aEnts, MAX_BOTS, CGameWorld::ENTTYPE_CHARACTER);
+				for (int i=0; i<Num; i++)
+				{
+					if (aEnts[i]->GetPlayer()->IsBot())
+					{
+						pEval->m_Got = false;
+						return;
+					}
+				}
+
+				// Good Light?
+				UpdateLayerLights(P); // TODO: Can decrease performance... because slow light implementation :/
+				CTile *pMTLTiles = GameServer()->Layers()->TileLights();
+				int TileLightIndex = static_cast<int>(P.y/32)*GameServer()->Layers()->Lights()->m_Width+static_cast<int>(P.x/32);
+				if (BotType == BOT_ANIMAL && pMTLTiles[TileLightIndex].m_Index != 0)
+					pEval->m_Got = false;
+				else if (BotType != BOT_ANIMAL && pMTLTiles[TileLightIndex].m_Index != 202)
+					pEval->m_Got = false;
+			}
+		}
 	}
-	else // Players & Animals only spawn in the outside
+	else
 	{
+		dbg_msg("SPAWN", "Intentando Spawn Player");
+		bool found = false;
 		do
 		{
+			found = false;
 			P = vec2(rand()%GameServer()->Collision()->GetWidth(), 0);
 			P = vec2(P.x*32.0f + 16.0f, 16.0f);
 			const int TotalH = GameServer()->Collision()->GetHeight()*32;
@@ -935,43 +1005,23 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 				if (GameServer()->Collision()->CheckPoint(vec2(P.x, i), true))
 				{
 					P.y = i-32;
+					found = true;
 					break;
 				}
 			}
-		} while (GameServer()->Collision()->GetMineTeeTileAt(P) != CBlockManager::AIR);
-	}
+		} while (!found);
 
-	if (GameServer()->Collision()->GetCollisionAt(P.x, P.y+32) == CCollision::COLFLAG_SOLID)
-	{
-		float S = EvaluateSpawnPos(pEval, P);
-		if(!pEval->m_Got || pEval->m_Score > S)
+		if (GameServer()->Collision()->GetCollisionAt(P.x, P.y+32) == CCollision::COLFLAG_SOLID)
 		{
-			pEval->m_Got = true;
-			pEval->m_Score = S;
-			P.y -= 8; // Be secure that not spawn stuck
-			pEval->m_Pos = P;
+			float S = EvaluateSpawnPos(pEval, P);
+			if(!pEval->m_Got || pEval->m_Score > S)
+			{
+				pEval->m_Got = true;
+				pEval->m_Score = S;
+				P.y -= 8; // Be secure that not spawn stuck
+				pEval->m_Pos = P;
+			}
 		}
-	}
-
-	if (IsBot && pEval->m_Got)
-	{
-		// Other bots near?
-		CCharacter *aEnts[MAX_BOTS];
-		int Num = GameServer()->m_World.FindEntities(P, 1250.0f, (CEntity**)aEnts, MAX_BOTS, CGameWorld::ENTTYPE_CHARACTER);
-		for (int i=0; i<Num; i++)
-		{
-			if (aEnts[i]->GetPlayer()->IsBot())
-				return;
-		}
-
-		// Good Light?
-		UpdateLayerLights(P); // TODO: Can decrease performance... because slow light implementation :/
-		CTile *pMTLTiles = GameServer()->Layers()->TileLights();
-		int TileLightIndex = static_cast<int>(P.y/32)*GameServer()->Layers()->Lights()->m_Width+static_cast<int>(P.x/32);
-		if (BotType == BOT_ANIMAL && pMTLTiles[TileLightIndex].m_Index != 0)
-			pEval->m_Got = false;
-		else if (BotType != BOT_ANIMAL && pMTLTiles[TileLightIndex].m_Index != 202)
-			pEval->m_Got = false;
 	}
 }
 

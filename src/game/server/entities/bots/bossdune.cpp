@@ -16,7 +16,7 @@ MACRO_ALLOC_POOL_ID_IMPL(CBossDune, MAX_CLIENTS)
 CBossDune::CBossDune(CGameWorld *pWorld)
 : CCharacter(pWorld)
 {
-	m_BotDir = 1;
+	m_BotDir = 0;
 	m_BotLastPos = m_Pos;
 	m_BotLastStuckTime = 0.0f;
 	m_BotStuckCount = 0;
@@ -50,6 +50,13 @@ bool CBossDune::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 void CBossDune::TickBotAI()
 {
 	bool PlayerClose = false;
+
+    //Clean m_Input
+	m_Input.m_Direction = 0;
+	m_Input.m_Hook = 0;
+	m_Input.m_Fire = 0;
+	m_Input.m_Jump = 0;
+
     //Fix Stuck
     if (IsGrounded())
         m_BotTimeGrounded = Server()->Tick();
