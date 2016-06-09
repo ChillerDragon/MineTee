@@ -14,6 +14,13 @@
 extern "C" {
 #endif
 
+#ifdef __MINGW32__
+	#include <stdlib.h>
+	// Mingw doesn't define putenv()
+	extern int putenv(const char*);
+#endif
+#include <stddef.h>
+
 /* Group: Debug */
 /*
 	Function: dbg_assert

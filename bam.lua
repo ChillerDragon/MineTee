@@ -143,13 +143,12 @@ function build(settings)
 	--settings.objdir = Path("objs")
 	settings.cc.Output = Intermediate_Output
 
-	-- c++11 support \o/
-	settings.cc.flags_cxx:Add("-std=c++11")
-
 	if config.compiler.driver == "cl" then
 		settings.cc.flags:Add("/wd4244")
 	else
 		settings.cc.flags:Add("-Wall", "-fno-exceptions")
+		-- c++11 support \o/
+		settings.cc.flags_cxx:Add("-std=c++11")
 		if family == "windows" then
 			-- disable visibility attribute support for gcc on windows
 			settings.cc.defines:Add("NO_VIZ")
