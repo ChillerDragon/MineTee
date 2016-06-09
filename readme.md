@@ -13,6 +13,7 @@ MineTee its a mod for the game Teeworlds created and maintained by unsigned char
 	```c++
 	{ return (float)(hypot (x, y)); }
 	```
+	*** More details here: http://stackoverflow.com/a/29489843
 
 
 	
