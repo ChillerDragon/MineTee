@@ -3,14 +3,15 @@
 MineTee its a mod for the game Teeworlds created and maintained by unsigned char*.
 
 - Compile with MinGW
+
 	If you get the error "'_hypot' was not declared in this scope..." you will need edit the file '\include\math.h'.
 	Change the line:
 	```c++
-	{ return (float)(_hypot (x, y)); }"
+	{ return (float)(_hypot (x, y)); }
 	```
 	To
 	```c++
-	{ return (float)(hypot (x, y)); }"
+	{ return (float)(hypot (x, y)); }
 	```
 
 
