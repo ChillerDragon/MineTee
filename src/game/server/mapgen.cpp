@@ -13,6 +13,7 @@ CMapGen::CMapGen()
 {
 	m_pLayers = 0x0;
 	m_pCollision = 0x0;
+	m_pBlockManager = 0x0;
 	m_pNoise = 0x0;
 }
 CMapGen::~CMapGen()
@@ -21,10 +22,11 @@ CMapGen::~CMapGen()
 		delete m_pNoise;
 }
 
-void CMapGen::Init(CLayers *pLayers, CCollision *pCollision)
+void CMapGen::Init(CLayers *pLayers, CCollision *pCollision, CBlockManager *pBlockManager)
 {
 	m_pLayers = pLayers;
 	m_pCollision = pCollision;
+	m_pBlockManager = pBlockManager;
 }
 
 void CMapGen::FillMap(int Seed)
@@ -55,7 +57,7 @@ void CMapGen::FillMap(int Seed)
 		m_pCollision->ModifTile(TilePos, m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeFGLayerIndex(), 0, 0);
 		m_pCollision->ModifTile(TilePos, m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeBGLayerIndex(), 0, 0);
 	}
-	dbg_msg("mapgen", "map sanitized in %.5fs", (time_get()-ProcessTime)/time_freq());
+	dbg_msg("mapgen", "map sanitized in %.5fs", (float)(time_get()-ProcessTime)/time_freq());
 
 	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	/* ~~~ Generate the world ~~~ */
@@ -64,29 +66,46 @@ void CMapGen::FillMap(int Seed)
 	// terrain
 	ProcessTime = time_get();
 	GenerateBasicTerrain();
-	dbg_msg("mapgen", "terrain generated in %.5fs", (time_get()-ProcessTime)/time_freq());
+	GenerateBiomes(CBlockManager::SAND);
+	dbg_msg("mapgen", "terrain generated in %.5fs", (float)(time_get()-ProcessTime)/time_freq());
+
+	// tunnels
+	ProcessTime = time_get();
+	GenerateTunnels(m_pNoise->Perlin()->GetURandom(10,20));
+	dbg_msg("mapgen", "tunnels generated in %.5fs", (float)(time_get()-ProcessTime)/time_freq());
+
 	// ores
 	ProcessTime = time_get();
 	GenerateOre(CBlockManager::COAL_ORE, 200.0f, COAL_LEVEL, 50, 4);
 	GenerateOre(CBlockManager::IRON_ORE, 320.0f, IRON_LEVEL, 30, 2);
 	GenerateOre(CBlockManager::GOLD_ORE, 350.0f, GOLD_LEVEL, 15, 2);
 	GenerateOre(CBlockManager::DIAMOND_ORE, 680.0f, DIAMOND_LEVEL, 15, 1);
-	dbg_msg("mapgen", "ores generated in %.5fs", (time_get()-ProcessTime)/time_freq());
+	dbg_msg("mapgen", "ores generated in %.5fs", (float)(time_get()-ProcessTime)/time_freq());
+
 	// caves
 	ProcessTime = time_get();
 	GenerateCaves(CBlockManager::AIR);
 	GenerateCaves(CBlockManager::WATER_D);
 	GenerateCaves(CBlockManager::LAVA_D);
-	GenerateTunnels(m_pNoise->Perlin()->GetURandom(10,20));
+	dbg_msg("mapgen", "caves generated in %.5fs", (float)(time_get()-ProcessTime)/time_freq());
+
+	// Improve Environment
+	ProcessTime = time_get();
+	DoFallSteps();
+	dbg_msg("mapgen", "environment processed in %.5fs", (float)(time_get()-ProcessTime)/time_freq());
+
+	// Fluids
+	ProcessTime = time_get();
 	GenerateWater();
-	dbg_msg("mapgen", "caves generated in %.5fs", (time_get()-ProcessTime)/time_freq());
+	DoWatterSteps();
+	dbg_msg("mapgen", "fluids generated in %.5fs", (float)(time_get()-ProcessTime)/time_freq());
 
 	// vegetation
 	ProcessTime = time_get();
 	GenerateFlowers();
 	GenerateMushrooms();
 	GenerateTrees();
-	dbg_msg("mapgen", "vegetation generated in %.5fs", (time_get()-ProcessTime)/time_freq());
+	dbg_msg("mapgen", "vegetation generated in %.5fs", (float)(time_get()-ProcessTime)/time_freq());
 
 	// Spawn Bosses
 	GenerateBossZones();
@@ -99,7 +118,7 @@ void CMapGen::FillMap(int Seed)
 	dbg_msg("mapgen", "finalizing map...");
 	GenerateSkip();
 
-	dbg_msg("mapgen", "map successfully generated in %.5fs", (time_get()-TotalTime)/time_freq());
+	dbg_msg("mapgen", "map successfully generated in %.5fs", (float)(time_get()-TotalTime)/time_freq());
 }
 
 void CMapGen::GenerateBasicTerrain()
@@ -143,10 +162,13 @@ void CMapGen::GenerateBasicTerrain()
 		m_pCollision->ModifTile(ivec2(TilePosX, TilePosY), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::STONE, 0);
 		
 		// fill the tiles under the random tile
-		int TempTileY = TilePosY+1;
+		const int startTilePos = TilePosY+1;
+		int TempTileY = startTilePos;
 		while(TempTileY < m_pLayers->MineTeeLayer()->m_Height)
 		{
 			m_pCollision->ModifTile(ivec2(TilePosX, TempTileY), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::STONE, 0);
+			if (TempTileY-startTilePos > 4) // Background
+				m_pCollision->ModifTile(ivec2(TilePosX, TempTileY), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeBGLayerIndex(), CBlockManager::STONE, 0);
 			TempTileY++;
 		}
 	}
@@ -194,6 +216,24 @@ void CMapGen::GenerateCaves(int FillBlock)
 			float frequency = 32.0f / (float)m_pLayers->MineTeeLayer()->m_Width;
 			float noise = m_pNoise->Noise((float)x * frequency, (float)y * frequency);
 	
+			if(noise > 0.4f)
+				m_pCollision->ModifTile(ivec2(x, y), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), FillBlock, 0);
+		}
+	}
+}
+
+void CMapGen::GenerateBiomes(int FillBlock)
+{
+	const int StoneLevel = PercOf(DIRT_LEVEL, m_pLayers->MineTeeLayer()->m_Height);
+
+	// cut in the caves with a 2d perlin noise
+	for(int x = 0; x < m_pLayers->MineTeeLayer()->m_Width; x++)
+	{
+		for(int y = StoneLevel; y < m_pLayers->MineTeeLayer()->m_Height; y++)
+		{
+			float frequency = 32.0f / (float)m_pLayers->MineTeeLayer()->m_Width;
+			float noise = m_pNoise->Noise((float)x * frequency, (float)y * frequency);
+
 			if(noise > 0.4f)
 				m_pCollision->ModifTile(ivec2(x, y), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), FillBlock, 0);
 		}
@@ -299,7 +339,9 @@ void CMapGen::GenerateTrees()
 		if((abs(LastTreeX - x) >= 8) || (abs(LastTreeX - x) <= 8 && abs(LastTreeX - x) >= 3 && !m_pNoise->Perlin()->GetURandom(0,8)))
 		{
 			int TempTileY = 0;
-			while((m_pCollision->GetMineTeeTileAt(vec2(x*32, (TempTileY+1)*32)) != CBlockManager::GRASS || m_pCollision->GetMineTeeTileAt(vec2(x*32, TempTileY*32)) != CBlockManager::AIR)
+			while((m_pCollision->GetMineTeeTileAt(vec2(x*32, (TempTileY+1)*32)) != CBlockManager::GRASS
+					|| m_pCollision->GetMineTeeTileAt(vec2(x*32, (TempTileY+1)*32)) != CBlockManager::SAND)
+					&& m_pCollision->GetMineTeeTileAt(vec2(x*32, TempTileY*32)) != CBlockManager::AIR
 					&& TempTileY < m_pLayers->MineTeeLayer()->m_Height)
 			{
 				TempTileY++;
@@ -308,10 +350,14 @@ void CMapGen::GenerateTrees()
 			if(TempTileY >= m_pLayers->MineTeeLayer()->m_Height)
 				continue;
 
-			if(m_pCollision->GetMineTeeTileAt(vec2(x*32, TempTileY*32)) != CBlockManager::AIR)
-				continue;
-
-			GenerateTree(ivec2(x, TempTileY));
+			const int TileBase = m_pCollision->GetMineTeeTileAt(vec2(x*32, TempTileY*32));
+			if (TileBase == CBlockManager::GRASS)
+				GenerateTree(ivec2(x, TempTileY));
+			else if (TileBase == CBlockManager::SAND)
+			{
+				for (int i=0; i>-4; i--)
+					m_pCollision->ModifTile(ivec2(x, TempTileY+i), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::CACTUS, 0);
+			}
 			LastTreeX = x;
 		}
 	}
@@ -427,6 +473,109 @@ void CMapGen::CreateStructure(int StructureID, ivec2 Pos)
 		TilePos.x = (Pos.x - M) + i%NUM_STRUCTURE_TILES;
 		TilePos.y = (Pos.y - M) + h;
 
-		m_pCollision->ModifTile(TilePos, m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), gs_MapStructures[StructureID][i], 0);
+		m_pCollision->ModifTile(TilePos, m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeBGLayerIndex(), gs_MapStructures[StructureID][0][i], 0);
+		m_pCollision->ModifTile(TilePos, m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), gs_MapStructures[StructureID][1][i], 0);
+		m_pCollision->ModifTile(TilePos, m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeFGLayerIndex(), gs_MapStructures[StructureID][2][i], 0);
+	}
+}
+
+void CMapGen::DoFallSteps()
+{
+	for(int TilePosX = 0; TilePosX < m_pLayers->MineTeeLayer()->m_Width; TilePosX++)
+	{
+		for(int TilePosY = m_pLayers->MineTeeLayer()->m_Height-1; TilePosY >= 0; TilePosY--)
+		{
+			const int TileIndexCenter = m_pCollision->GetMineTeeTileAt(vec2(TilePosX*32, TilePosY*32));
+			const int TileIndexBottom = m_pCollision->GetMineTeeTileAt(vec2(TilePosX*32, (TilePosY+1)*32));
+			const CBlockManager::CBlockInfo *pBlockInfo = m_pBlockManager->GetBlockInfo(TileIndexCenter);
+
+			if (pBlockInfo->m_Gravity && (TileIndexBottom == 0 || m_pBlockManager->IsFluid(TileIndexBottom)))
+			{
+				int e=TilePosY+1;
+				for (; e<m_pLayers->MineTeeLayer()->m_Height; e++)
+				{
+					const int TileIndex = m_pCollision->GetMineTeeTileAt(vec2(TilePosX*32, e*32));
+					if (TileIndex != 0 && !m_pBlockManager->IsFluid(TileIndex))
+					{
+						--e;
+						break;
+					}
+				}
+
+				if (e != TilePosY)
+				{
+					m_pCollision->ModifTile(ivec2(TilePosX, e), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), TileIndexCenter, 0);
+					m_pCollision->ModifTile(ivec2(TilePosX, TilePosY), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), 0, 0);
+				}
+			}
+		}
+	}
+}
+void CMapGen::DoWatterSteps()
+{
+	for (int q=0; q<20; q++)
+	{
+		for(int TilePosX = 0; TilePosX < m_pLayers->MineTeeLayer()->m_Width; TilePosX++)
+		{
+			for(int TilePosY = 0; TilePosY < m_pLayers->MineTeeLayer()->m_Height; TilePosY++)
+			{
+				const int TileIndexCenter = m_pCollision->GetMineTeeTileAt(vec2(TilePosX*32, TilePosY*32));
+				int FluidType = 0;
+				if (!m_pBlockManager->IsFluid(TileIndexCenter, &FluidType))
+					continue;
+
+				const int TileIndexBottom = m_pCollision->GetMineTeeTileAt(vec2(TilePosX*32, (TilePosY+1)*32));
+				const int TileIndexRight = m_pCollision->GetMineTeeTileAt(vec2((TilePosX+1)*32, TilePosY*32));
+				const int TileIndexRightTop = m_pCollision->GetMineTeeTileAt(vec2((TilePosX+1)*32, (TilePosY-1)*32));
+				const int TileIndexRightBottom = m_pCollision->GetMineTeeTileAt(vec2((TilePosX+1)*32, (TilePosY+1)*32));
+				const int TileIndexTop = m_pCollision->GetMineTeeTileAt(vec2(TilePosX*32, (TilePosY-1)*32));
+				const int TileIndexLeft = m_pCollision->GetMineTeeTileAt(vec2((TilePosX-1)*32, TilePosY*32));
+				const int TileIndexLeftTop = m_pCollision->GetMineTeeTileAt(vec2((TilePosX-1)*32, (TilePosY-1)*32));
+				const int TileIndexLeftBottom = m_pCollision->GetMineTeeTileAt(vec2((TilePosX-1)*32, (TilePosY+1)*32));
+				const CBlockManager::CBlockInfo *pBlockBottomInfo = m_pBlockManager->GetBlockInfo(TileIndexBottom);
+
+				// Fall
+				if (TileIndexBottom == 0 || (pBlockBottomInfo && !pBlockBottomInfo->m_PlayerCollide) ||
+					(TileIndexBottom >= CBlockManager::WATER_A && TileIndexBottom < CBlockManager::WATER_C) ||
+					(TileIndexBottom >= CBlockManager::LAVA_A && TileIndexBottom < CBlockManager::LAVA_C))
+				{
+					int TileIndexTemp = (FluidType==CBlockManager::FLUID_WATER)?CBlockManager::WATER_C:CBlockManager::LAVA_C;
+					m_pCollision->ModifTile(ivec2(TilePosX, TilePosY+1), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), TileIndexTemp, 0);
+				}
+				// Create Obsidian?
+				else if ((FluidType == CBlockManager::FLUID_LAVA && TileIndexBottom >= CBlockManager::WATER_A && TileIndexBottom <= CBlockManager::WATER_D) ||
+						 (FluidType == CBlockManager::FLUID_WATER && TileIndexBottom >= CBlockManager::LAVA_A && TileIndexBottom <= CBlockManager::LAVA_D))
+				{
+					m_pCollision->ModifTile(ivec2(TilePosX, TilePosY+1), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::OBSIDIAN_A, 0);
+				}
+
+				// Spread To Right
+				if (TileIndexRight == 0 && TileIndexBottom != 0 &&
+					!m_pBlockManager->IsFluid(TileIndexBottom) &&
+					!m_pBlockManager->IsFluid(TileIndexRightBottom) &&
+					!m_pBlockManager->IsFluid(TileIndexRightTop) &&
+					TileIndexCenter-1 != CBlockManager::WATER_A-1 && TileIndexCenter-1 != CBlockManager::LAVA_A-1)
+				{
+					m_pCollision->ModifTile(ivec2(TilePosX+1, TilePosY), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), TileIndexCenter-1, 0);
+				}
+				// Spread To Left
+				if (TileIndexLeft == 0 && TileIndexBottom != 0 &&
+					!m_pBlockManager->IsFluid(TileIndexBottom) &&
+					!m_pBlockManager->IsFluid(TileIndexLeftBottom) &&
+					!m_pBlockManager->IsFluid(TileIndexLeftTop) &&
+					TileIndexCenter-1 != CBlockManager::WATER_A-1 && TileIndexCenter-1 != CBlockManager::LAVA_A-1)
+				{
+					m_pCollision->ModifTile(ivec2(TilePosX-1, TilePosY), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), TileIndexCenter-1, 0);
+				}
+
+				// Check for correct tiles FIXME
+				int FluidTypeTop = 0;
+				bool IsFluidTop = m_pBlockManager->IsFluid(TileIndexTop, &FluidTypeTop);
+				if (IsFluidTop && TileIndexCenter < CBlockManager::WATER_C)
+				{
+					m_pCollision->ModifTile(ivec2(TilePosX, TilePosY), m_pLayers->GetMineTeeGroupIndex(), m_pLayers->GetMineTeeLayerIndex(), FluidTypeTop==CBlockManager::FLUID_WATER?CBlockManager::WATER_C:CBlockManager::LAVA_C, 0);
+				}
+			}
+		}
 	}
 }

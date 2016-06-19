@@ -1597,7 +1597,7 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 	dbg_assert(m_BlockManager.Init(Server()->GetBlocksData(), Server()->GetBlocksDataSize()), "Can't read information about blocks! (blocks.json)"); // MineTee
 
 	m_Collision.Init(&m_Layers, &m_BlockManager);
-	m_MapGen.Init(&m_Layers, &m_Collision); // MineTee
+	m_MapGen.Init(&m_Layers, &m_Collision, &m_BlockManager); // MineTee
 	if (g_Config.m_SvMapGeneration && m_pServer->m_MapGenerated) // generate a random world if wanted
 		m_MapGen.FillMap(g_Config.m_SvMapGenerationSeed);
 

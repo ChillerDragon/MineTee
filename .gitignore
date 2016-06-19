@@ -2,6 +2,7 @@
 .cproject
 .pydevproject
 .save
+.autotools
 bam
 .bam
 config.lua

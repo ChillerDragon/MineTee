@@ -13,6 +13,8 @@ enum
 	LAVA_LEVEL = 70,
 	TUNNEL_LEVEL = 30,
 
+	BIOME_LEVEL = 10,
+
 	WATER_LEVEL = 25,
 
 	COAL_LEVEL = 60,
@@ -46,6 +48,7 @@ class CMapGen
 {
 	class CLayers *m_pLayers;
 	CCollision *m_pCollision;
+	CBlockManager *m_pBlockManager;
 	class CPerlinOctave *m_pNoise;
 
 	void GenerateBasicTerrain();
@@ -59,6 +62,10 @@ class CMapGen
 	void GenerateBorder();
 	void GenerateSkip();
 	void GenerateBossZones();
+	void GenerateBiomes(int FillBlock);
+
+	void DoFallSteps();
+	void DoWatterSteps();
 
 	void CreateStructure(int StructureID, ivec2 Pos);
 
@@ -69,7 +76,7 @@ public:
 	void GenerateTree(ivec2 Pos);
 
 	void FillMap(int Seed);
-	void Init(CLayers *pLayers, CCollision *pCollision);
+	void Init(CLayers *pLayers, CCollision *pCollision, CBlockManager *pBlockManager);
 };
 
 inline int PercOf(int Prc, int Total) { return Prc*Total*0.01f; }

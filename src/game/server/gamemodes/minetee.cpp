@@ -129,8 +129,10 @@ void CGameControllerMineTee::EnvirionmentTick(CTile *pTempTiles, const int *pTil
 	// Fluids
 	if (IsFluid)
 	{
+		const CBlockManager::CBlockInfo *pBlockBottomInfo = GameServer()->m_BlockManager.GetBlockInfo(pTileIndex[TILE_BOTTOM]);
+
 		// Fall
-		if (pTileIndex[TILE_BOTTOM] == 0 ||
+		if (pTileIndex[TILE_BOTTOM] == 0 || (pBlockBottomInfo && !pBlockBottomInfo->m_PlayerCollide) ||
 			(pTileIndex[TILE_BOTTOM] >= CBlockManager::WATER_A && pTileIndex[TILE_BOTTOM] < CBlockManager::WATER_C) ||
 			(pTileIndex[TILE_BOTTOM] >= CBlockManager::LAVA_A && pTileIndex[TILE_BOTTOM] < CBlockManager::LAVA_C))
 		{
@@ -170,7 +172,6 @@ void CGameControllerMineTee::EnvirionmentTick(CTile *pTempTiles, const int *pTil
 		{
 			ModifTile(x, y, FluidTypeTop==CBlockManager::FLUID_WATER?CBlockManager::WATER_C:CBlockManager::LAVA_C);
 		}
-
 	}
 
 	// Mutations
@@ -254,7 +255,7 @@ void CGameControllerMineTee::EnvirionmentTick(CTile *pTempTiles, const int *pTil
 	}
 
 	// Gravity
-	if (pBlockInfo->m_Gravity && pTileIndex[TILE_BOTTOM] == 0)
+	if (pBlockInfo->m_Gravity && (pTileIndex[TILE_BOTTOM] == 0 || GameServer()->m_BlockManager.IsFluid(pTileIndex[TILE_BOTTOM])))
 	{
 		ModifTile(x, y, 0);
 		ModifTile(x, y+1, pTileIndex[TILE_CENTER]);
@@ -953,7 +954,9 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 				} while (!found);
 			}
 
-			if (GameServer()->Collision()->GetCollisionAt(P.x, P.y+32) == CCollision::COLFLAG_SOLID)
+			int TileIndex = GameServer()->Collision()->GetMineTeeTileAt(P);
+			if (GameServer()->Collision()->GetCollisionAt(P.x, P.y+32) == CCollision::COLFLAG_SOLID
+					&& !GameServer()->m_BlockManager.IsFluid(TileIndex))
 			{
 				float S = EvaluateSpawnPos(pEval, P);
 				if(!pEval->m_Got || pEval->m_Score > S)
@@ -992,7 +995,6 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 	}
 	else
 	{
-		dbg_msg("SPAWN", "Intentando Spawn Player");
 		bool found = false;
 		do
 		{
@@ -1011,7 +1013,9 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 			}
 		} while (!found);
 
-		if (GameServer()->Collision()->GetCollisionAt(P.x, P.y+32) == CCollision::COLFLAG_SOLID)
+		int TileIndex = GameServer()->Collision()->GetMineTeeTileAt(P);
+		if (GameServer()->Collision()->GetCollisionAt(P.x, P.y+32) == CCollision::COLFLAG_SOLID
+				&& !GameServer()->m_BlockManager.IsFluid(TileIndex))
 		{
 			float S = EvaluateSpawnPos(pEval, P);
 			if(!pEval->m_Got || pEval->m_Score > S)
