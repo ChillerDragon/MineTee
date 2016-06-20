@@ -4,6 +4,35 @@
 #ifndef ENGINE_SHARED_DATAFILE_H
 #define ENGINE_SHARED_DATAFILE_H
 
+// TODO: Change This
+class CImageInfoFile
+{
+public:
+	enum
+	{
+		FORMAT_AUTO=-1,
+		FORMAT_RGB=0,
+		FORMAT_RGBA=1,
+		FORMAT_ALPHA=2,
+	};
+
+	/* Variable: width
+		Contains the width of the image */
+	int m_Width;
+
+	/* Variable: height
+		Contains the height of the image */
+	int m_Height;
+
+	/* Variable: format
+		Contains the format of the image. See <Image Formats> for more information. */
+	int m_Format;
+
+	/* Variable: data
+		Pointer to the image data. */
+	void *m_pData;
+};
+
 // raw datafile access
 class CDataFileReader
 {
@@ -90,7 +119,7 @@ public:
 	int AddItem(int Type, int ID, int Size, void *pData);
 	int Finish();
 
-	bool CreateEmptyMineTeeMap(class IStorage *pStorage, const char *pFileName, int w, int h, char *pBlocksData = 0x0, int BlocksDataSize = 0); // MineTee
+	bool CreateEmptyMineTeeMap(class IStorage *pStorage, const char *pFileName, int w, int h, CImageInfoFile *pTileset = 0x0, char *pBlocksData = 0x0, int BlocksDataSize = 0); // MineTee
 	bool SaveMap(class IStorage *pStorage, CDataFileReader *pFileMap, const char *pFileName, char *pBlocksData = 0x0, int BlocksDataSize = 0); // MineTee
 };
 

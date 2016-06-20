@@ -269,7 +269,7 @@ function build(settings)
 		client_link_other, client_osxlaunch)
 
 	server_exe = Link(server_settings, "tw_minetee_srv", engine, server,
-		game_shared, game_server, zlib, jsonparser, server_link_other)
+		game_shared, game_server, zlib, pnglite, jsonparser, server_link_other)
 
 	serverlaunch = {}
 	if platform == "macosx" then

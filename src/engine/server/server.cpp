@@ -25,6 +25,8 @@
 #include <engine/shared/protocol.h>
 #include <engine/shared/snapshot.h>
 
+#include <engine/external/pnglite/pnglite.h> // MineTee
+
 #include <game/generated/protocol.h> // MineTee
 #include <game/server/player.h> // MineTee
 
@@ -1293,14 +1295,27 @@ int CServer::LoadMap(const char *pMapSize, const char *pMapName, bool GenerateMa
 				h=8000;
 			}
 
+			CImageInfoFile ImgInfo;
+			if (g_Config.m_SvCustomTileset)
+			{
+				if (!LoadPNG(&ImgInfo, "mapres/minetee.png", IStorage::TYPE_ALL))
+				{
+					Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "mapgen", "can't read minetee tileset!");
+					return 0;
+				}
+			}
+
 		    CDataFileWriter fileWrite;
-		    if (!fileWrite.CreateEmptyMineTeeMap(Storage(), aBuf, w, h))
+		    if (!fileWrite.CreateEmptyMineTeeMap(Storage(), aBuf, w, h, &ImgInfo))
 		    {
 		    	m_MapGenerated = false;
 		    	return 0;
 		    }
 		    else
 		    	m_MapGenerated = true;
+
+		    mem_free(ImgInfo.m_pData);
+		    ImgInfo.m_pData = 0x0;
 		}
 		else // If exists don't generate
 			m_MapGenerated = false;
@@ -1921,4 +1936,53 @@ void CServer::ConAdvanceTime(IConsole::IResult *pResult, void *pUser)
 {
 	if (pResult->NumArguments() == 1)
 		((CServer *)pUser)->m_pGameServer->AdvanceTime(pResult->GetInteger(0));
+}
+
+// MineTee
+int CServer::LoadPNG(CImageInfoFile *pImg, const char *pFilename, int StorageType)
+{
+	char aCompleteFilename[512];
+	unsigned char *pBuffer;
+	png_t Png; // ignore_convention
+
+	// open file for reading
+	png_init(0,0); // ignore_convention
+
+	IOHANDLE File = m_pStorage->OpenFile(pFilename, IOFLAG_READ, StorageType, aCompleteFilename, sizeof(aCompleteFilename));
+	if(File)
+		io_close(File);
+	else
+	{
+		dbg_msg("game/png", "failed to open file. filename='%s'", pFilename);
+		return 0;
+	}
+
+	int Error = png_open_file(&Png, aCompleteFilename); // ignore_convention
+	if(Error != PNG_NO_ERROR)
+	{
+		dbg_msg("game/png", "failed to open file. filename='%s'", aCompleteFilename);
+		if(Error != PNG_FILE_ERROR)
+			png_close_file(&Png); // ignore_convention
+		return 0;
+	}
+
+	if(Png.depth != 8 || (Png.color_type != PNG_TRUECOLOR && Png.color_type != PNG_TRUECOLOR_ALPHA)) // ignore_convention
+	{
+		dbg_msg("game/png", "invalid format. filename='%s'", aCompleteFilename);
+		png_close_file(&Png); // ignore_convention
+		return 0;
+	}
+
+	pBuffer = (unsigned char *)mem_alloc(Png.width * Png.height * Png.bpp, 1); // ignore_convention
+	png_get_data(&Png, pBuffer); // ignore_convention
+	png_close_file(&Png); // ignore_convention
+
+	pImg->m_Width = Png.width; // ignore_convention
+	pImg->m_Height = Png.height; // ignore_convention
+	if(Png.color_type == PNG_TRUECOLOR) // ignore_convention
+		pImg->m_Format = CImageInfoFile::FORMAT_RGB;
+	else if(Png.color_type == PNG_TRUECOLOR_ALPHA) // ignore_convention
+		pImg->m_Format = CImageInfoFile::FORMAT_RGBA;
+	pImg->m_pData = pBuffer;
+	return 1;
 }

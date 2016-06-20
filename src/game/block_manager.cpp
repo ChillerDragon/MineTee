@@ -33,7 +33,7 @@ bool CBlockManager::Init(char *pData, int DataSize)
 		pBlockInfo->m_CraftNum = ((*pJsonObject)["craftNum"].type == json_none)?1:(*pJsonObject)["craftNum"].u.integer;
 		pBlockInfo->m_Gravity = ((*pJsonObject)["gravity"].type == json_none)?false:(*pJsonObject)["gravity"].u.boolean;
 		pBlockInfo->m_PlayerCollide = ((*pJsonObject)["playerCollide"].type == json_none)?true:(*pJsonObject)["playerCollide"].u.boolean;
-		pBlockInfo->m_RandomActions = ((*pJsonObject)["randomActions"].type == json_none)?true:(*pJsonObject)["randomActions"].u.integer;
+		pBlockInfo->m_RandomActions = ((*pJsonObject)["randomActions"].type == json_none)?1:(*pJsonObject)["randomActions"].u.integer;
 		pBlockInfo->m_HalfTile = ((*pJsonObject)["halfTile"].type == json_none)?false:(*pJsonObject)["halfTile"].u.boolean;
 		pBlockInfo->m_Damage = ((*pJsonObject)["damage"].type == json_none)?false:(*pJsonObject)["damage"].u.boolean;
 		pBlockInfo->m_OnPut = ((*pJsonObject)["onPut"].type == json_none)?k:(*pJsonObject)["onPut"].u.integer;

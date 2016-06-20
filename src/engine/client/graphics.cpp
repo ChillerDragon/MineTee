@@ -17,6 +17,8 @@
 #include <engine/keys.h>
 #include <engine/console.h>
 
+#include <game/version.h>
+
 #include <math.h> // cosf, sinf
 
 #include "graphics.h"
@@ -823,7 +825,9 @@ int CGraphics_SDL::TryInit()
 	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, g_Config.m_GfxVsync);
 
 	// set caption
-	SDL_WM_SetCaption("Teeworlds", "Teeworlds");
+	char aBuf[128];
+	str_format(aBuf, sizeof(aBuf), "MineTee v%s [Teeworlds %s]", MINETEE_VERSION, GAME_VERSION);
+	SDL_WM_SetCaption(aBuf, "Teeworlds");
 
 	// create window
 	m_pScreenSurface = SDL_SetVideoMode(m_ScreenWidth, m_ScreenHeight, 0, Flags);

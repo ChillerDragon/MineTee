@@ -1722,7 +1722,17 @@ void CClient::InitInterfaces()
 	//
 	m_ServerBrowser.SetBaseInfo(&m_NetClient, m_pGameClient->NetVersion());
 	m_Friends.Init();
-	m_KeyStore.Init("keystore.keys", m_pStorage);
+	// MineTee
+	char aBuf[64];
+	if (g_Config.m_SessionName && g_Config.m_SessionName[0] != 0)
+	{
+		str_format(aBuf, sizeof(aBuf), "kstore_%s.keys", g_Config.m_SessionName);
+		str_sanitize_strong(aBuf);
+		str_copy(aBuf, str_skip_whitespaces(aBuf), sizeof(aBuf));
+	}
+	else
+		str_copy(aBuf, "kstore_public.keys", sizeof(aBuf));
+	m_KeyStore.Init(aBuf, m_pStorage);
 }
 
 void CClient::Run()

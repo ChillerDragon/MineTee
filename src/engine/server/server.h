@@ -41,7 +41,6 @@ public:
 	void FreeID(int ID);
 };
 
-
 class CServerBan : public CNetBan
 {
 	class CServer *m_pServer;
@@ -258,6 +257,7 @@ public:
 	const unsigned char *ClientKey(int ClientID);
 	IAccountSystem *AccountSystem() { return &m_AccountSystem; }
 	virtual void InitClientBot(int ClientID);
+	int LoadPNG(CImageInfoFile *pImg, const char *pFilename, int StorageType);
 	//
 };
 

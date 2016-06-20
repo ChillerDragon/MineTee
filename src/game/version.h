@@ -7,6 +7,5 @@
 #define GAME_VERSION "0.6.3"
 #define GAME_NETVERSION "0.6 " GAME_NETVERSION_HASH
 #define MINETEE_VERSION "2.0a" // MineTee
-#define MINETEE_NETVERSION "2.0.0" // MineTee
 static const char GAME_RELEASE_VERSION[8] = {'0', '.', '6', '.', '2', 0};
 #endif
