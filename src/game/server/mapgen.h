@@ -65,7 +65,7 @@ class CMapGen
 	void GenerateBiomes(int FillBlock);
 
 	void DoFallSteps();
-	void DoWatterSteps();
+	void DoWaterSteps();
 
 	void CreateStructure(int StructureID, ivec2 Pos);
 

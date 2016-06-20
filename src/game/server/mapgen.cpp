@@ -97,7 +97,7 @@ void CMapGen::FillMap(int Seed)
 	// Fluids
 	ProcessTime = time_get();
 	GenerateWater();
-	DoWatterSteps();
+	DoWaterSteps();
 	dbg_msg("mapgen", "fluids generated in %.5fs", (float)(time_get()-ProcessTime)/time_freq());
 
 	// vegetation
@@ -511,7 +511,7 @@ void CMapGen::DoFallSteps()
 		}
 	}
 }
-void CMapGen::DoWatterSteps()
+void CMapGen::DoWaterSteps()
 {
 	for (int q=0; q<20; q++)
 	{
