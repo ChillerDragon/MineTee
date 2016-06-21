@@ -781,7 +781,8 @@ bool CDataFileWriter::SaveMap(class IStorage *pStorage, CDataFileReader *pFileMa
 		if(!Item.m_External)
         {
             void *pData = pFileMap->GetData(Item.m_ImageData);
-            AddData(Item.m_Width*Item.m_Height*4, pData);
+            const int PixelSize = Item.m_Format == CImageInfoFile::FORMAT_RGB ? 3 : 4;
+            AddData(Item.m_Width*Item.m_Height*PixelSize, pData);
         }
 		AddItem(MAPITEMTYPE_IMAGE, i, sizeof(Item), &Item);
 	}
@@ -933,14 +934,14 @@ bool CDataFileWriter::CreateEmptyMineTeeMap(class IStorage *pStorage, const char
 		Item.m_Format = pTileset->m_Format;
 		Item.m_Width = pTileset->m_Width;
 		Item.m_Height = pTileset->m_Height;
-		dbg_msg("mapgen", "FOrmat: %d --- W: %d --- H: %d", pTileset->m_Format, pTileset->m_Width, pTileset->m_Height);
 		const int PixelSize = pTileset->m_Format == CImageInfoFile::FORMAT_RGB ? 3 : 4;
+		dbg_msg("mapgen", "FOrmat: %d --- W: %d --- H: %d --- PS: %d", pTileset->m_Format, pTileset->m_Width, pTileset->m_Height, PixelSize);
 		Item.m_ImageData = AddData(Item.m_Width*Item.m_Height*PixelSize, pTileset->m_pData);
 	}
 	else
 	{
 		Item.m_External = 1;
-		Item.m_Format = 1; // Auto
+		Item.m_Format = 1; // RGBA
 		Item.m_Width = 1024;
 		Item.m_Height = 1024;
 		Item.m_ImageData = -1;

@@ -1314,8 +1314,11 @@ int CServer::LoadMap(const char *pMapSize, const char *pMapName, bool GenerateMa
 		    else
 		    	m_MapGenerated = true;
 
-		    mem_free(ImgInfo.m_pData);
-		    ImgInfo.m_pData = 0x0;
+		    if (g_Config.m_SvCustomTileset)
+		    {
+			    mem_free(ImgInfo.m_pData);
+			    ImgInfo.m_pData = 0x0;
+		    }
 		}
 		else // If exists don't generate
 			m_MapGenerated = false;
