@@ -425,7 +425,7 @@ void CMapGen::GenerateSkip()
 				CTile *pTiles = (CTile *)m_pLayers->Map()->GetData(pTmap->m_Data);
 				for(int y = 0; y < pTmap->m_Height; y++)
 				{
-					for(int x = 1; x < pTmap->m_Width;)
+					for(int x = 0; x < pTmap->m_Width;)
 					{
 						int sx;
 						for(sx = 1; x+sx < pTmap->m_Width && sx < 255; sx++)

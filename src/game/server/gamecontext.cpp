@@ -1669,6 +1669,7 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 
 void CGameContext::OnShutdown()
 {
+	// FIXME: Can't Write & Read in the same file
 	//if (str_find_nocase(GameType(), "MineTee"))
 	//	SaveMap("");
 

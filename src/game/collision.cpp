@@ -348,8 +348,9 @@ bool CCollision::ModifTile(ivec2 pos, int group, int layer, int index, int flags
 
 void CCollision::RegenerateSkip(CTile *pTiles, int Width, int Height, ivec2 Pos, bool Delete)
 {
-	if (!pTiles || Pos.x < 0 || Pos.x > Width || Pos.y < 0 || Pos.y > Height)
+	if (!pTiles || Pos.x < 0 || Pos.x >= Width || Pos.y < 0 || Pos.y >= Height)
 		return;
+
 
 	int sx, i;
 
@@ -357,8 +358,21 @@ void CCollision::RegenerateSkip(CTile *pTiles, int Width, int Height, ivec2 Pos,
 	{
 		// Back Tile
 		sx = 1;
-		for (i=Pos.x+1; i<Width && !pTiles[Pos.y*Width+i].m_Index; i++, sx++);
-		for (i=Pos.x-1; i>=0 && !pTiles[Pos.y*Width+i].m_Index; i--, sx++);
+		for (i=Pos.x+1; i<Width; i++)
+		{
+			if (!pTiles[Pos.y*Width+i].m_Index)
+				sx++;
+			else
+				break;
+		}
+		for (i=Pos.x-1; i>=0; i--)
+		{
+			if (!pTiles[Pos.y*Width+i].m_Index)
+				sx++;
+			else
+				break;
+		}
+		i = max(0, i);
 		pTiles[Pos.y*Width+i].m_Skip = sx;
 		// Current Tile
 		pTiles[Pos.y*Width+Pos.x].m_Skip = 0;
@@ -366,10 +380,23 @@ void CCollision::RegenerateSkip(CTile *pTiles, int Width, int Height, ivec2 Pos,
 	else
 	{
 		// Back Tile
-		for (i=Pos.x-1, sx=0; i>=0 && !pTiles[Pos.y*Width+i].m_Index; i--, sx++);
+		for (i=Pos.x-1, sx=0; i>=0; i--)
+		{
+			if (!pTiles[Pos.y*Width+i].m_Index)
+				sx++;
+			else
+				break;
+		}
+		i = max(0, i);
 		pTiles[Pos.y*Width+i].m_Skip = sx;
 		// Current Tile
-		for (i=Pos.x+1, sx=0; i<Width && !pTiles[Pos.y*Width+i].m_Index; i++, sx++);
+		for (i=Pos.x+1, sx=0; i<Width; i++)
+		{
+			if (!pTiles[Pos.y*Width+i].m_Index)
+				sx++;
+			else
+				break;
+		}
 		pTiles[Pos.y*Width+Pos.x].m_Skip = sx;
 	}
 }

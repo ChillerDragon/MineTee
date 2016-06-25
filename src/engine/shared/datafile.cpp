@@ -796,12 +796,10 @@ bool CDataFileWriter::SaveMap(class IStorage *pStorage, CDataFileReader *pFileMa
 		CMapItemImage Item = *((CMapItemImage *)pFileMap->GetItem(Start+i, 0, 0));
 		str_copy(aBuf, (char *)pFileMap->GetData(Item.m_ImageName), sizeof(aBuf));
 		Item.m_ImageName = AddData(str_length(aBuf)+1, aBuf);
-		// FIXME: Errors when the image are embedded :/
 		if(Item.m_External == 0)
         {
 			const int PixelSize = Item.m_Format == CImageInfoFile::FORMAT_RGB ? 3 : 4;
 			void *pData = pFileMap->GetData(Item.m_ImageData);
-			const int ImageData = Item.m_ImageData;
 			Item.m_ImageData = AddData(Item.m_Width*Item.m_Height*PixelSize, pData);
         }
 		AddItem(MAPITEMTYPE_IMAGE, i, sizeof(CMapItemImage), &Item);
