@@ -68,7 +68,7 @@ public:
     {
         unsigned m_CurrentMapCrc;
         unsigned char *m_pCurrentMapData;
-        int m_CurrentMapSize;
+        unsigned int m_CurrentMapSize;
     };
     CClientMapInfo m_aClientsMapInfo[16];
     bool m_MapGenerated;

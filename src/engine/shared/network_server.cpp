@@ -1,6 +1,5 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
-/* File modified by Alexandre Díaz */
 #include <base/system.h>
 
 #include <engine/console.h>
@@ -15,7 +14,7 @@ bool CNetServer::Open(NETADDR BindAddr, CNetBan *pNetBan, int MaxClients, int Ma
 	mem_zero(this, sizeof(*this));
 
 	// open socket
-	m_Socket = net_udp_create(BindAddr);
+	m_Socket = net_udp_create(BindAddr, 0);
 	if(!m_Socket.type)
 		return false;
 
@@ -77,7 +76,10 @@ int CNetServer::Update()
 		if(m_aSlots[i].m_Connection.State() == NET_CONNSTATE_ERROR)
 		{
 			if(Now - m_aSlots[i].m_Connection.ConnectTime() < time_freq() && NetBan())
-				NetBan()->BanAddr(ClientAddr(i), 60, "Stressing network");
+			{
+				if(NetBan()->BanAddr(ClientAddr(i), 60, "Stressing network") == -1)
+					Drop(i, m_aSlots[i].m_Connection.ErrorString());
+			}
 			else
 				Drop(i, m_aSlots[i].m_Connection.ErrorString());
 		}
@@ -164,7 +166,7 @@ int CNetServer::Recv(CNetChunk *pChunk)
 								{
 									char aBuf[128];
 									str_format(aBuf, sizeof(aBuf), "Only %d players with the same IP are allowed", m_MaxClientsPerIP);
-									CNetBase::SendControlMsg(m_Socket, &Addr, 0, NET_CTRLMSG_CLOSE, aBuf, sizeof(aBuf));
+									CNetBase::SendControlMsg(m_Socket, &Addr, 0, NET_CTRLMSG_CLOSE, aBuf, str_length(aBuf) + 1);
 									return 0;
 								}
 							}
@@ -212,11 +214,6 @@ int CNetServer::Recv(CNetChunk *pChunk)
 
 int CNetServer::Send(CNetChunk *pChunk)
 {
-    // MineTee
-    if (pChunk->m_ClientID >= MaxClients())
-        return -1;
-    //
-
 	if(pChunk->m_DataSize >= NET_MAX_PAYLOAD)
 	{
 		dbg_msg("netserver", "packet payload too big. %d. dropping packet", pChunk->m_DataSize);
