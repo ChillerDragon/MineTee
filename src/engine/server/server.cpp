@@ -1296,6 +1296,7 @@ int CServer::LoadMap(const char *pMapSize, const char *pMapName, bool GenerateMa
 			}
 
 			CImageInfoFile ImgInfo;
+			ImgInfo.m_pData = 0x0;
 			if (g_Config.m_SvCustomTileset)
 			{
 				if (!LoadPNG(&ImgInfo, "mapres/minetee.png", IStorage::TYPE_ALL))

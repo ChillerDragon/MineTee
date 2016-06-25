@@ -119,7 +119,7 @@ public:
 	int AddItem(int Type, int ID, int Size, void *pData);
 	int Finish();
 
-	bool CreateEmptyMineTeeMap(class IStorage *pStorage, const char *pFileName, int w, int h, CImageInfoFile *pTileset = 0x0, char *pBlocksData = 0x0, int BlocksDataSize = 0); // MineTee
+	bool CreateEmptyMineTeeMap(class IStorage *pStorage, const char *pFileName, int w, int h, CImageInfoFile *pTileset = 0x0); // MineTee
 	bool SaveMap(class IStorage *pStorage, CDataFileReader *pFileMap, const char *pFileName, char *pBlocksData = 0x0, int BlocksDataSize = 0); // MineTee
 };
 

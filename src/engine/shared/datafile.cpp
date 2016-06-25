@@ -738,6 +738,7 @@ int CDataFileWriter::Finish()
 bool CDataFileWriter::SaveMap(class IStorage *pStorage, CDataFileReader *pFileMap, const char *pFileName, char *pBlocksData, int BlocksDataSize)
 {
 	dbg_msg("CDataFileWriter", "saving to '%s'...", pFileName);
+	char aBuf[128];
 
 	if(!Open(pStorage, pFileName))
 	{
@@ -748,43 +749,62 @@ bool CDataFileWriter::SaveMap(class IStorage *pStorage, CDataFileReader *pFileMa
 
 	// save version
 	{
-		CMapItemVersion Item;
-		Item.m_Version = 1;
-		AddItem(MAPITEMTYPE_VERSION, 0, sizeof(Item), &Item);
+		CMapItemVersion *pItem = (CMapItemVersion *)pFileMap->FindItem(MAPITEMTYPE_VERSION, 0);
+		AddItem(MAPITEMTYPE_VERSION, 0, sizeof(CMapItemVersion), pItem);
 		dbg_msg("CDataFileWriter", "saving version");
 	}
 
 
 	// save map info
 	{
-		CMapItemInfo Item;
-		Item.m_Version = 1;
-        Item.m_Author = -1;
-        Item.m_MapVersion = -1;
-        Item.m_Credits = -1;
-        Item.m_License = -1;
+        CMapItemInfo Item = *((CMapItemInfo *)pFileMap->FindItem(MAPITEMTYPE_INFO, 0));
+		if(Item.m_Version == 1)
+		{
+			if(Item.m_Author > -1)
+			{
+				str_copy(aBuf, (char *)pFileMap->GetData(Item.m_Author), sizeof(aBuf));
+				Item.m_Author = AddData(str_length(aBuf)+1, aBuf);
+			}
+			if(Item.m_MapVersion > -1)
+			{
+				str_copy(aBuf, (char *)pFileMap->GetData(Item.m_MapVersion), sizeof(aBuf));
+				Item.m_MapVersion = AddData(str_length(aBuf)+1, aBuf);
+			}
+			if(Item.m_Credits > -1)
+			{
+				str_copy(aBuf, (char *)pFileMap->GetData(Item.m_Credits), sizeof(aBuf));
+				Item.m_Credits = AddData(str_length(aBuf)+1, aBuf);
+			}
+			if(Item.m_License > -1)
+			{
+				str_copy(aBuf, (char *)pFileMap->GetData(Item.m_License), sizeof(aBuf));
+				Item.m_License = AddData(str_length(aBuf)+1, aBuf);
+			}
+		}
 
-		AddItem(MAPITEMTYPE_INFO, 0, sizeof(Item), &Item);
+		AddItem(MAPITEMTYPE_INFO, 0, sizeof(CMapItemInfo), &Item);
 		dbg_msg("CDataFileWriter", "saving info");
 	}
 
 
 	// save images
-	int Start, Count = 0;
+	int Start, Count;
 	pFileMap->GetType(MAPITEMTYPE_IMAGE, &Start, &Count);
 	for(int i = 0; i < Count; i++)
 	{
 	    dbg_msg("CDataFileWriter", "saving image");
-		CMapItemImage Item = *(CMapItemImage *)pFileMap->GetItem(Start+i, 0, 0);
-		char *pName = (char *)pFileMap->GetData(Item.m_ImageName);
-		AddData(str_length(pName)+1, pName);
-		if(!Item.m_External)
+		CMapItemImage Item = *((CMapItemImage *)pFileMap->GetItem(Start+i, 0, 0));
+		str_copy(aBuf, (char *)pFileMap->GetData(Item.m_ImageName), sizeof(aBuf));
+		Item.m_ImageName = AddData(str_length(aBuf)+1, aBuf);
+		// FIXME: Errors when the image are embedded :/
+		if(Item.m_External == 0)
         {
-            void *pData = pFileMap->GetData(Item.m_ImageData);
-            const int PixelSize = Item.m_Format == CImageInfoFile::FORMAT_RGB ? 3 : 4;
-            AddData(Item.m_Width*Item.m_Height*PixelSize, pData);
+			const int PixelSize = Item.m_Format == CImageInfoFile::FORMAT_RGB ? 3 : 4;
+			void *pData = pFileMap->GetData(Item.m_ImageData);
+			const int ImageData = Item.m_ImageData;
+			Item.m_ImageData = AddData(Item.m_Width*Item.m_Height*PixelSize, pData);
         }
-		AddItem(MAPITEMTYPE_IMAGE, i, sizeof(Item), &Item);
+		AddItem(MAPITEMTYPE_IMAGE, i, sizeof(CMapItemImage), &Item);
 	}
 
 
@@ -796,7 +816,7 @@ bool CDataFileWriter::SaveMap(class IStorage *pStorage, CDataFileReader *pFileMa
 		COLFLAG_NOHOOK=4,
 	};
 
-	int LayerStart, LayerCount = 0, LayerNum=0, GroupStart, GroupCount = 0, GroupNum = 0;
+	int LayerStart, LayerCount=0, LayerNum, GroupStart, GroupCount=0, GroupNum;
 	pFileMap->GetType(MAPITEMTYPE_GROUP, &GroupStart, &GroupNum);
 	pFileMap->GetType(MAPITEMTYPE_LAYER, &LayerStart, &LayerNum);
 
@@ -821,8 +841,8 @@ bool CDataFileWriter::SaveMap(class IStorage *pStorage, CDataFileReader *pFileMa
                     {
                         for (int o=0; o<Tilemap.m_Height; o++)
                         {
-                            int tpos = o*Tilemap.m_Width+u;
-                            int index = pTiles[tpos].m_Index;
+                            const int tpos = o*Tilemap.m_Width+u;
+                            const int index = pTiles[tpos].m_Index;
                             if (index < 128)
                             {
                                 if (index&COLFLAG_DEATH) pTiles[tpos].m_Index = TILE_DEATH;
@@ -834,7 +854,7 @@ bool CDataFileWriter::SaveMap(class IStorage *pStorage, CDataFileReader *pFileMa
                 }
 
                 Tilemap.m_Data = AddData(Tilemap.m_Width*Tilemap.m_Height*sizeof(CTile), pTiles);
-				AddItem(MAPITEMTYPE_LAYER, LayerCount++, sizeof(Tilemap), &Tilemap);
+				AddItem(MAPITEMTYPE_LAYER, LayerCount++, sizeof(CMapItemLayerTilemap), &Tilemap);
 			}
 			else if (pLayer->m_Type == LAYERTYPE_QUADS)
 			{
@@ -843,12 +863,12 @@ bool CDataFileWriter::SaveMap(class IStorage *pStorage, CDataFileReader *pFileMa
 				CMapItemLayerQuads QLayer = *(reinterpret_cast<CMapItemLayerQuads*>(pLayer));
 				CQuad *pQuads = (CQuad *)pFileMap->GetDataSwapped(QLayer.m_Data);
 				QLayer.m_Data = AddDataSwapped(QLayer.m_NumQuads*sizeof(CQuad), pQuads);
-				AddItem(MAPITEMTYPE_LAYER, LayerCount++, sizeof(QLayer), &QLayer);
+				AddItem(MAPITEMTYPE_LAYER, LayerCount++, sizeof(CMapItemLayerQuads), &QLayer);
 			}
 		}
 
         dbg_msg("CDataFileWriter", "saving group");
-		AddItem(MAPITEMTYPE_GROUP, GroupCount++, sizeof(*pGroup), pGroup);
+		AddItem(MAPITEMTYPE_GROUP, GroupCount++, sizeof(CMapItemGroup), pGroup);
 	}
 
 	// save envelopes
@@ -866,9 +886,12 @@ bool CDataFileWriter::SaveMap(class IStorage *pStorage, CDataFileReader *pFileMa
 	// save points
 	int StartEP, NumEP;
 	pFileMap->GetType(MAPITEMTYPE_ENVPOINTS, &StartEP, &NumEP);
-	CEnvPoint *pPoints = (CEnvPoint *)pFileMap->GetItem(StartEP, 0, 0);
-	int TotalSizePoints = sizeof(CEnvPoint)*Count;
-	AddItem(MAPITEMTYPE_ENVPOINTS, 0, TotalSizePoints, pPoints);
+	if (NumEP)
+	{
+		CEnvPoint *pPoints = (CEnvPoint *)pFileMap->GetItem(StartEP, 0, 0);
+		int TotalSizePoints = sizeof(CEnvPoint)*Count;
+		AddItem(MAPITEMTYPE_ENVPOINTS, 0, TotalSizePoints, pPoints);
+	}
 
 	// save json
 	if (pBlocksData && BlocksDataSize > 0)
@@ -886,7 +909,7 @@ bool CDataFileWriter::SaveMap(class IStorage *pStorage, CDataFileReader *pFileMa
 }
 
 // MineTee
-bool CDataFileWriter::CreateEmptyMineTeeMap(class IStorage *pStorage, const char *pFileName, int w, int h, CImageInfoFile *pTileset, char *pBlocksData, int BlocksDataSize)
+bool CDataFileWriter::CreateEmptyMineTeeMap(class IStorage *pStorage, const char *pFileName, int w, int h, CImageInfoFile *pTileset)
 {
 	dbg_msg("CDataFileWriter", "Saving Empty MineTee Map to '%s'...", pFileName);
 
@@ -924,30 +947,33 @@ bool CDataFileWriter::CreateEmptyMineTeeMap(class IStorage *pStorage, const char
 
 
 	// save images
-	CMapItemImage Item;
-	Item.m_Version = CMapItemImage::CURRENT_VERSION;
-	const char *pName = "minetee";
-	Item.m_ImageName = AddData(str_length(pName)+1, (void*)pName);
-	if (pTileset && pTileset->m_pData)
 	{
-		Item.m_External = 0;
-		Item.m_Format = pTileset->m_Format;
-		Item.m_Width = pTileset->m_Width;
-		Item.m_Height = pTileset->m_Height;
-		const int PixelSize = pTileset->m_Format == CImageInfoFile::FORMAT_RGB ? 3 : 4;
-		dbg_msg("mapgen", "FOrmat: %d --- W: %d --- H: %d --- PS: %d", pTileset->m_Format, pTileset->m_Width, pTileset->m_Height, PixelSize);
-		Item.m_ImageData = AddData(Item.m_Width*Item.m_Height*PixelSize, pTileset->m_pData);
+		CMapItemImage Item;
+		Item.m_Version = CMapItemImage::CURRENT_VERSION;
+		char aName[12];
+		mem_zero(aName,sizeof(aName));
+		str_copy(aName, "minetee", sizeof(aName));
+		Item.m_ImageName = AddData(str_length(aName)+1, aName);
+		if (pTileset && pTileset->m_pData)
+		{
+			Item.m_External = 0;
+			Item.m_Format = pTileset->m_Format;
+			Item.m_Width = pTileset->m_Width;
+			Item.m_Height = pTileset->m_Height;
+			const int PixelSize = pTileset->m_Format == CImageInfoFile::FORMAT_RGB ? 3 : 4;
+			Item.m_ImageData = AddData(Item.m_Width*Item.m_Height*PixelSize, pTileset->m_pData);
+		}
+		else
+		{
+			Item.m_External = 1;
+			Item.m_Format = 1; // RGBA
+			Item.m_Width = 1024;
+			Item.m_Height = 1024;
+			Item.m_ImageData = -1;
+		}
+		AddItem(MAPITEMTYPE_IMAGE, 0, sizeof(Item), &Item);
+		dbg_msg("CDataFileWriter", "saving images");
 	}
-	else
-	{
-		Item.m_External = 1;
-		Item.m_Format = 1; // RGBA
-		Item.m_Width = 1024;
-		Item.m_Height = 1024;
-		Item.m_ImageData = -1;
-	}
-	AddItem(MAPITEMTYPE_IMAGE, 0, sizeof(Item), &Item);
-	dbg_msg("CDataFileWriter", "saving images");
 
     // Background Layer
     {
@@ -964,25 +990,26 @@ bool CDataFileWriter::CreateEmptyMineTeeMap(class IStorage *pStorage, const char
 		GItem.m_ClipY = 0;
 		GItem.m_ClipW = 0;
 		GItem.m_ClipH = 0;
-		StrToInts(GItem.m_aName, sizeof(GItem.m_aName)/sizeof(int), "");
+		StrToInts(GItem.m_aName, sizeof(GItem.m_aName)/sizeof(int), "\0");
 		CMapItemLayerQuads Item;
 		Item.m_Image = -1;
 		Item.m_NumQuads = 1;
 		Item.m_Version = 2;
 		Item.m_Layer.m_Flags = 0;
 		Item.m_Layer.m_Type = LAYERTYPE_QUADS;
-		StrToInts(Item.m_aName, sizeof(Item.m_aName)/sizeof(int), "Background");
+		StrToInts(Item.m_aName, sizeof(Item.m_aName)/sizeof(int), "Quads\0");
 		CQuad QuadBkg;
 		const int Width = 1000000;
 		const int Height = 800000;
 		QuadBkg.m_ColorEnv = -1;
-		QuadBkg.m_ColorEnvOffset = -1;
+		QuadBkg.m_ColorEnvOffset = 0;
 		QuadBkg.m_PosEnv = -1;
-		QuadBkg.m_PosEnvOffset = -1;
+		QuadBkg.m_PosEnvOffset = 0;
 		QuadBkg.m_aPoints[0].x = QuadBkg.m_aPoints[2].x = -Width;
 		QuadBkg.m_aPoints[1].x = QuadBkg.m_aPoints[3].x = Width;
 		QuadBkg.m_aPoints[0].y = QuadBkg.m_aPoints[1].y = -Height;
 		QuadBkg.m_aPoints[2].y = QuadBkg.m_aPoints[3].y = Height;
+		QuadBkg.m_aPoints[4].x = QuadBkg.m_aPoints[4].y = 0;
 		QuadBkg.m_aColors[0].r = QuadBkg.m_aColors[1].r = 94;
 		QuadBkg.m_aColors[0].g = QuadBkg.m_aColors[1].g = 132;
 		QuadBkg.m_aColors[0].b = QuadBkg.m_aColors[1].b = 174;
@@ -991,6 +1018,14 @@ bool CDataFileWriter::CreateEmptyMineTeeMap(class IStorage *pStorage, const char
 		QuadBkg.m_aColors[2].g = QuadBkg.m_aColors[3].g = 232;
 		QuadBkg.m_aColors[2].b = QuadBkg.m_aColors[3].b = 255;
 		QuadBkg.m_aColors[2].a = QuadBkg.m_aColors[3].a = 255;
+		QuadBkg.m_aTexcoords[0].x = 0;
+		QuadBkg.m_aTexcoords[0].y = 0;
+		QuadBkg.m_aTexcoords[1].x = 1<<10;
+		QuadBkg.m_aTexcoords[1].y = 0;
+		QuadBkg.m_aTexcoords[2].x = 0;
+		QuadBkg.m_aTexcoords[2].y = 1<<10;
+		QuadBkg.m_aTexcoords[3].x = 1<<10;
+		QuadBkg.m_aTexcoords[3].y = 1<<10;
 		Item.m_Data = AddDataSwapped(sizeof(CQuad), &QuadBkg);
 		AddItem(MAPITEMTYPE_LAYER, LayerCount++, sizeof(Item), &Item);
 		AddItem(MAPITEMTYPE_GROUP, GroupCount++, sizeof(GItem), &GItem);
@@ -1012,7 +1047,7 @@ bool CDataFileWriter::CreateEmptyMineTeeMap(class IStorage *pStorage, const char
 		GItem.m_ClipY = 0;
 		GItem.m_ClipW = 0;
 		GItem.m_ClipH = 0;
-		StrToInts(GItem.m_aName, sizeof(GItem.m_aName)/sizeof(int), "Game");
+		StrToInts(GItem.m_aName, sizeof(GItem.m_aName)/sizeof(int), "Game\0");
 
 		CMapItemLayerTilemap Item;
 		Item.m_Image = 0;
@@ -1026,23 +1061,23 @@ bool CDataFileWriter::CreateEmptyMineTeeMap(class IStorage *pStorage, const char
 		Item.m_Layer.m_Type = LAYERTYPE_TILES;
 
 		// mt-bg
-		StrToInts(Item.m_aName, sizeof(Item.m_aName)/sizeof(int), "mt-bg");
+		StrToInts(Item.m_aName, sizeof(Item.m_aName)/sizeof(int), "mt-bg\0");
 		Item.m_Data = AddData(w*h*sizeof(CTile), pTiles);
 		AddItem(MAPITEMTYPE_LAYER, LayerCount++, sizeof(Item), &Item);
 		// game
-		StrToInts(Item.m_aName, sizeof(Item.m_aName)/sizeof(int), "Game");
+		StrToInts(Item.m_aName, sizeof(Item.m_aName)/sizeof(int), "Game\0");
 		Item.m_Image = -1;
 		Item.m_Flags = TILESLAYERFLAG_GAME;
 		Item.m_Data = AddData(w*h*sizeof(CTile), pTiles);
 		AddItem(MAPITEMTYPE_LAYER, LayerCount++, sizeof(Item), &Item);
 		// mt-break
-		StrToInts(Item.m_aName, sizeof(Item.m_aName)/sizeof(int), "mt-break");
+		StrToInts(Item.m_aName, sizeof(Item.m_aName)/sizeof(int), "mt-break\0");
 		Item.m_Image = 0;
 		Item.m_Flags = 0;
 		Item.m_Data = AddData(w*h*sizeof(CTile), pTiles);
 		AddItem(MAPITEMTYPE_LAYER, LayerCount++, sizeof(Item), &Item);
 		// mt-fg
-		StrToInts(Item.m_aName, sizeof(Item.m_aName)/sizeof(int), "mt-fg");
+		StrToInts(Item.m_aName, sizeof(Item.m_aName)/sizeof(int), "mt-fg\0");
 		Item.m_Data = AddData(w*h*sizeof(CTile), pTiles);
 		AddItem(MAPITEMTYPE_LAYER, LayerCount++, sizeof(Item), &Item);
 		AddItem(MAPITEMTYPE_GROUP, GroupCount++, sizeof(GItem), &GItem);
@@ -1064,10 +1099,10 @@ bool CDataFileWriter::CreateEmptyMineTeeMap(class IStorage *pStorage, const char
 		GItem.m_ClipY = 0;
 		GItem.m_ClipW = 0;
 		GItem.m_ClipH = 0;
-		StrToInts(GItem.m_aName, sizeof(GItem.m_aName)/sizeof(int), "");
+		StrToInts(GItem.m_aName, sizeof(GItem.m_aName)/sizeof(int), "\0");
 
 		CMapItemLayerTilemap Item;
-		StrToInts(Item.m_aName, sizeof(Item.m_aName)/sizeof(int), "mt-light");
+		StrToInts(Item.m_aName, sizeof(Item.m_aName)/sizeof(int), "mt-light\0");
 		Item.m_Image = 0;
 		Item.m_Width = w;
 		Item.m_Height = h;
@@ -1085,15 +1120,7 @@ bool CDataFileWriter::CreateEmptyMineTeeMap(class IStorage *pStorage, const char
 
     mem_free(pTiles);
 
-    AddItem(MAPITEMTYPE_ENVPOINTS, 0, 0, 0x0);
-
-	// save json
-	if (pBlocksData && BlocksDataSize > 0)
-	{
-		CMapItemBlocksJson Item;
-		Item.m_Data = AddData(BlocksDataSize, pBlocksData);
-		AddItem(MAPITEMTYPE_JSON_BLOCKS, 0, sizeof(CMapItemBlocksJson), &Item);
-	}
+   // AddItem(MAPITEMTYPE_ENVPOINTS, 0, 0, 0x0);
 
 	// finish the data file
 	Finish();

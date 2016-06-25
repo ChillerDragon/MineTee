@@ -1669,8 +1669,8 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 
 void CGameContext::OnShutdown()
 {
-	if (str_find_nocase(GameType(), "MineTee"))
-		SaveMap("");
+	//if (str_find_nocase(GameType(), "MineTee"))
+	//	SaveMap("");
 
 	for (int i=0; i<MAX_CLIENTS-MAX_BOTS; i++)
 	{
