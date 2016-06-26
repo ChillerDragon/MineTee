@@ -873,6 +873,9 @@ void CGameClient::OnNewSnapshot()
 		}
 	}
 
+	// MineTee
+	m_Snap.m_NumPlayers -= MAX_BOTS;
+
 	// setup local pointers
 	if(m_Snap.m_LocalClientID >= 0)
 	{

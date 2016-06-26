@@ -215,7 +215,7 @@ void CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const ch
 	float FontSize = 24.0f;
 	CTextCursor Cursor;
 
-	for(int i = 0; i < MAX_CLIENTS; i++)
+	for(int i = 0; i < MAX_CLIENTS-MAX_BOTS; i++) // MineTee
 	{
 		// make sure that we render the correct team
 		const CNetObj_PlayerInfo *pInfo = m_pClient->m_Snap.m_paInfoByScore[i];
