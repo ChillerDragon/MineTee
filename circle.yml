@@ -27,5 +27,5 @@ general:
 ## Customize test commands
 test:
   override:
-    - ~/bam/bam client_release
-    - ~/bam/bam server_release
+    - ~/bam-0.5/bam client_release
+    - ~/bam-0.5/bam server_release
