@@ -11,12 +11,13 @@ dependencies:
         sudo apt-get update && sudo apt-get build-dep -y teeworlds
 
         if [ ! -x ~/bam-0.5/bam ]; then
-          git clone -b 0.5 https://github.com/matricks/bam ~/bam-0.5/
-          cd ~/bam-0.5; ./make_unix.sh
+	  wget -O ~/bamv0.5.0.tar.gz https://github.com/matricks/bam/archive/v0.5.0.tar.gz
+	  tar -zxvf ~/bamv0.5.0.tar.gz -C ~/
+          cd ~/bam-0.5.0; ./make_unix.sh
         fi
 
   cache_directories:
-    - "~/bam-0.5/"
+    - "~/bam-0.5.0/"
 
 ## Artifacts
 general:
@@ -27,5 +28,5 @@ general:
 ## Customize test commands
 test:
   override:
-    - ~/bam-0.5/bam client_release
-    - ~/bam-0.5/bam server_release
+    - ~/bam-0.5.0/bam client_release
+    - ~/bam-0.5.0/bam server_release
