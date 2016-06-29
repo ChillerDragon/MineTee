@@ -12,13 +12,13 @@ dependencies:
     - |
         sudo apt-get update && sudo apt-get build-dep -y teeworlds
 
-        if [ ! -x ~/bam/bam ]; then
-          git clone https://github.com/matricks/bam ~/bam/
-          cd ~/bam; ./make_unix.sh
+        if [ ! -x ~/bam-0.5/bam ]; then
+          git clone -b 0.5 https://github.com/matricks/bam ~/bam-0.5/
+          cd ~/bam-0.5; ./make_unix.sh
         fi
 
   cache_directories:
-    - "~/bam/"
+    - "~/bam-0.5/"
 
 ## Artifacts
 general:
