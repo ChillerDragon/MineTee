@@ -11,8 +11,8 @@ dependencies:
         sudo apt-get update && sudo apt-get build-dep -y teeworlds
 
         if [ ! -x ~/bam-0.5/bam ]; then
-	  wget -O ~/bamv0.5.0.tar.gz https://github.com/matricks/bam/archive/v0.5.0.tar.gz
-	  tar -zxvf ~/bamv0.5.0.tar.gz -C ~/
+          wget -O ~/bamv0.5.0.tar.gz https://github.com/matricks/bam/archive/v0.5.0.tar.gz
+          tar -zxvf ~/bamv0.5.0.tar.gz -C ~/
           cd ~/bam-0.5.0; ./make_unix.sh
         fi
 
