@@ -3,8 +3,6 @@ machine:
   pre:
     - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 10
     - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 10
-    - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.6 20
-    - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.6 20
 
 # To Build Teeworlds
 dependencies:
