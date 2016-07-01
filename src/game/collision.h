@@ -44,9 +44,10 @@ public:
 	bool TestBox(vec2 Pos, vec2 Size);
 
 	// MineTee
-	bool ModifTile(ivec2 pos, int group, int layer, int index, int flags);
+	bool ModifTile(ivec2 pos, int group, int layer, int index, int flags, int reserved);
 	void RegenerateSkip(CTile *pTiles, int Width, int Height, ivec2 Pos, bool Delete);
-	int GetMineTeeTileAt(vec2 Pos);
+	int GetMineTeeTileIndexAt(vec2 Pos);
+	CTile* GetMineTeeTileAt(vec2 Pos);
 	CBlockManager *GetBlockManager() const { return m_pBlockManager; }
 	void UpdateLayerLights(float ScreenX0, float ScreenY0, float ScreenX1, float ScreenY1, int DarknessLevel); // TODO: Perhaps not the best place...
 	//

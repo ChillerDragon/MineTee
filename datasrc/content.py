@@ -238,8 +238,7 @@ image_demobuttons = Image("demobuttons", "demo_buttons.png")
 image_fileicons = Image("fileicons", "file_icons.png")
 image_guibuttons = Image("guibuttons", "gui_buttons.png")
 image_guiicons = Image("guiicons", "gui_icons.png")
-# MineTee
-image_minetee_food = Image("minetee_food", "minetee-food.png")
+image_minetee_food = Image("minetee_food", "minetee-food.png") # MineTee
 
 
 container.images.Add(image_null)
@@ -259,6 +258,7 @@ container.images.Add(image_guiicons)
 container.images.Add(Image("minetee_fx_water", "fx_water.png"))
 container.images.Add(Image("minetee_fx_lava", "fx_lava.png"))
 container.images.Add(Image("minetee_fx_tombstone", "fx_tombstone.png"))
+container.images.Add(Image("inventory", "gui_inventory.png"))
 container.images.Add(image_minetee_food)
 
 container.pickups.Add(Pickup("health"))
@@ -266,9 +266,9 @@ container.pickups.Add(Pickup("armor"))
 container.pickups.Add(Pickup("weapon"))
 container.pickups.Add(Pickup("ninja", 90, 90))
 # MineTee
-container.pickups.Add(Pickup("block", -1)) #H-Client
-container.pickups.Add(Pickup("food", -1)) #H-Client
-container.pickups.Add(Pickup("dropitem")) #H-Client
+container.pickups.Add(Pickup("block", -1))
+container.pickups.Add(Pickup("food", -1))
+container.pickups.Add(Pickup("dropitem"))
 
 set_particles = SpriteSet("particles", image_particles, 8, 8)
 set_game = SpriteSet("game", image_game, 32, 16)

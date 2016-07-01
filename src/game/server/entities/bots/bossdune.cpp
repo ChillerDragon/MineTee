@@ -106,7 +106,7 @@ void CBossDune::TickBotAI()
     }
 
     // Fluids
-    if (GameServer()->m_BlockManager.IsFluid(GameServer()->Collision()->GetMineTeeTileAt(m_Pos)))
+    if (GameServer()->m_BlockManager.IsFluid(GameServer()->Collision()->GetMineTeeTileIndexAt(m_Pos)))
     	m_Input.m_Jump = 1;
 
     //Limits

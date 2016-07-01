@@ -954,7 +954,7 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 				} while (!found);
 			}
 
-			int TileIndex = GameServer()->Collision()->GetMineTeeTileAt(P);
+			int TileIndex = GameServer()->Collision()->GetMineTeeTileIndexAt(P);
 			if (GameServer()->Collision()->GetCollisionAt(P.x, P.y+32) == CCollision::COLFLAG_SOLID
 					&& !GameServer()->m_BlockManager.IsFluid(TileIndex))
 			{
@@ -1013,7 +1013,7 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 			}
 		} while (!found);
 
-		int TileIndex = GameServer()->Collision()->GetMineTeeTileAt(P);
+		int TileIndex = GameServer()->Collision()->GetMineTeeTileIndexAt(P);
 		if (GameServer()->Collision()->GetCollisionAt(P.x, P.y+32) == CCollision::COLFLAG_SOLID
 				&& !GameServer()->m_BlockManager.IsFluid(TileIndex))
 		{
@@ -1032,8 +1032,9 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 void CGameControllerMineTee::ModifTile(ivec2 MapPos, int TileIndex)
 {
 	//dbg_msg("MineTee", "MODIF TILE: %d [%dx%d]", TileIndex, MapPos.x, MapPos.y);
-	GameServer()->SendTileModif(ALL_PLAYERS, MapPos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0);
-    GameServer()->Collision()->ModifTile(MapPos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0);
+	CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(TileIndex);
+	GameServer()->SendTileModif(ALL_PLAYERS, MapPos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0, pBlockInfo->m_Health);
+    GameServer()->Collision()->ModifTile(MapPos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0, pBlockInfo->m_Health);
 }
 
 bool CGameControllerMineTee::GetPlayerArea(int ClientID, int *pStartX, int *pEndX, int *pStartY, int *pEndY)

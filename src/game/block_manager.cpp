@@ -23,6 +23,7 @@ bool CBlockManager::Init(char *pData, int DataSize)
 		m_aBlocks[k].Reset();
 		CBlockInfo *pBlockInfo = &m_aBlocks[k];
 
+		int items = 0;
 		json_value *pJsonObject = pJsonData->u.array.values[k];
 		if (!pJsonObject)
 			return false;
@@ -39,8 +40,52 @@ bool CBlockManager::Init(char *pData, int DataSize)
 		pBlockInfo->m_OnPut = ((*pJsonObject)["onPut"].type == json_none)?k:(*pJsonObject)["onPut"].u.integer;
 		pBlockInfo->m_OnWear = ((*pJsonObject)["onWear"].type == json_none)?-1:(*pJsonObject)["onWear"].u.integer;
 		pBlockInfo->m_OnSun = ((*pJsonObject)["onSun"].type == json_none)?-1:(*pJsonObject)["onSun"].u.integer;
+		pBlockInfo->m_Explode = ((*pJsonObject)["explode"].type == json_none)?false:(*pJsonObject)["explode"].u.boolean;
 
-		int items = (*pJsonObject)["lightColor"].u.array.length;
+		if ((*pJsonObject)["effects"].type != json_none)
+		{
+			const json_value &JsonObjectF = (*pJsonObject)["effects"];
+			pBlockInfo->m_Effects.m_Sway = (JsonObjectF["sway"].type == json_none)?false:JsonObjectF["sway"].u.boolean;
+		}
+		else
+		{
+			pBlockInfo->m_Effects.m_Sway = false;
+		}
+
+		/*json_value *pJsonObjectF = (*pJsonObject)["functionality"].u.object.values[0];
+		if (pJsonObjectF)
+		{
+			if ((*pJsonObjectF)["type"].type == json_none)
+				return false;
+			str_copy(pBlockInfo->m_Functionality.m_Type, (*pJsonObjectF)["type"], sizeof(pBlockInfo->m_Functionality.m_Type));
+			pBlockInfo->m_Functionality.m_OnActive = ((*pJsonObjectF)["onActive"].type == json_none)?-1:(*pJsonObjectF)["onActive"].u.integer;
+
+			items = (*pJsonObjectF)["excludeBlocks"].u.array.length;
+			if (items)
+			{
+				const json_value &JsonArrayExcludeBlocks = (*pJsonObjectF)["excludeBlocks"];
+				for (int i=0; i<items; i++)
+				{
+					json_value &JsonArray = *JsonArrayExcludeBlocks.u.array.values[i];
+					for (std::size_t e=0; e<JsonArray.u.array.length; pBlockInfo->m_Functionality.m_vExcludeBlocks.add(JsonArray.u.array.values[e++]->u.integer));
+				}
+			}
+		}*/
+
+		items = (*pJsonObject)["onCook"].u.object.length;
+		if (items)
+		{
+			for (int i=0; i<items; i++)
+			{
+				int CookBlockID = -1;
+				int CookBlockAmount = (*pJsonObject)["onCook"].u.object.values[i].value->u.integer;
+				sscanf((const char *)(*pJsonObject)["onCook"].u.object.values[i].name, "%d", &CookBlockID);
+
+				pBlockInfo->m_vOnCook.insert(std::pair<int, unsigned char>(CookBlockID, CookBlockAmount));
+			}
+		}
+
+		items = (*pJsonObject)["lightColor"].u.array.length;
 		if (items == 3)
 		{
 			pBlockInfo->m_LightColor.r = (float)((*pJsonObject)["lightColor"].u.array.values[0]->u.dbl)/255.0f;

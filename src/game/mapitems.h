@@ -99,15 +99,8 @@ public:
 	unsigned char m_Index;
 	unsigned char m_Flags;
 	unsigned char m_Skip;
-	unsigned char m_Reserved;
+	unsigned char m_Reserved; // MineTee usage for block health
 };
-
-// MineTee
-class CTileMT : CTile
-{
-	int m_Health;
-};
-//
 
 struct CMapItemInfo
 {

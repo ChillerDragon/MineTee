@@ -68,6 +68,7 @@ class CMapGen
 	void DoWaterSteps();
 
 	void CreateStructure(int StructureID, ivec2 Pos);
+	void ModifTile(ivec2 Pos, int Layer, int BlockId);
 
 public:
 	CMapGen();

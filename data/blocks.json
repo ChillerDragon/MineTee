@@ -3,15 +3,18 @@
         "name": "AIR",        
     },
     {
-        "name": "STONE",        
+        "name": "STONE",
+        "health": 5,
     },
     {
         "name": "DIRT",
+        "health": 2,
         "onSun": 3,
         "randomActions": 20,
     },
     {
         "name": "GRASS",
+        "health": 2,
         "onBreak": { "2":1 },
         "mutations": [
             [88,-2,-2,-2,-2,-2,-2,-2], [-1,-1,-1,-1,-1,-1,-1,-1,-1],
@@ -32,18 +35,23 @@
     },
     {
         "name": "BROWN TABLE HORIZONTAL",
+        "health": 3,
     },
     {
         "name": "STONE CLEAN II",
+        "health": 7,
     },
     {
         "name": "STONE CLEAN",
+        "health": 7,
     },
     {
         "name": "BRICK",
+        "health": 20,
     },
     {
         "name": "TNT",
+        "explode": true,
     },
     {
         "name": "NOT USED 09",
@@ -75,6 +83,7 @@
 
     {
         "name": "STONE II",
+        "health": 5,
     },
     {
         "name": "NOT USED 17",
@@ -84,25 +93,31 @@
     },
     {
         "name": "BEDROCK",
+        "health": 0,
     },
     {
         "name": "WOOD BROWN",
+        "health": 3,
     },
     {
         "name": "WOOD FRAME",
+        "health": 3,
     },
     {
         "name": "IRON BLOCK",
-        "onBreak": { "211":4 }
+        "health": 12,
+        "onBreak": { "211":4 },
     },
     {
         "name": "GOLDEN BLOCK",
+        "health": 12,
         "onBreak": { "212":9 },
         "craft": { "212": 10 },
     },
     {
         "name": "DIAMOND BLOCK",
-        "onBreak": { "213":4 }
+        "onBreak": { "213":4 },
+        "health": 12,
     },
     {
         "name": "NOT USED 25",
@@ -112,11 +127,12 @@
     },
     {
         "name": "CHEST",
+        "health": 3,
         "craft": { "20":10 },
         "place": [[-2],[-2],[-2],[-2],[-1],[-2],[-2],[-2]],
         "mutations": [
             [-2,-2,-2,-2,-2,-2,27,-2], [41,-1,-1,-1,-1,-1,-1,42,-1]
-        ]
+        ],
     },
     {
         "name": "MUSHROOM RED",
@@ -139,29 +155,36 @@
 
     {
         "name": "GOLD ORE",
-        "onCook": { "212":1 }
+        "health": 7,
+        "onCook": { "212":1 },
     },
     {
         "name": "IRON ORE",
-        "onCook": { "211":1 }
+        "health": 7,
+        "onCook": { "211":1 },
     },
     {
         "name": "COAL ORE",
-        "onBreak": { "30":1 }
+        "health": 3,
+        "onBreak": { "30":1 },
     },
     {
         "name": "LIBRARY",
-        "onBreak": { "173": 4 }
+        "health": 3,
+        "onBreak": { "173": 4 },
     },
     {
         "name": "GREEN ORE",
+        "health": 7,
     },
     {
         "name": "VIOLET BLOCK",
+        "health": 7,
     },
     {
         "name": "MIDDLE STONE",
-        "halfTile": true
+        "health": 10,
+        "halfTile": true,
     },
     {
         "name": "NOT USED 39",
@@ -171,20 +194,34 @@
     },
     {
         "name": "LARGE CHEST LEFT",
+        "health": 4,
         "onBreak": { "27":1 },
-        "place": [[-2],[-2],[-2],[-2],[-1],[-2],[42],[-2]]
+        "place": [[-2],[-2],[-2],[-2],[-1],[-2],[42],[-2]],
     },
     {
         "name": "LARGE CHEST RIGHT",
+        "health": 4,
         "onBreak": { "27":1 },
-        "place": [[-2],[-2],[41],[-2],[-1],[-2],[-2],[-2]]
+        "place": [[-2],[-2],[41],[-2],[-1],[-2],[-2],[-2]],
     },
     {
         "name": "NOT USED 43",
     },
     {
         "name": "OVEN (OFF)",
+        "health": 10,
         "craft": { "1": 20 },
+        "functionality":
+        {
+        	"type": "oven",
+        	"onActive": 44,
+        	"excludeBlocks": [],
+        	"fuel":
+        	{
+        		"blockId": 22,
+        		"duration": 30,
+        	}        	
+        }
     },
     {
         "name": "NOT USED 45",
@@ -194,6 +231,7 @@
     },
     {
         "name": "WHEAT",
+        "health": 4,
     },
 
 
@@ -202,14 +240,17 @@
     },
     {
         "name": "GLASS",
-        "onBreak": { "0":0 }
+        "health": 3,
+        "onBreak": { "0":0 },
     },
     {
         "name": "DIAMOND ORE",
+        "health": 13,
         "onCook": { "213":1 }
     },
     {
         "name": "REDSTONE ORE",
+        "health": 13,
     },
     {
         "name": "NOT USED 52",
@@ -219,6 +260,7 @@
     },
     {
         "name": "STONE BRICK",
+        "health": 20,
         "onWear": 101,
         "randomActions": 100
     },
@@ -242,6 +284,7 @@
     },
     {
         "name": "OVEN (ON)",
+        "health": 10,
         "lightSize": 1,
         "onWear": 44
     },
@@ -258,6 +301,7 @@
     },
     {
         "name": "MONSTER SPAWNER",
+        "health": 30,
     },
     {
         "name": "SNOW",
@@ -265,6 +309,7 @@
     },
     {
         "name": "GLASS BLUE",
+        "health": 3,
     },
     {
         "name": "DIRT SNOW",
@@ -272,9 +317,14 @@
     },
     {
         "name": "LEAFS",
+        "effects":
+        {
+        	"sway": true,
+        }
     },
     {
         "name": "CACTUS",
+        "health": 2,
         "damage": true,
         "place": [[-2],[-2],[-2],[-2],[70,176],[-2],[-2],[-2]]
     },
@@ -300,6 +350,7 @@
     },
     {
         "name": "DIRT STONE",
+        "health": 5,
         "onBreak": { "2":1 }
     },
     {
@@ -312,6 +363,7 @@
 
     {
         "name": "TORCH",
+        "health": 2,
         "lightSize": 80,
         "craft": { "20":1, "30":1 },
         "craftNum": 4,
@@ -322,30 +374,36 @@
     },
     {
         "name": "IRON WINDOW",
+        "health": 35,
         "craft": { "212":6 },
         "craftNum": 4
     },
     {
         "name": "WOODEN FENCE",
+        "health": 15,
         "craft": { "20":6 },
         "craftNum": 4
     },
     {
         "name": "WOODEN WINDOW I",
+        "health": 15,
         "craft": { "20":6 },
         "craftNum": 4
     },
     {
         "name": "IRON FENCE",
+        "health": 35,
         "craft": { "212":6 },
         "craftNum": 4
     },
     {
         "name": "GROUND CULTIVATION (WET)",
+        "health": 2,
         "onBreak": { "2":1 }
     },
     {
         "name": "GROUND CULTIVATION (DRY)",
+        "health": 3,
         "onBreak": { "2":1 }
     },
     {
@@ -409,6 +467,7 @@
     },
     {
         "name": "BROWN TABLE VERTICAL",
+        "health": 4,
     },
     {
         "name": "NOT USED 98",
@@ -418,10 +477,12 @@
     },
     {
         "name": "STONE BRICK WITH IVY",
+        "health": 7,
         "onBreak": { "54":1 }
     },
     {
         "name": "STONE BRICK DIRTY",
+        "health": 7,
         "onBreak": { "54":1 },
         "onWear": 100,
         "randomActions": 100
@@ -446,6 +507,7 @@
     },
     {
         "name": "STONE WITH SMALL TABLE",
+        "health": 9,
     },
     {
         "name": "NOT USED 109",
@@ -455,6 +517,7 @@
     },
     {
         "name": "STONE STICK",
+        "health": 5,
     },
 
 
@@ -528,9 +591,11 @@
     },
     {
         "name": "STONE WINDOW",
+        "health": 7,
     },
     {
         "name": "STONE WINDOW CLOSED",
+        "health": 7,
     },
     {
         "name": "RED BLOCK",
@@ -561,6 +626,7 @@
     },
     {
         "name": "IRON BARS",
+        "health": 30,
         "craft": { "211":6 },
         "craftNum": 4
     },
@@ -568,6 +634,7 @@
 
     {
         "name": "LAPISLAZULIS",
+        "health": 9,
     },
     {
         "name": "DARK GREEN WOOL",
@@ -580,25 +647,30 @@
     },
     {
         "name": "LASER STICK",
+        "health": 55,
     },
     {
         "name": "CHAIR",
+        "health": 3,
         "halfTile": true
     },
     {
         "name": "LARGE BED LEFT",
+        "health": 4,
         "onBreak": { "152":1 },
         "halfTile": true,
         "place": [[-2],[-2],[-2],[-2],[-1],[-2],[151],[-2]]
     },
     {
         "name": "LARGE BED RIGHT",
+        "health": 4,
         "onBreak": { "152":1 },
         "halfTile": true,
         "place": [[-2],[-2],[150],[-2],[-1],[-2],[-2],[-2]]
     },
     {
         "name": "BED",
+        "health": 3,
         "halfTile": true,
         "craft": { "20":4, "187":2 },
         "place": [[-2],[-2],[-2],[-2],[-1],[-2],[-2],[-2]],
@@ -652,6 +724,7 @@
     },
     {
         "name": "OBSIDIAN II",
+        "health": 100,
     },
     {
         "name": "BONE",
@@ -673,6 +746,7 @@
     },
     {
         "name": "SPOT LIGHT",
+        "health": 3,
         "lightSize": 40,
     },
     {
@@ -682,6 +756,7 @@
 
     {
         "name": "SAND",
+        "health": 2,
         "gravity": true
     },
     {
@@ -701,10 +776,12 @@
     },
     {
         "name": "ENCHANTING TABLE",
+        "health": 7,
         "halfTile": true,
     },
     {
         "name": "OBSIDIAN I",
+        "health": 100,
     },
     {
         "name": "SEED",
@@ -735,6 +812,7 @@
 
     {
         "name": "SANDSTONE",
+        "health": 4,
         "onBreak": { "176":2 }
     },
     {
@@ -795,12 +873,15 @@
     },
     {
         "name": "IRON INGOT",
+        "health": 9,
     },
     {
         "name": "GOLD INGOT",
+        "health": 9,
     },
     {
         "name": "DIAMOND",
+        "health": 9,
     },
     {
         "name": "NOT USED 214",

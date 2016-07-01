@@ -399,7 +399,7 @@ void CCharacterCore::Move()
 	}
 
 	// MineTee
-    int BlockIndex = m_pCollision->GetMineTeeTileAt(m_Pos);
+    int BlockIndex = m_pCollision->GetMineTeeTileIndexAt(m_Pos);
     int FluidType = -1;
 	if (m_pCollision->GetBlockManager()->IsFluid(BlockIndex, &FluidType))
 	{

@@ -387,8 +387,9 @@ Messages = [
 		NetIntAny("m_Y"),
 		NetIntAny("m_Group"),
 		NetIntAny("m_Layer"),
-		NetIntAny("m_Index"),
-		NetIntAny("m_Flags"),
+		NetIntRange("m_Index", 0, 255),
+		NetIntRange("m_Flags", 0, 255),
+		NetIntRange("m_Reserved", 0, 255),
 	]),
 		
 	NetMessage("Cl_DropItemInventary", [

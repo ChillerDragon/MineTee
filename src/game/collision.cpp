@@ -44,14 +44,18 @@ void CCollision::Init(class CLayers *pLayers, class CBlockManager *pBlockManager
 		m_pMineTeeTiles = 0x0;
 	//
 
-	for(int i = 0; i < m_Width*m_Height; i++)
+	const int MapSize = m_Width*m_Height;
+	for(int i = 0; i < MapSize; i++)
 	{
         // MineTee
         if (m_pMineTeeTiles && i < MineTeeLayerSize)
         {
-            int MIndex = m_pMineTeeTiles[i].m_Index;
-            if (MIndex == CBlockManager::BEDROCK)
+        	const int MTIndex = m_pMineTeeTiles[i].m_Index;
+            if (MTIndex == CBlockManager::BEDROCK)
                 m_pTiles[i].m_Index = TILE_NOHOOK;
+            CBlockManager::CBlockInfo *pBlockInfo = m_pBlockManager->GetBlockInfo(MTIndex);
+            if (pBlockInfo)
+            	m_pMineTeeTiles[i].m_Reserved = pBlockInfo->m_Health;
         }
         //
 
@@ -260,7 +264,7 @@ void CCollision::MoveBox(vec2 *pInoutPos, vec2 *pInoutVel, vec2 Size, float Elas
 
 
 // MineTee
-int CCollision::GetMineTeeTileAt(vec2 Pos)
+int CCollision::GetMineTeeTileIndexAt(vec2 Pos)
 {
     if (!m_pLayers->MineTeeLayer())
         return -1;
@@ -275,8 +279,23 @@ int CCollision::GetMineTeeTileAt(vec2 Pos)
     return pMTTiles[MTIndex].m_Index;
 }
 
+CTile* CCollision::GetMineTeeTileAt(vec2 Pos)
+{
+    if (!m_pLayers->MineTeeLayer())
+        return nullptr;
 
-bool CCollision::ModifTile(ivec2 pos, int group, int layer, int index, int flags)
+    Pos = vec2(static_cast<int>(Pos.x/32.0f), static_cast<int>(Pos.y/32.0f));
+    if (Pos.x >= m_Width-1 || Pos.x <= 0 || Pos.y >= m_Height-1 || Pos.y <= 0)
+        return nullptr;
+
+    //MineTee Layer
+    int MTIndex = static_cast<int>(Pos.y*m_pLayers->MineTeeLayer()->m_Width+Pos.x);
+    CTile *pMTTiles = (CTile *)m_pLayers->Map()->GetData(m_pLayers->MineTeeLayer()->m_Data);
+    return &pMTTiles[MTIndex];
+}
+
+
+bool CCollision::ModifTile(ivec2 pos, int group, int layer, int index, int flags, int reserved)
 {
     CMapItemGroup *pGroup = m_pLayers->GetGroup(group);
     CMapItemLayer *pLayer = m_pLayers->GetLayer(pGroup->m_StartLayer+layer);
@@ -294,6 +313,7 @@ bool CCollision::ModifTile(ivec2 pos, int group, int layer, int index, int flags
         CTile *pTiles = static_cast<CTile *>(m_pLayers->Map()->GetData(pTilemap->m_Data));
         pTiles[tpos].m_Flags = flags;
         pTiles[tpos].m_Index = index;
+        pTiles[tpos].m_Reserved = reserved;
 
         RegenerateSkip(pTiles, pTilemap->m_Width, pTilemap->m_Height, pos, !index);
 
@@ -318,6 +338,7 @@ bool CCollision::ModifTile(ivec2 pos, int group, int layer, int index, int flags
         CTile *pTiles = static_cast<CTile *>(m_pLayers->Map()->GetData(pTilemap->m_Data));
         pTiles[tpos].m_Flags = flags;
         pTiles[tpos].m_Index = index;
+        pTiles[tpos].m_Reserved = 1;
 
         RegenerateSkip(pTiles, pTilemap->m_Width, pTilemap->m_Height, pos, !index);
     }
@@ -325,6 +346,7 @@ bool CCollision::ModifTile(ivec2 pos, int group, int layer, int index, int flags
     {
         m_pTiles[tpos].m_Index = index;
         m_pTiles[tpos].m_Flags = flags;
+        m_pTiles[tpos].m_Reserved = 1;
 
         switch(index)
         {

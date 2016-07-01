@@ -574,12 +574,12 @@ void CPlayers::RenderPlayer(
 	// MineTee
 	if (str_find_nocase(SInfo.m_aGameType, "minetee"))
 	{
-        if (!m_pClient->m_aClients[pInfo.m_ClientID].m_InWater && Collision()->GetMineTeeTileAt(Position) == CBlockManager::WATER_D)
+        if (!m_pClient->m_aClients[pInfo.m_ClientID].m_InWater && Collision()->GetMineTeeTileIndexAt(Position) == CBlockManager::WATER_D)
         {
             m_pClient->m_aClients[pInfo.m_ClientID].m_InWater  = true;
             m_pClient->m_pEffects->WaterSplit(Position, vec2(0,-1));
         }
-        else if (m_pClient->m_aClients[pInfo.m_ClientID].m_InWater  && Collision()->GetMineTeeTileAt(Position) != CBlockManager::WATER_D)
+        else if (m_pClient->m_aClients[pInfo.m_ClientID].m_InWater  && Collision()->GetMineTeeTileIndexAt(Position) != CBlockManager::WATER_D)
         {
             m_pClient->m_aClients[pInfo.m_ClientID].m_InWater  = false;
             m_pClient->m_pEffects->WaterSplit(Position, vec2(0,-1));

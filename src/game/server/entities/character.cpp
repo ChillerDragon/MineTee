@@ -363,9 +363,9 @@ void CCharacter::Construct()
             if (pMTTiles[Index].m_Index != 0 || pMTBGTiles[Index].m_Index == ActiveBlock)
                 return;
 
-            if (GameServer()->Collision()->ModifTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeBGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0))
+            if (GameServer()->Collision()->ModifTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeBGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0, 0))
             {
-            	GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeBGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0);
+            	GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeBGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0, 0);
             	GameServer()->CreateSound(m_Pos, SOUND_DESTROY_BLOCK);
             	Builded = true;
             }
@@ -382,10 +382,10 @@ void CCharacter::Construct()
             if (pMTTiles[Index].m_Index != 0 || pMTFGTiles[Index].m_Index == ActiveBlock)
                 return;
 
-            if (GameServer()->Collision()->ModifTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeFGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0))
+            if (GameServer()->Collision()->ModifTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeFGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0, 0))
             {
             	GameServer()->CreateSound(m_Pos, SOUND_DESTROY_BLOCK);
-            	GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeFGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0);
+            	GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeFGLayerIndex(), (m_ActiveWeapon == WEAPON_HAMMER)?0:ActiveBlock, 0, 0);
             	Builded = true;
             }
         }
@@ -450,9 +450,9 @@ void CCharacter::Construct()
 
             if (distance(m_Pos, finishPosPost) >= 42.0f)
             {
-            	if (GameServer()->Collision()->ModifTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0))
+            	if (GameServer()->Collision()->ModifTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0, pBlockInfo->m_Health))
             	{
-            		GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0);
+            		GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0, pBlockInfo->m_Health);
             		GameServer()->CreateSound(m_Pos, SOUND_DESTROY_BLOCK);
             		Builded = true;
             	}
@@ -549,46 +549,47 @@ void CCharacter::FireWeapon()
                     vec2 finishPosPost = colTilePos+Direction * 8.0f;
                     if (GameServer()->Collision()->GetCollisionAt(finishPosPost.x, finishPosPost.y) == CCollision::COLFLAG_SOLID)
                     {
-						int TIndex = -1;
-						if ((TIndex = GameServer()->Collision()->GetMineTeeTileAt(finishPosPost)) > 0)
+                    	CTile *pMTTile = GameServer()->Collision()->GetMineTeeTileAt(finishPosPost);
+                    	CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(pMTTile->m_Index);
+						if (pMTTile && pBlockInfo && pBlockInfo->m_Health > 0)
 						{
-							ivec2 TilePos = ivec2(finishPosPost.x/32, finishPosPost.y/32);
-                        	GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
-                            GameServer()->Collision()->ModifTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0);
-							GameServer()->CreateSound(m_Pos, SOUND_DESTROY_BLOCK);
+							const int MTIndex = pMTTile->m_Index;
+							const ivec2 TilePos = ivec2(finishPosPost.x/32, finishPosPost.y/32);
+							--pMTTile->m_Reserved;
+							if (pMTTile->m_Reserved == 0)
+							{
+								GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0, 0);
+								GameServer()->Collision()->ModifTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0, 0);
 
-							if (TIndex == CBlockManager::TNT)
-							{
-								GameServer()->CreateExplosion(finishPosPost, GetPlayer()->GetCID(), WEAPON_WORLD, false);
-								GameServer()->CreateSound(finishPosPost, SOUND_GRENADE_EXPLODE);
-							}
-							else
-							{
-								CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(TIndex);
-								if (pBlockInfo)
+								if (pBlockInfo->m_Explode)
 								{
-									if (pBlockInfo->m_vOnBreak.size() > 0)
+									GameServer()->CreateExplosion(finishPosPost, GetPlayer()->GetCID(), WEAPON_WORLD, false);
+									GameServer()->CreateSound(finishPosPost, SOUND_GRENADE_EXPLODE);
+								}
+								if (pBlockInfo->m_vOnBreak.size() > 0)
+								{
+									for (std::map<int, unsigned char>::iterator it = pBlockInfo->m_vOnBreak.begin(); it != pBlockInfo->m_vOnBreak.end(); it++)
 									{
-										for (std::map<int, unsigned char>::iterator it = pBlockInfo->m_vOnBreak.begin(); it != pBlockInfo->m_vOnBreak.end(); it++)
+										if (it->first == 0)
 										{
-											if (it->first == 0)
-											{
-												++it;
-												continue;
-											}
-
-											CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, it->first);
-											pPickup->m_Pos = vec2(TilePos.x*32.0f + 8.0f, (TilePos.y)*32.0f + 8.0f);
-											pPickup->m_Amount = it->second;
+											++it;
+											continue;
 										}
-									}
-									else
-									{
-										CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, TIndex);
-										pPickup->m_Pos = vec2(TilePos.x*32.0f + 8.0f, TilePos.y*32.0f + 8.0f);
+
+										CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, it->first);
+										pPickup->m_Pos = vec2(TilePos.x*32.0f + 8.0f, (TilePos.y)*32.0f + 8.0f);
+										pPickup->m_Amount = it->second;
 									}
 								}
+								else
+								{
+									CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, MTIndex);
+									pPickup->m_Pos = vec2(TilePos.x*32.0f + 8.0f, TilePos.y*32.0f + 8.0f);
+								}
 							}
+							else
+								GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), MTIndex, pMTTile->m_Flags, pMTTile->m_Reserved);
+							GameServer()->CreateSound(m_Pos, SOUND_DESTROY_BLOCK);
 						}
 
 						m_ReloadTimer=Server()->TickSpeed()/8;
@@ -887,7 +888,7 @@ void CCharacter::Tick()
 	m_Core.Tick(true);
 
 	// Fluid Damages
-	int BlockID = GameServer()->Collision()->GetMineTeeTileAt(vec2(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f));
+	int BlockID = GameServer()->Collision()->GetMineTeeTileIndexAt(vec2(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f));
 	if (Server()->Tick() - m_TimerFluidDamage >= Server()->TickSpeed()/2 && (BlockID >= CBlockManager::LAVA_A && BlockID <= CBlockManager::LAVA_D))
 	{
 	    TakeDamage(vec2(0.0f,-1.0f), 1, m_pPlayer->GetCID(), WEAPON_WORLD);
@@ -1259,8 +1260,8 @@ void CCharacter::Snap(int SnappingClient)
 	// MineTee
 	if (str_find_nocase(GameServer()->GameType(), "minetee"))
 	{
-		int TileIndexD = GameServer()->Collision()->GetMineTeeTileAt(vec2(m_Pos.x, m_Pos.y+16.0f));
-		int TileIndex = GameServer()->Collision()->GetMineTeeTileAt(vec2(m_Pos.x, m_Pos.y));
+		int TileIndexD = GameServer()->Collision()->GetMineTeeTileIndexAt(vec2(m_Pos.x, m_Pos.y+16.0f));
+		int TileIndex = GameServer()->Collision()->GetMineTeeTileIndexAt(vec2(m_Pos.x, m_Pos.y));
 		int FluidType = 0;
 		if (!m_Jumped && ((TileIndexD >= CBlockManager::LARGE_BED_LEFT && TileIndexD <= CBlockManager::LARGE_BED_RIGHT) || TileIndexD == CBlockManager::BED))
 			pCharacter->m_Emote = EMOTE_BLINK;

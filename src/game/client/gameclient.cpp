@@ -580,7 +580,7 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker)
     {
         CNetMsg_SvAn_TileModif *pMsg = (CNetMsg_SvAn_TileModif *)pRawMsg;
 
-        Collision()->ModifTile(ivec2(pMsg->m_X, pMsg->m_Y), pMsg->m_Group, pMsg->m_Layer, pMsg->m_Index, pMsg->m_Flags);
+        Collision()->ModifTile(ivec2(pMsg->m_X, pMsg->m_Y), pMsg->m_Group, pMsg->m_Layer, pMsg->m_Index, pMsg->m_Flags, pMsg->m_Reserved);
     }
 }
 

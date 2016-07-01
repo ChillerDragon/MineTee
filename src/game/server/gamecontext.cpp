@@ -176,46 +176,53 @@ void CGameContext::CreateExplosion(vec2 Pos, int Owner, int Weapon, bool NoDamag
 
             if (Collision()->GetCollisionAt(finishPosPost.x, finishPosPost.y) == CCollision::COLFLAG_SOLID)
             {
-                int BIndex = Collision()->GetMineTeeTileAt(finishPosPost);
-                if (BIndex <= 0)
+            	const ivec2 TilePos(finishPosPost.x/32, finishPosPost.y/32);
+            	CTile *pTile = Collision()->GetMineTeeTileAt(finishPosPost);
+                if (!pTile || pTile->m_Index <= 0)
                     continue;
 
-                ivec2 TilePos(finishPosPost.x/32, finishPosPost.y/32);
-                SendTileModif(ALL_PLAYERS, TilePos, Layers()->GetMineTeeGroupIndex(),  Layers()->GetMineTeeLayerIndex(), 0, 0);
-                Collision()->ModifTile(TilePos, Layers()->GetMineTeeGroupIndex(),  Layers()->GetMineTeeLayerIndex(), 0, 0);
+                pTile->m_Reserved = max(0, pTile->m_Reserved-3);
 
-				if (BIndex == CBlockManager::TNT)
-				{
-					CreateExplosion(finishPosPost, Owner, WEAPON_WORLD, false);
-					CreateSound(finishPosPost, SOUND_GRENADE_EXPLODE);
-				}
-				else
-				{
-					CBlockManager::CBlockInfo *pBlockInfo = m_BlockManager.GetBlockInfo(BIndex);
-					if (pBlockInfo)
+                if (pTile->m_Reserved == 0)
+                {
+					SendTileModif(ALL_PLAYERS, TilePos, Layers()->GetMineTeeGroupIndex(),  Layers()->GetMineTeeLayerIndex(), 0, 0, 0);
+					Collision()->ModifTile(TilePos, Layers()->GetMineTeeGroupIndex(),  Layers()->GetMineTeeLayerIndex(), 0, 0, 0);
+
+					if (pTile->m_Index == CBlockManager::TNT)
 					{
-						if (pBlockInfo->m_vOnBreak.size() > 0)
+						CreateExplosion(finishPosPost, Owner, WEAPON_WORLD, false);
+						CreateSound(finishPosPost, SOUND_GRENADE_EXPLODE);
+					}
+					else
+					{
+						CBlockManager::CBlockInfo *pBlockInfo = m_BlockManager.GetBlockInfo(pTile->m_Index);
+						if (pBlockInfo)
 						{
-							for (std::map<int, unsigned char>::iterator it = pBlockInfo->m_vOnBreak.begin(); it != pBlockInfo->m_vOnBreak.end(); it++)
+							if (pBlockInfo->m_vOnBreak.size() > 0)
 							{
-								if (it->first == 0)
+								for (std::map<int, unsigned char>::iterator it = pBlockInfo->m_vOnBreak.begin(); it != pBlockInfo->m_vOnBreak.end(); it++)
 								{
-									++it;
-									continue;
-								}
+									if (it->first == 0)
+									{
+										++it;
+										continue;
+									}
 
-								CPickup *pPickup = new CPickup(&m_World, POWERUP_BLOCK, it->first);
-								pPickup->m_Pos = vec2(TilePos.x*32.0f + 8.0f, (TilePos.y)*32.0f + 8.0f);
-								pPickup->m_Amount = it->second;
+									CPickup *pPickup = new CPickup(&m_World, POWERUP_BLOCK, it->first);
+									pPickup->m_Pos = vec2(TilePos.x*32.0f + 8.0f, (TilePos.y)*32.0f + 8.0f);
+									pPickup->m_Amount = it->second;
+								}
+							}
+							else
+							{
+								CPickup *pPickup = new CPickup(&m_World, POWERUP_BLOCK, pTile->m_Index);
+								pPickup->m_Pos = vec2(TilePos.x*32.0f + 8.0f, TilePos.y*32.0f + 8.0f);
 							}
 						}
-						else
-						{
-							CPickup *pPickup = new CPickup(&m_World, POWERUP_BLOCK, BIndex);
-							pPickup->m_Pos = vec2(TilePos.x*32.0f + 8.0f, TilePos.y*32.0f + 8.0f);
-						}
 					}
-				}
+                }
+                else
+                	SendTileModif(ALL_PLAYERS, TilePos, Layers()->GetMineTeeGroupIndex(),  Layers()->GetMineTeeLayerIndex(), pTile->m_Index, pTile->m_Index, pTile->m_Reserved);
 
 				CreateSound(finishPosPost, SOUND_DESTROY_BLOCK);
             }
@@ -1729,7 +1736,7 @@ const char *CGameContext::NetVersion() { return GAME_NETVERSION; }
 IGameServer *CreateGameServer() { return new CGameContext; }
 
 // MineTee
-int CGameContext::SendTileModif(int ClientID, ivec2 Pos, int Group, int Layer, int Index, int Flags)
+int CGameContext::SendTileModif(int ClientID, ivec2 Pos, int Group, int Layer, int Index, int Flags, int Reserved)
 {
 	CNetMsg_SvAn_TileModif TileModif;
 	TileModif.m_X = Pos.x;
@@ -1738,6 +1745,7 @@ int CGameContext::SendTileModif(int ClientID, ivec2 Pos, int Group, int Layer, i
 	TileModif.m_Layer = Layer;
 	TileModif.m_Index = Index;
 	TileModif.m_Flags = Flags;
+	TileModif.m_Reserved = Reserved;
 
     m_pServer->SendPackMsg(&TileModif, MSGFLAG_VITAL, ClientID);
 	return 0;

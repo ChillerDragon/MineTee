@@ -167,6 +167,7 @@ void CRenderTools::RenderQuads(CQuad *pQuads, int NumQuads, int RenderFlags, ENV
 	Graphics()->QuadsEnd();
 }
 
+// TODO: Refactor this!!
 void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 Color, int RenderFlags,
 									ENVELOPE_EVAL pfnEval, void *pUser, int ColorEnv, int ColorEnvOffset,
 									int TileMineTee, bool Animated, void *pEffects)
@@ -258,14 +259,33 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
 
 			unsigned char Index = pTiles[c].m_Index;
 			unsigned char Flags = pTiles[c].m_Flags;
+			unsigned char Reserved = pTiles[c].m_Reserved;
 
 			if(Index)
 			{
                 // MineTee
+				bool TileSway = false;
                 if (TileMineTee == 1)
                 {
                 	CBlockManager::CBlockInfo *pBlockInfo = m_pCollision->GetBlockManager()->GetBlockInfo(Index);
 
+                	if (!Animated)
+                	{
+                		// Skipe animated tiles
+                    	if ((Index >= CBlockManager::WATER_A && Index <= CBlockManager::WATER_D) || (Index >= CBlockManager::LAVA_A && Index <= CBlockManager::LAVA_D))
+                    		continue;
+
+                    	// Show Block Damage
+                		if (pBlockInfo->m_Health > 0 && Reserved < pBlockInfo->m_Health)
+                		{
+                			const float DmgIntensity = ((Reserved * 255.0f)/(float)pBlockInfo->m_Health)/255.0f;
+							Graphics()->SetColor(DmgIntensity, DmgIntensity, DmgIntensity, Color.a*a);
+                		}
+                		else
+                			Graphics()->SetColor(Color.r*r, Color.g*g, Color.b*b, Color.a*a);
+                	}
+
+                	// Block Effects
                 	if (pEffects)
                 	{
 						CEffects *pEff = static_cast<CEffects*>(pEffects);
@@ -297,7 +317,13 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
                 		if (pTiles[tu].m_Index != 0 && !(pTiles[c].m_Flags&TILEFLAG_HFLIP))
                 			pTiles[c].m_Flags |= TILEFLAG_HFLIP;
                 	}
+
+                	// Tile Effects
+                	if (pBlockInfo->m_Effects.m_Sway)
+                		TileSway = true;
                 }
+                else if (TileMineTee == 2 && !Animated)
+                    Graphics()->SetColor(0.35f, 0.35f, 0.35f, Color.a*a);
                 //
 
 				bool Render = false;
@@ -362,12 +388,7 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
  					}
 
                     // MineTee
-                    if (TileMineTee == 1 && ((Index >= CBlockManager::WATER_A && Index <= CBlockManager::WATER_D) || (Index >= CBlockManager::LAVA_A && Index <= CBlockManager::LAVA_D)))
-                        continue;
-                    else if (TileMineTee == 2)
-                        Graphics()->SetColor(0.35f, 0.35f, 0.35f, Color.a*a);
-
-                    if (Index == CBlockManager::LEAFS)
+                    if (TileSway)
                     {
 						Graphics()->QuadsSetSubsetFree(x0, y0, x1, y1, x3, y3, x2, y2);
 						IGraphics::CFreeformItem Freeform(
@@ -383,8 +404,6 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
     					IGraphics::CQuadItem QuadItem(x*Scale, y*Scale, Scale, Scale);
     					Graphics()->QuadsDrawTL(&QuadItem, 1);
                     }
-
-					Graphics()->SetColor(Color.r, Color.g, Color.b, Color.a); //H-Client
 				}
 				else if (TileMineTee == 1 && Animated)
 				{

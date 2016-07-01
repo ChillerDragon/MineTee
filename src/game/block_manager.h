@@ -185,6 +185,13 @@ public:
     		m_vOnBreak.clear();
     		m_vOnCook.clear();
     		m_vCraft.clear();
+    		m_Explode = false;
+
+    		m_Functionality.m_Type[0] = 0;
+    		m_Functionality.m_OnActive = -1;
+    		m_Functionality.m_vExcludeBlocks.clear();
+    		m_Functionality.m_Fuel.m_BlockId = -1;
+    		m_Functionality.m_Fuel.m_Duration = -1;
 
     		for (int i=0; i<m_vPlace.size(); m_vPlace[i++].clear());
     		m_vPlace.clear();
@@ -201,6 +208,8 @@ public:
 		bool m_Damage;
 		bool m_HalfTile;
 		bool m_PlayerCollide;
+		bool m_Explode;
+		int m_OnFunctionality;
 		int m_RandomActions;
 		int m_OnPut;
 		int m_OnWear;
@@ -210,6 +219,23 @@ public:
 		std::map<int, unsigned char> m_vCraft;
 		array<array<int> > m_vPlace;
 		array<array<int> > m_vMutations;
+
+		struct
+		{
+			char m_Type[12];
+			int m_OnActive;
+			array<int> m_vExcludeBlocks;
+			struct
+			{
+				int m_BlockId;
+				int m_Duration;
+			} m_Fuel;
+		} m_Functionality;
+
+		struct
+		{
+			bool m_Sway;
+		} m_Effects;
 	} m_aBlocks[256];
 
 	bool Init(char *pBlocksData, int BlocksDataSize);
