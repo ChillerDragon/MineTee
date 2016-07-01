@@ -1031,7 +1031,7 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 
 void CGameControllerMineTee::ModifTile(ivec2 MapPos, int TileIndex)
 {
-	//dbg_msg("MineTee", "MODIF TILE: %d [%dx%d]", TileIndex, MapPos.x, MapPos.y);
+	// FIXME: "Health" always set to 100%...
 	CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(TileIndex);
 	GameServer()->SendTileModif(ALL_PLAYERS, MapPos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0, pBlockInfo->m_Health);
     GameServer()->Collision()->ModifTile(MapPos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0, pBlockInfo->m_Health);
@@ -1039,7 +1039,7 @@ void CGameControllerMineTee::ModifTile(ivec2 MapPos, int TileIndex)
 
 bool CGameControllerMineTee::GetPlayerArea(int ClientID, int *pStartX, int *pEndX, int *pStartY, int *pEndY)
 {
-	const int MapChunkSize = 24;
+	const int PlayerRadius = 24; // In Tiles
 	*pStartX = *pEndX = *pStartY = *pEndY = 0;
 	if (ClientID < 0 || ClientID >= MAX_CLIENTS || !GameServer()->m_apPlayers[ClientID] || !GameServer()->m_apPlayers[ClientID]->GetCharacter())
 		return false;
@@ -1047,10 +1047,10 @@ bool CGameControllerMineTee::GetPlayerArea(int ClientID, int *pStartX, int *pEnd
 	const vec2 ClientWorldPos = GameServer()->m_apPlayers[ClientID]->GetCharacter()->m_Pos;
 	const ivec2 ClientMapPos(ClientWorldPos.x/32, ClientWorldPos.y/32);
 
-	*pStartX = max(ClientMapPos.x-MapChunkSize, 1);
-	*pEndX = min(ClientMapPos.x+MapChunkSize, GameServer()->Collision()->GetWidth()-2);
-	*pStartY = max(ClientMapPos.y-MapChunkSize, 1);
-	*pEndY = min(ClientMapPos.y+MapChunkSize, GameServer()->Collision()->GetHeight()-2);
+	*pStartX = max(ClientMapPos.x-PlayerRadius, 1);
+	*pEndX = min(ClientMapPos.x+PlayerRadius, GameServer()->Collision()->GetWidth()-2);
+	*pStartY = max(ClientMapPos.y-PlayerRadius, 1);
+	*pEndY = min(ClientMapPos.y+PlayerRadius, GameServer()->Collision()->GetHeight()-2);
 	return true;
 }
 

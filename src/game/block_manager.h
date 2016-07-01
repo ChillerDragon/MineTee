@@ -193,6 +193,8 @@ public:
     		m_Functionality.m_Fuel.m_BlockId = -1;
     		m_Functionality.m_Fuel.m_Duration = -1;
 
+    		m_Effects.m_Sway = false;
+
     		for (int i=0; i<m_vPlace.size(); m_vPlace[i++].clear());
     		m_vPlace.clear();
     		for (int i=0; i<m_vMutations.size(); m_vMutations[i++].clear());

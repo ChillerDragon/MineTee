@@ -82,7 +82,6 @@ public:
 		float OffsetX, float OffsetY, float Aspect, float Zoom, float *pPoints);
 
 	// MineTee
-	void UpdateLights(CTile *pTiles, CTile *pLights, int w, int h, int DarknessLevel = 0);
 	void RenderTile(int Index, vec2 Pos, float Scale, float Alpha = 1.0f, float Rot = 0.0f);
 };
 

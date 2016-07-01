@@ -47,30 +47,26 @@ bool CBlockManager::Init(char *pData, int DataSize)
 			const json_value &JsonObjectF = (*pJsonObject)["effects"];
 			pBlockInfo->m_Effects.m_Sway = (JsonObjectF["sway"].type == json_none)?false:JsonObjectF["sway"].u.boolean;
 		}
-		else
-		{
-			pBlockInfo->m_Effects.m_Sway = false;
-		}
 
-		/*json_value *pJsonObjectF = (*pJsonObject)["functionality"].u.object.values[0];
-		if (pJsonObjectF)
-		{
-			if ((*pJsonObjectF)["type"].type == json_none)
-				return false;
-			str_copy(pBlockInfo->m_Functionality.m_Type, (*pJsonObjectF)["type"], sizeof(pBlockInfo->m_Functionality.m_Type));
-			pBlockInfo->m_Functionality.m_OnActive = ((*pJsonObjectF)["onActive"].type == json_none)?-1:(*pJsonObjectF)["onActive"].u.integer;
 
-			items = (*pJsonObjectF)["excludeBlocks"].u.array.length;
+		if ((*pJsonObject)["functionality"].type != json_none)
+		{
+			const json_value &JsonObjectF = (*pJsonObject)["functionality"];
+
+			str_copy(pBlockInfo->m_Functionality.m_Type, JsonObjectF["type"], sizeof(pBlockInfo->m_Functionality.m_Type));
+			pBlockInfo->m_Functionality.m_OnActive = (JsonObjectF["onActive"].type == json_none)?-1:JsonObjectF["onActive"].u.integer;
+
+			items = JsonObjectF["excludeBlocks"].u.array.length;
 			if (items)
 			{
-				const json_value &JsonArrayExcludeBlocks = (*pJsonObjectF)["excludeBlocks"];
+				const json_value &JsonArrayExcludeBlocks = JsonObjectF["excludeBlocks"];
 				for (int i=0; i<items; i++)
 				{
 					json_value &JsonArray = *JsonArrayExcludeBlocks.u.array.values[i];
 					for (std::size_t e=0; e<JsonArray.u.array.length; pBlockInfo->m_Functionality.m_vExcludeBlocks.add(JsonArray.u.array.values[e++]->u.integer));
 				}
 			}
-		}*/
+		}
 
 		items = (*pJsonObject)["onCook"].u.object.length;
 		if (items)

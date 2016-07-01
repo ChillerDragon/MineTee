@@ -351,10 +351,11 @@ void CCharacter::Construct()
 
     vec2 ProjStartPos= m_Pos + Direction * 38.0f;
     vec2 colTilePos = ProjStartPos+Direction * 120.0f;
+    const float Zoom = 1.35f;
 
     if (m_pPlayer->m_PlayerFlags&PLAYERFLAG_BGPAINT)
     {
-        ivec2 TilePos = ivec2((m_Pos.x+m_LatestInput.m_TargetX)/32.0f, (m_Pos.y+m_LatestInput.m_TargetY)/32.0f);
+        ivec2 TilePos = ivec2((m_Pos.x+m_LatestInput.m_TargetX*Zoom)/32.0f, (m_Pos.y+m_LatestInput.m_TargetY*Zoom)/32.0f);
         if (TilePos.x > 0 && TilePos.x < GameServer()->Layers()->MineTeeLayer()->m_Width && TilePos.y > 0 && TilePos.y < GameServer()->Layers()->MineTeeLayer()->m_Height)
         {
             int Index = TilePos.y*GameServer()->Layers()->MineTeeLayer()->m_Width+TilePos.x;
@@ -373,7 +374,7 @@ void CCharacter::Construct()
     }
     else if (m_pPlayer->m_PlayerFlags&PLAYERFLAG_FGPAINT)
     {
-        ivec2 TilePos = ivec2((m_Pos.x+m_LatestInput.m_TargetX)/32.0f, (m_Pos.y+m_LatestInput.m_TargetY)/32.0f);
+        ivec2 TilePos = ivec2((m_Pos.x+m_LatestInput.m_TargetX*Zoom)/32.0f, (m_Pos.y+m_LatestInput.m_TargetY*Zoom)/32.0f);
         if (TilePos.x > 0 && TilePos.x < GameServer()->Layers()->MineTeeLayer()->m_Width && TilePos.y > 0 && TilePos.y < GameServer()->Layers()->MineTeeLayer()->m_Height)
         {
             int Index = TilePos.y*GameServer()->Layers()->MineTeeLayer()->m_Width+TilePos.x;

@@ -325,6 +325,7 @@ void CPlayers::RenderPlayer(
 
 	// draw gun
 	// MineTee
+	const float Zoom = 1.35f;
 	if (Player.m_Weapon >= NUM_WEAPONS)
 	{
 	    Graphics()->TextureSet(m_pClient->m_pMapimages->Get(Layers()->MineTeeLayer()->m_Image));
@@ -381,7 +382,7 @@ void CPlayers::RenderPlayer(
 	    }
 	    else if (pInfo.m_Local)
 	    {
-	        ivec2 MousePos = ivec2(Position.x + m_pClient->m_pControls->m_LastData.m_TargetX, Position.y + m_pClient->m_pControls->m_LastData.m_TargetY);
+	        ivec2 MousePos = ivec2(Position.x + m_pClient->m_pControls->m_LastData.m_TargetX*Zoom, Position.y + m_pClient->m_pControls->m_LastData.m_TargetY*Zoom);
             MousePos.x /= 32;
             MousePos.y /= 32;
 
@@ -392,7 +393,7 @@ void CPlayers::RenderPlayer(
     else if (Player.m_Weapon == WEAPON_HAMMER && pInfo.m_Local && ((Player.m_PlayerFlags&PLAYERFLAG_BGPAINT) || (Player.m_PlayerFlags&PLAYERFLAG_FGPAINT)))
     {
         Graphics()->TextureSet(m_pClient->m_pMapimages->Get(Layers()->MineTeeLayer()->m_Image));
-        ivec2 MousePos = ivec2(Position.x + m_pClient->m_pControls->m_LastData.m_TargetX, Position.y + m_pClient->m_pControls->m_LastData.m_TargetY);
+        ivec2 MousePos = ivec2(Position.x + m_pClient->m_pControls->m_LastData.m_TargetX*Zoom, Position.y + m_pClient->m_pControls->m_LastData.m_TargetY*Zoom);
         MousePos.x /= 32;
         MousePos.y /= 32;
 
