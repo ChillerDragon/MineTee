@@ -1,5 +1,4 @@
 from datatypes import *
-from gst import IntRange
 
 Emotes = ["NORMAL", "PAIN", "HAPPY", "SURPRISE", "ANGRY", "BLINK"]
 PlayerFlags = ["PLAYING", "IN_MENU", "CHATTING", "SCOREBOARD", "AIM", "BGPAINT", "FGPAINT", "ACTIVE"] # MineTee
