@@ -62,6 +62,7 @@ public:
 		GROUP_EXPLOSIONS,
 		GROUP_GENERAL,
 		GROUP_HCLIENT_TOMBSTONE, // MineTee
+		GROUP_BLOCKS,
 		NUM_GROUPS
 	};
 
@@ -98,5 +99,6 @@ private:
 	CRenderGroup<GROUP_EXPLOSIONS> m_RenderExplosions;
 	CRenderGroup<GROUP_GENERAL> m_RenderGeneral;
 	CRenderGroup<GROUP_HCLIENT_TOMBSTONE> m_RenderMineTeeTumbstone; // MineTee
+	CRenderGroup<GROUP_BLOCKS> m_RenderBlocks; // MineTee
 };
 #endif

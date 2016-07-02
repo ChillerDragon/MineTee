@@ -537,6 +537,7 @@ void CCharacter::FireWeapon()
 	switch(m_ActiveWeapon)
 	{
 		case WEAPON_HAMMER:
+		case WEAPON_HAMMER_STONE:
 		{
 			// reset objects Hit
 			m_NumObjectsHit = 0;
@@ -556,11 +557,15 @@ void CCharacter::FireWeapon()
 						{
 							const int MTIndex = pMTTile->m_Index;
 							const ivec2 TilePos = ivec2(finishPosPost.x/32, finishPosPost.y/32);
-							--pMTTile->m_Reserved;
+							if (m_ActiveWeapon == WEAPON_HAMMER_STONE)
+								pMTTile->m_Reserved = max(0, pMTTile->m_Reserved-4);
+							else
+								--pMTTile->m_Reserved;
 							if (pMTTile->m_Reserved == 0)
 							{
 								GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0, 0);
 								GameServer()->Collision()->ModifTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0, 0);
+								GameServer()->CreateBlockRubble(finishPosPost, MTIndex);
 
 								if (pBlockInfo->m_Explode)
 								{

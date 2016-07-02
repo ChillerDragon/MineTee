@@ -4,17 +4,17 @@
     },
     {
         "name": "STONE",
-        "health": 5,
+        "health": 10,
     },
     {
         "name": "DIRT",
-        "health": 2,
+        "health": 4,
         "onSun": 3,
         "randomActions": 20,
     },
     {
         "name": "GRASS",
-        "health": 2,
+        "health": 4,
         "onBreak": { "2":1 },
         "mutations": [
             [88,-2,-2,-2,-2,-2,-2,-2], [-1,-1,-1,-1,-1,-1,-1,-1,-1],

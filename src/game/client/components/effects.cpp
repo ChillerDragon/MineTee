@@ -328,9 +328,9 @@ void CEffects::FireSplit(vec2 Pos, vec2 Dir)
     vec3 LavaColor(0.97f, 0.3f, 0.0f);
 
     int SubType = 0;
+    CParticle p;
     for(int i = 0; i < 20; i++)
     {
-        CParticle p;
         p.SetDefault();
 
         if (!SubType)
@@ -365,9 +365,9 @@ void CEffects::WaterSplit(vec2 Pos, vec2 Dir)
     vec3 LavaColor(0.0f, 0.0f, 1.0f);
 
     int SubType = 0;
+    CParticle p;
     for(int i = 0; i < 20; i++)
     {
-        CParticle p;
         p.SetDefault();
 
         if (!SubType)
@@ -410,7 +410,6 @@ void CEffects::Tombstone(vec2 Pos)
 	p.m_Friction = 0.9f;
 	p.m_Rot = 0.0f;
 	p.m_Collide = true;
-	p.m_Color = vec4(1.0f, 1.0f, 1.0f ,1.0f);
 	m_pClient->m_pParticles->Add(CParticles::GROUP_HCLIENT_TOMBSTONE, &p);
 }
 
@@ -432,4 +431,24 @@ void CEffects::LightFlame(vec2 Pos)
 	p.m_Vel = RandomDir() * (powf(frandom(), 3)*200.0f);
 	p.m_Color = mix(vec4(1.0f,0.8f, 64/255 ,1.0f), vec4(237/255, 28/255, 36/255, 1.0f), frandom());
 	m_pClient->m_pParticles->Add(CParticles::GROUP_GENERAL, &p);
+}
+
+void CEffects::BlockRubble(vec2 Pos, int BlockID)
+{
+	CParticle p;
+	for(int i = 0; i < 8; i++)
+	{
+		p.SetDefault();
+		p.m_Spr = BlockID;
+		p.m_Pos = Pos;
+		p.m_LifeSpan = 12.0f;
+		p.m_StartSize = 4.0f;
+		p.m_EndSize = 0.0f;
+		p.m_Gravity = 2500.0f;
+		p.m_Friction = 0.9f;
+		p.m_Rot = 0.0f;
+		p.m_Collide = true;
+		p.m_Vel = RandomDir() * (powf(frandom(), 3)*200.0f);
+		m_pClient->m_pParticles->Add(CParticles::GROUP_BLOCKS, &p);
+	}
 }

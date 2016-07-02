@@ -181,7 +181,7 @@ void CGameContext::CreateExplosion(vec2 Pos, int Owner, int Weapon, bool NoDamag
                 if (!pTile || pTile->m_Index <= 0)
                     continue;
 
-                pTile->m_Reserved = max(0, pTile->m_Reserved-3);
+                pTile->m_Reserved = max(0, pTile->m_Reserved-5); // TODO: Get value from block manager
 
                 if (pTile->m_Reserved == 0)
                 {
@@ -2083,4 +2083,16 @@ void CGameContext::SaveAccount(int ClientID)
 		pAccountInfo->m_PetInfo.m_Alive = false;
 
 	Server()->AccountSystem()->Save();
+}
+
+void CGameContext::CreateBlockRubble(vec2 Pos, int BlockId)
+{
+	// create the event
+	CNetEvent_BlockRubble *pEvent = (CNetEvent_BlockRubble *)m_Events.Create(NETEVENTTYPE_BLOCKRUBBLE, sizeof(CNetEvent_BlockRubble));
+	if(pEvent)
+	{
+		pEvent->m_X = (int)Pos.x;
+		pEvent->m_Y = (int)Pos.y;
+		pEvent->m_BlockId = BlockId;
+	}
 }

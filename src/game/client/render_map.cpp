@@ -513,5 +513,5 @@ void CRenderTools::RenderTile(int Index, vec2 Pos, float Scale, float Alpha, flo
     Graphics()->QuadsDrawTL(&QuadItem, 1);
 
 	Graphics()->QuadsEnd();
-	Graphics()->MapScreen(ScreenX0, ScreenY0, ScreenX1, ScreenY1);
+	//Graphics()->MapScreen(ScreenX0, ScreenY0, ScreenX1, ScreenY1);
 }

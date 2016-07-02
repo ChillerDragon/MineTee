@@ -83,6 +83,7 @@ class WeaponSpec(Struct):
 		self.maxammo = Int(10)
 		self.ammoregentime = Int(0)
 		self.damage = Int(1)
+		self.duration = Int(1) # MineTee
 
 		self.offsetx = Float(0)
 		self.offsety = Float(0)
@@ -145,6 +146,14 @@ class Weapon_Ninja(Struct):
 		self.duration = Int(15000)
 		self.movetime = Int(200)
 		self.velocity = Int(50)
+		
+		
+# MineTee
+class Weapon_Hammer_Stone(Struct):
+	def __init__(self):
+		Struct.__init__(self, "CDataWeaponspecHammerStone")
+		self.base = Pointer(WeaponSpec, WeaponSpec())
+##
 
 class Weapons(Struct):
 	def __init__(self):
@@ -155,6 +164,7 @@ class Weapons(Struct):
 		self.grenade = Weapon_Grenade()
 		self.rifle = Weapon_Rifle()
 		self.ninja = Weapon_Ninja()
+		self.hammer_stone = Weapon_Hammer_Stone()
 		self.id = Array(WeaponSpec())
 
 class DataContainer(Struct):
@@ -426,6 +436,11 @@ container.sprites.Add(Sprite("guiicon_mute", set_guiicons, 0,0,4,2))
 container.sprites.Add(Sprite("guiicon_friend", set_guiicons, 4,0,4,2))
 
 # MineTee
+#container.sprites.Add(Sprite("weapon_hammer_iron_body", set_game, 20,11,4,3))
+container.sprites.Add(Sprite("weapon_hammer_stone_body", set_game, 20,8,4,3))
+container.sprites.Add(Sprite("weapon_hammer_stone_cursor", set_game, 0,0,2,2))
+container.sprites.Add(Sprite("weapon_hammer_stone_proj", set_game, 0,0,0,0))
+
 container.sprites.Add(Sprite("food01", set_minetee_food, 0,  0,  1,  1))
 container.sprites.Add(Sprite("food02", set_minetee_food, 1,  0,  1,  1))
 
@@ -554,3 +569,15 @@ weapon.muzzleoffsetx.Set(40)
 weapon.muzzleoffsety.Set(-4)
 container.weapons.ninja.base.Set(weapon)
 container.weapons.id.Add(weapon)
+
+# MineTee
+weapon = WeaponSpec(container, "hammer_stone")
+weapon.firedelay.Set(125)
+weapon.damage.Set(3)
+weapon.visual_size.Set(96)
+weapon.offsetx.Set(4)
+weapon.offsety.Set(-20)
+weapon.duration.Set(120)
+container.weapons.hammer_stone.base.Set(weapon)
+container.weapons.id.Add(weapon)
+##

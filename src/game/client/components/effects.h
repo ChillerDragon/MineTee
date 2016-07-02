@@ -31,6 +31,7 @@ public:
 	void WaterSplit(vec2 Pos, vec2 Dir);
 	void Tombstone(vec2 Pos);
 	void LightFlame(vec2 Pos);
+	void BlockRubble(vec2 Pos, int BlockID);
 	//
 
 	void Update();

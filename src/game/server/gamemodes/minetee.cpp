@@ -137,13 +137,13 @@ void CGameControllerMineTee::EnvirionmentTick(CTile *pTempTiles, const int *pTil
 			(pTileIndex[TILE_BOTTOM] >= CBlockManager::LAVA_A && pTileIndex[TILE_BOTTOM] < CBlockManager::LAVA_C))
 		{
 			int TileIndexTemp = (FluidType==CBlockManager::FLUID_WATER)?CBlockManager::WATER_C:CBlockManager::LAVA_C;
-			ModifTile(x, y+1, TileIndexTemp);
+			ModifTile(ivec2(x, y+1), TileIndexTemp);
 		}
 		// Create Obsidian?
 		else if ((FluidType == CBlockManager::FLUID_LAVA && pTileIndex[TILE_BOTTOM] >= CBlockManager::WATER_A && pTileIndex[TILE_BOTTOM] <= CBlockManager::WATER_D) ||
 				 (FluidType == CBlockManager::FLUID_WATER && pTileIndex[TILE_BOTTOM] >= CBlockManager::LAVA_A && pTileIndex[TILE_BOTTOM] <= CBlockManager::LAVA_D))
 		{
-			ModifTile(x, y+1, CBlockManager::OBSIDIAN_A);
+			ModifTile(ivec2(x, y+1), CBlockManager::OBSIDIAN_A);
 		}
 
 		// Spread To Right
@@ -153,7 +153,7 @@ void CGameControllerMineTee::EnvirionmentTick(CTile *pTempTiles, const int *pTil
 			!GameServer()->m_BlockManager.IsFluid(pTileIndex[TILE_RIGHT_TOP]) &&
 			pTileIndex[TILE_CENTER]-1 != CBlockManager::WATER_A-1 && pTileIndex[TILE_CENTER]-1 != CBlockManager::LAVA_A-1)
 		{
-			ModifTile(x+1, y, pTiles[Index[TILE_CENTER]].m_Index-1);
+			ModifTile(ivec2(x+1, y), pTiles[Index[TILE_CENTER]].m_Index-1);
 		}
 		// Spread To Left
 		if (pTileIndex[TILE_LEFT] == 0 && pTileIndex[TILE_BOTTOM] != 0 &&
@@ -162,7 +162,7 @@ void CGameControllerMineTee::EnvirionmentTick(CTile *pTempTiles, const int *pTil
 			!GameServer()->m_BlockManager.IsFluid(pTileIndex[TILE_LEFT_TOP]) &&
 			pTileIndex[TILE_CENTER]-1 != CBlockManager::WATER_A-1 && pTileIndex[TILE_CENTER]-1 != CBlockManager::LAVA_A-1)
 		{
-			ModifTile(x-1, y, pTiles[Index[TILE_CENTER]].m_Index-1);
+			ModifTile(ivec2(x-1, y), pTiles[Index[TILE_CENTER]].m_Index-1);
 		}
 
 		// Check for correct tiles FIXME
@@ -170,7 +170,7 @@ void CGameControllerMineTee::EnvirionmentTick(CTile *pTempTiles, const int *pTil
 		bool IsFluidTop = GameServer()->m_BlockManager.IsFluid(pTileIndex[TILE_TOP], &FluidTypeTop);
 		if (IsFluidTop && pTileIndex[TILE_CENTER] < CBlockManager::WATER_C)
 		{
-			ModifTile(x, y, FluidTypeTop==CBlockManager::FLUID_WATER?CBlockManager::WATER_C:CBlockManager::LAVA_C);
+			ModifTile(ivec2(x, y), FluidTypeTop==CBlockManager::FLUID_WATER?CBlockManager::WATER_C:CBlockManager::LAVA_C);
 		}
 	}
 
@@ -231,9 +231,9 @@ void CGameControllerMineTee::EnvirionmentTick(CTile *pTempTiles, const int *pTil
 			if (!found)
 			{
 				if (!pBlockInfo->m_RandomActions)
-					ModifTile(x, y, pBlockInfo->m_OnSun);
+					ModifTile(ivec2(x, y), pBlockInfo->m_OnSun);
 				else if (!(rand()%pBlockInfo->m_RandomActions))
-					ModifTile(x, y, pBlockInfo->m_OnSun);
+					ModifTile(ivec2(x, y), pBlockInfo->m_OnSun);
 			}
 		}
 		// Turn On Oven if Coal touch one side
@@ -249,7 +249,7 @@ void CGameControllerMineTee::EnvirionmentTick(CTile *pTempTiles, const int *pTil
 			else if (pTileIndex[TILE_RIGHT] == CBlockManager::COAL)
 				TilePos = ivec2(x+1, y);
 
-			ModifTile(x, y, CBlockManager::OVEN_ON);
+			ModifTile(ivec2(x, y), CBlockManager::OVEN_ON);
 			ModifTile(TilePos, 0);
 		}
 	}
@@ -257,8 +257,8 @@ void CGameControllerMineTee::EnvirionmentTick(CTile *pTempTiles, const int *pTil
 	// Gravity
 	if (pBlockInfo->m_Gravity && (pTileIndex[TILE_BOTTOM] == 0 || GameServer()->m_BlockManager.IsFluid(pTileIndex[TILE_BOTTOM])))
 	{
-		ModifTile(x, y, 0);
-		ModifTile(x, y+1, pTileIndex[TILE_CENTER]);
+		ModifTile(ivec2(x, y+1), pTileIndex[TILE_CENTER], pTiles[Index[TILE_CENTER]].m_Reserved);
+		ModifTile(ivec2(x, y), 0);
 	}
 
 	// Damage
@@ -301,7 +301,7 @@ void CGameControllerMineTee::DestructionTick(CTile *pTempTiles, const int *pTile
 
 		if (!PlaceCheck)
 		{
-			ModifTile(x, y, 0);
+			ModifTile(ivec2(x, y), 0);
 
 			if (pBlockInfo->m_vOnBreak.size() > 0)
 			{
@@ -332,16 +332,16 @@ void CGameControllerMineTee::DestructionTick(CTile *pTempTiles, const int *pTile
 			!GameServer()->m_BlockManager.IsFluid(pTileIndex[TILE_LEFT]) &&
 			!GameServer()->m_BlockManager.IsFluid(pTileIndex[TILE_RIGHT]))
 	{
-		ModifTile(x, y, 0);
+		ModifTile(ivec2(x, y), 0);
 	}
 }
 
 void CGameControllerMineTee::WearTick(CTile *pTempTiles, const int *pTileIndex, int x, int y, const CBlockManager::CBlockInfo *pBlockInfo)
 {
 	if (!pBlockInfo->m_RandomActions)
-		ModifTile(x, y, pBlockInfo->m_OnWear);
+		ModifTile(ivec2(x, y), pBlockInfo->m_OnWear);
 	else if (!(rand()%pBlockInfo->m_RandomActions))
-		ModifTile(x, y, pBlockInfo->m_OnWear);
+		ModifTile(ivec2(x, y), pBlockInfo->m_OnWear);
 }
 
 void CGameControllerMineTee::CookTick(CTile *pTempTiles, const int *pTileIndex, int x, int y, const CBlockManager::CBlockInfo *pBlockInfo)
@@ -359,7 +359,7 @@ void CGameControllerMineTee::CookTick(CTile *pTempTiles, const int *pTileIndex, 
 			}
 		}
 
-		ModifTile(x, y-1, 0);
+		ModifTile(ivec2(x, y-1), 0);
 	}
 }
 
@@ -389,7 +389,7 @@ void CGameControllerMineTee::VegetationTick(CTile *pTempTiles, const int *pTileI
 
 		if (!(rand()%10) && canC && tam < 5)
 		{
-			ModifTile(x, y-1, CBlockManager::SUGAR_CANE);
+			ModifTile(ivec2(x, y-1), CBlockManager::SUGAR_CANE);
 		}
 	}
 
@@ -414,7 +414,7 @@ void CGameControllerMineTee::VegetationTick(CTile *pTempTiles, const int *pTileI
 
 		if (!(rand()%10) && canC && tam < 8)
 		{
-			ModifTile(x, y-1, CBlockManager::CACTUS);
+			ModifTile(ivec2(x, y-1), CBlockManager::CACTUS);
 		}
 	}
 	else if (pTileIndex[TILE_CENTER] >= CBlockManager::GRASS_A && pTileIndex[TILE_CENTER] < CBlockManager::GRASS_G && !(rand()%1))
@@ -423,7 +423,7 @@ void CGameControllerMineTee::VegetationTick(CTile *pTempTiles, const int *pTileI
 		if (pTileIndex[TILE_BOTTOM] != CBlockManager::GROUND_CULTIVATION_WET && nindex > CBlockManager::GRASS_D)
 			nindex = CBlockManager::GRASS_D;
 
-		ModifTile(x, y, nindex);
+		ModifTile(ivec2(x, y), nindex);
 	}
 
 	/** Creation **/
@@ -442,22 +442,22 @@ void CGameControllerMineTee::VegetationTick(CTile *pTempTiles, const int *pTileI
 		}
 
 		if (!found)
-			ModifTile(x, y-1, CBlockManager::CACTUS);
+			ModifTile(ivec2(x, y-1), CBlockManager::CACTUS);
 	}
 	else if ((rand()%100)==3 && pTileIndex[TILE_CENTER] == CBlockManager::GRASS_D &&
 			pTileIndex[TILE_RIGHT] == 0 && pTileIndex[TILE_RIGHT_BOTTOM] == CBlockManager::GRASS)
 	{
-		ModifTile(x+1, y, CBlockManager::GRASS_A);
+		ModifTile(ivec2(x+1, y), CBlockManager::GRASS_A);
 	}
 
 	/** Dead **/
 	if (pTileIndex[TILE_CENTER] == CBlockManager::GROUND_CULTIVATION_WET && pTileIndex[TILE_TOP] == 0)
 	{
-		ModifTile(x, y, CBlockManager::GROUND_CULTIVATION_DRY);
+		ModifTile(ivec2(x, y), CBlockManager::GROUND_CULTIVATION_DRY);
 	}
 	else if (pTileIndex[TILE_CENTER] == CBlockManager::GROUND_CULTIVATION_DRY && pTileIndex[TILE_TOP] == 0)
 	{
-		ModifTile(x, y, CBlockManager::DIRT);
+		ModifTile(ivec2(x, y), CBlockManager::DIRT);
 	}
 }
 
@@ -498,6 +498,7 @@ void CGameControllerMineTee::OnCharacterSpawn(class CCharacter *pChr)
 	{
 		pChr->IncreaseHealth(10);
 		pChr->GiveWeapon(WEAPON_HAMMER, -1);
+		pChr->GiveWeapon(WEAPON_HAMMER_STONE, -1);
 		pChr->GiveBlock(CBlockManager::TORCH, 1);
 		pChr->SetWeapon(NUM_WEAPONS+CBlockManager::TORCH);
 	}
@@ -1029,12 +1030,15 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 	}
 }
 
-void CGameControllerMineTee::ModifTile(ivec2 MapPos, int TileIndex)
+void CGameControllerMineTee::ModifTile(ivec2 MapPos, int TileIndex, int Reserved)
 {
-	// FIXME: "Health" always set to 100%...
-	CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(TileIndex);
-	GameServer()->SendTileModif(ALL_PLAYERS, MapPos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0, pBlockInfo->m_Health);
-    GameServer()->Collision()->ModifTile(MapPos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0, pBlockInfo->m_Health);
+	if (Reserved == -1)
+	{
+		CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(TileIndex);
+		Reserved = pBlockInfo->m_Health;
+	}
+	GameServer()->SendTileModif(ALL_PLAYERS, MapPos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0, Reserved);
+    GameServer()->Collision()->ModifTile(MapPos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0, Reserved);
 }
 
 bool CGameControllerMineTee::GetPlayerArea(int ClientID, int *pStartX, int *pEndX, int *pStartY, int *pEndY)

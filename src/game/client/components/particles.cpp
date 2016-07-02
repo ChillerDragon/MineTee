@@ -7,6 +7,7 @@
 
 #include <game/generated/client_data.h>
 #include <game/client/render.h>
+#include <game/client/components/mapimages.h> // MineTee
 #include <game/gamecore.h>
 #include "particles.h"
 
@@ -17,6 +18,7 @@ CParticles::CParticles()
 	m_RenderExplosions.m_pParts = this;
 	m_RenderGeneral.m_pParts = this;
 	m_RenderMineTeeTumbstone.m_pParts = this; // MineTee
+	m_RenderBlocks.m_pParts = this; // MineTee
 }
 
 
@@ -47,7 +49,7 @@ void CParticles::Add(int Group, CParticle *pPart)
 	}
 	else
 	{
-		if(m_pClient->m_Snap.m_pGameInfoObj && m_pClient->m_Snap.m_pGameInfoObj->m_GameStateFlags&GAMESTATEFLAG_PAUSED)
+		if(m_pClient->m_Snap.m_pGameInfoObj && (m_pClient->m_Snap.m_pGameInfoObj->m_GameStateFlags&GAMESTATEFLAG_PAUSED))
 			return;
 	}
 
@@ -166,9 +168,22 @@ void CParticles::RenderGroup(int Group)
 	//gfx_blend_additive();
     if (Group == GROUP_HCLIENT_TOMBSTONE) // MineTee
         Graphics()->TextureSet(g_pData->m_aImages[IMAGE_MINETEE_FX_TOMBSTONE].m_Id);
+    else if (Group == GROUP_BLOCKS) // MineTee
+    {
+    	if (!m_pClient || !m_pClient->m_pMapimages || !Layers() || !Layers()->MineTeeLayer())
+    		return;
+    	Graphics()->TextureSet(m_pClient->m_pMapimages->Get(Layers()->MineTeeLayer()->m_Image));
+    }
     else
     	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_PARTICLES].m_Id);
 	Graphics()->QuadsBegin();
+
+
+	// MineTee
+	float ScreenX0, ScreenY0, ScreenX1, ScreenY1;
+	Graphics()->GetScreen(&ScreenX0, &ScreenY0, &ScreenX1, &ScreenY1);
+	//
+
 
 	int i = m_aFirstPart[Group];
 	while(i != -1)
@@ -186,10 +201,48 @@ void CParticles::RenderGroup(int Group)
 			m_aParticles[i].m_Color.b,
 			m_aParticles[i].m_Color.a); // pow(a, 0.75f) *
 
-		IGraphics::CQuadItem QuadItem(p.x, p.y, Size, Size);
         if (Group == GROUP_HCLIENT_TOMBSTONE)
-            QuadItem = IGraphics::CQuadItem(p.x, p.y-Size/2, Size, Size);
-		Graphics()->QuadsDraw(&QuadItem, 1);
+        {
+        	IGraphics::CQuadItem QuadItem(p.x, p.y-Size/2, Size, Size);
+			Graphics()->QuadsDraw(&QuadItem, 1);
+        }
+        else if (Group == GROUP_BLOCKS)
+        {
+        	// calculate the final pixelsize for the tiles
+        	const float TilePixelSize = 1024/32.0f;
+        	const float FinalTileSize = Size/(ScreenX1-ScreenX0) * Graphics()->ScreenWidth();
+        	const float FinalTilesetScale = FinalTileSize/TilePixelSize;
+
+        	// adjust the texture shift according to mipmap level
+        	const float TexSize = 1024.0f;
+        	const float Frac = (1.25f/TexSize) * (1/FinalTilesetScale);
+        	const float Nudge = (0.5f/TexSize) * (1/FinalTilesetScale);
+
+            const int tx = m_aParticles[i].m_Spr%16;
+            const int ty = m_aParticles[i].m_Spr/16;
+            const int Px0 = tx*(1024/16);
+            const int Py0 = ty*(1024/16);
+            const int Px1 = Px0+(1024/16)-1;
+            const int Py1 = Py0+(1024/16)-1;
+
+            const float x0 = Nudge + Px0/TexSize+Frac;
+            const float y0 = Nudge + Py0/TexSize+Frac;
+            const float x1 = Nudge + Px1/TexSize-Frac;
+            const float y1 = Nudge + Py0/TexSize+Frac;
+            const float x2 = Nudge + Px1/TexSize-Frac;
+            const float y2 = Nudge + Py1/TexSize-Frac;
+            const float x3 = Nudge + Px0/TexSize+Frac;
+            const float y3 = Nudge + Py1/TexSize-Frac;
+
+            Graphics()->QuadsSetSubsetFree(x0, y0, x1, y1, x2, y2, x3, y3);
+            IGraphics::CQuadItem QuadItem(p.x, p.y, Size, Size);
+            Graphics()->QuadsDraw(&QuadItem, 1);
+        }
+        else
+        {
+        	IGraphics::CQuadItem QuadItem(p.x, p.y, Size, Size);
+			Graphics()->QuadsDraw(&QuadItem, 1);
+        }
 
 		i = m_aParticles[i].m_NextPart;
 	}

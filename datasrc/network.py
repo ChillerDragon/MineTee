@@ -1,4 +1,5 @@
 from datatypes import *
+from gst import IntRange
 
 Emotes = ["NORMAL", "PAIN", "HAPPY", "SURPRISE", "ANGRY", "BLINK"]
 PlayerFlags = ["PLAYING", "IN_MENU", "CHATTING", "SCOREBOARD", "AIM", "BGPAINT", "FGPAINT", "ACTIVE"] # MineTee
@@ -227,6 +228,10 @@ Objects = [
 		
 	# MineTee
 	NetEvent("Tombstone:Common", []),
+	
+	NetEvent("BlockRubble:Common", [
+		NetIntRange("m_BlockId", 0, 255),
+	]),
 	
 	NetObject("Inventory", [
 		NetIntRange("m_Item1", 0, 'NUM_WEAPONS+CBlockManager::MAX_BLOCKS'),

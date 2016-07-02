@@ -188,6 +188,7 @@ public:
 	// MineTee
 	int SendTileModif(int ClientID, ivec2 Pos, int Group, int Layer, int Index, int Flags, int Reserved);
 	void CreateTombstone(vec2 Pos);
+	void CreateBlockRubble(vec2 Pos, int BlockId);
 	void UpdateBotInfo(int ClientID);
 	void CreateBot(int ClientID, int BotType);
 	virtual bool OnSendMap(int ClientID);

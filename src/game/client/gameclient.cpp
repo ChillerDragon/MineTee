@@ -145,6 +145,7 @@ void CGameClient::OnConsoleInit()
 
 	m_All.Add(&gs_MapLayersBackGround); // first to render
 	m_All.Add(&m_pParticles->m_RenderMineTeeTumbstone); // MineTee
+	m_All.Add(&m_pParticles->m_RenderBlocks); // MineTee
 	m_All.Add(&m_pParticles->m_RenderTrail);
 	m_All.Add(m_pItems);
 	m_All.Add(&gs_Players);
@@ -659,8 +660,13 @@ void CGameClient::ProcessEvents()
 		}
 		else if(Item.m_Type == NETEVENTTYPE_TOMBSTONE) // MineTee
 		{
-			CNetEvent_Death *ev = (CNetEvent_Death *)pData;
+			CNetEvent_Tombstone *ev = (CNetEvent_Tombstone *)pData;
 			g_GameClient.m_pEffects->Tombstone(vec2(ev->m_X, ev->m_Y));
+		}
+		else if(Item.m_Type == NETEVENTTYPE_BLOCKRUBBLE) // MineTee
+		{
+			CNetEvent_BlockRubble *ev = (CNetEvent_BlockRubble *)pData;
+			g_GameClient.m_pEffects->BlockRubble(vec2(ev->m_X, ev->m_Y), ev->m_BlockId);
 		}
 	}
 }

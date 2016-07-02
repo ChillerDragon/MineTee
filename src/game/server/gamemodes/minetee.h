@@ -24,8 +24,7 @@ class CGameControllerMineTee : public CGameController
 		NUM_TILE_POS
 	};
 
-	void ModifTile(ivec2 MapPos, int TileIndex);
-	void ModifTile(int x, int y, int TileIndex) { ModifTile(ivec2(x, y), TileIndex); }
+	void ModifTile(ivec2 MapPos, int TileIndex, int Reserved = -1);
 	bool GetPlayerArea(int ClientID, int *pStartX, int *pEndX, int *pStartY, int *pEndY);
 	void GetPlayerArea(vec2 Pos, int *pStartX, int *pEndX, int *pStartY, int *pEndY);
 
