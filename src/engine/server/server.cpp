@@ -25,10 +25,12 @@
 #include <engine/shared/protocol.h>
 #include <engine/shared/snapshot.h>
 
-#include <engine/external/pnglite/pnglite.h> // MineTee
-
-#include <game/generated/protocol.h> // MineTee
-#include <game/server/player.h> // MineTee
+// MineTee
+#include <engine/external/pnglite/pnglite.h>
+#include <game/generated/protocol.h>
+#include <game/server/player.h>
+#include <game/version.h>
+//
 
 #include <mastersrv/mastersrv.h>
 
@@ -899,8 +901,17 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 					m_NetServer.Drop(ClientID, "Wrong client. Need 'MineTee' Client!");
 					return;
 				}
+				const char *pClientVersion = Unpacker.GetString(CUnpacker::SANITIZE_CC);
+				if(str_comp(pClientVersion, MINETEE_VERSION) != 0)
+				{
+					// wrong client
+					char aBuf[128];
+					str_format(aBuf, sizeof(aBuf), "Wrong client version. Your are using '%s' and server run '%s'", pClientVersion, MINETEE_VERSION);
+					m_NetServer.Drop(ClientID, aBuf);
+					return;
+				}
 				const unsigned char *pClientKey = Unpacker.GetRaw(MINETEE_USER_KEY_SIZE);
-				if (!pClientKey || pClientKey[0] == 0)
+				if (!pClientKey || mem_comp_zero((void*)pClientKey, MINETEE_USER_KEY_SIZE) == 0)
 				{
 					m_NetServer.Drop(ClientID, "Wrong Client Key. Revise your configuration and try again.");
 					return;

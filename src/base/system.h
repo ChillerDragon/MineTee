@@ -1330,6 +1330,17 @@ void secure_random_fill(void *bytes, size_t length);
 int secure_rand();
 //
 
+// MineTee
+/*
+	Function: mem_comp_zero
+		Check is all memory block is set to 0
+
+	Parameters:
+		block - Pointer to the block to zero out
+		size - Size of the block
+*/
+int mem_comp_zero(void *block, unsigned size);
+
 #ifdef __cplusplus
 }
 #endif

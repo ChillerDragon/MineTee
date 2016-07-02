@@ -2104,6 +2104,14 @@ int secure_rand()
 }
 //
 
+// MineTee
+int mem_comp_zero(void *block,unsigned size)
+{
+	char aTestBlock[size];
+	memset(aTestBlock, 0, sizeof(aTestBlock));
+	return memcmp(aTestBlock, block, size);
+}
+
 #if defined(__cplusplus)
 }
 #endif
