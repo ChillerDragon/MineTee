@@ -167,16 +167,18 @@ void CRenderTools::RenderQuads(CQuad *pQuads, int NumQuads, int RenderFlags, ENV
 	Graphics()->QuadsEnd();
 }
 
-// TODO: Refactor this!!
+// TODO: Refactor this!! Decreased performance because used different textures in the same layer...
 void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 Color, int RenderFlags,
 									ENVELOPE_EVAL pfnEval, void *pUser, int ColorEnv, int ColorEnvOffset,
-									int TileMineTee, bool Animated, void *pEffects)
+									int TextureId, int TileMineTee, void *pEffects)
 {
 	//Graphics()->TextureSet(img_get(tmap->image));
 	float ScreenX0, ScreenY0, ScreenX1, ScreenY1;
 	Graphics()->GetScreen(&ScreenX0, &ScreenY0, &ScreenX1, &ScreenY1);
 	//Graphics()->MapScreen(screen_x0-50, screen_y0-50, screen_x1+50, screen_y1+50);
 	//Graphics()->SetFrameBuffer();
+
+	const bool Animated = RenderFlags&TILERENDERFLAG_ANIMATED;
 
 	// calculate the final pixelsize for the tiles
 	float TilePixelSize = 1024/32.0f;
@@ -193,12 +195,6 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
 		b = aChannels[2];
 		a = aChannels[3];
 	}
-
-    if (!Animated)
-    {
-        Graphics()->QuadsBegin();
-        Graphics()->SetColor(Color.r*r, Color.g*g, Color.b*b, Color.a*a);
-    }
 
 	int StartY = (int)(ScreenY0/Scale)-1;
 	int StartX = (int)(ScreenX0/Scale)-1;
@@ -269,21 +265,9 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
                 {
                 	CBlockManager::CBlockInfo *pBlockInfo = m_pCollision->GetBlockManager()->GetBlockInfo(Index);
 
-                	if (!Animated)
-                	{
-                		// Skipe animated tiles
-                    	if ((Index >= CBlockManager::WATER_A && Index <= CBlockManager::WATER_D) || (Index >= CBlockManager::LAVA_A && Index <= CBlockManager::LAVA_D))
-                    		continue;
-
-                    	// Show Block Damage
-                		if (pBlockInfo->m_Health > 0 && Reserved < pBlockInfo->m_Health)
-                		{
-                			const float DmgIntensity = ((Reserved * 255.0f)/(float)pBlockInfo->m_Health)/255.0f;
-							Graphics()->SetColor(DmgIntensity, DmgIntensity, DmgIntensity, Color.a*a);
-                		}
-                		else
-                			Graphics()->SetColor(Color.r*r, Color.g*g, Color.b*b, Color.a*a);
-                	}
+					if (!Animated &&
+							((Index >= CBlockManager::WATER_A && Index <= CBlockManager::WATER_D) || (Index >= CBlockManager::LAVA_A && Index <= CBlockManager::LAVA_D)))
+						continue;
 
                 	// Block Effects
                 	if (pEffects)
@@ -322,8 +306,6 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
                 	if (pBlockInfo->m_Effects.m_Sway)
                 		TileSway = true;
                 }
-                else if (TileMineTee == 2 && !Animated)
-                    Graphics()->SetColor(0.35f, 0.35f, 0.35f, Color.a*a);
                 //
 
 				bool Render = false;
@@ -387,6 +369,13 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
 						y1 = Tmp;
  					}
 
+					Graphics()->TextureSet(TextureId);
+			        Graphics()->QuadsBegin();
+			        if (TileMineTee == 2)
+			        	Graphics()->SetColor(0.35f, 0.35f, 0.35f, Color.a*a);
+			        else
+			        	Graphics()->SetColor(Color.r*r, Color.g*g, Color.b*b, Color.a*a);
+
                     // MineTee
                     if (TileSway)
                     {
@@ -404,6 +393,7 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
     					IGraphics::CQuadItem QuadItem(x*Scale, y*Scale, Scale, Scale);
     					Graphics()->QuadsDrawTL(&QuadItem, 1);
                     }
+                    Graphics()->QuadsEnd();
 				}
 				else if (TileMineTee == 1 && Animated)
 				{
@@ -455,13 +445,27 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
                     }
                     Graphics()->QuadsEnd();
                 }
+
+				// Show Block Damage
+                if (TileMineTee == 1 && (RenderFlags&LAYERRENDERFLAG_TRANSPARENT))
+                {
+                	CBlockManager::CBlockInfo *pBlockInfo = m_pCollision->GetBlockManager()->GetBlockInfo(Index);
+					if (pBlockInfo->m_Health > 0 && Reserved < pBlockInfo->m_Health)
+					{
+						const int DmgIntensity = 9 - (Reserved * 9)/pBlockInfo->m_Health;
+						Graphics()->TextureSet(g_pData->m_aImages[IMAGE_MAT_SHATTER].m_Id);
+						Graphics()->QuadsBegin();
+						Graphics()->SetColor(1.0f, 1.0f, 1.0f, 0.8f);
+						SelectSprite(SPRITE_MAT_SHATTER01 + DmgIntensity);
+						IGraphics::CQuadItem QuadItem(x*Scale, y*Scale, Scale, Scale);
+						Graphics()->QuadsDrawTL(&QuadItem, 1);
+						Graphics()->QuadsEnd();
+					}
+                }
 			}
 
 			x += pTiles[c].m_Skip;
 		}
-
-    if (!Animated)
-        Graphics()->QuadsEnd();
 
 	Graphics()->MapScreen(ScreenX0, ScreenY0, ScreenX1, ScreenY1);
 }

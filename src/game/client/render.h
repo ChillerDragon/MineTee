@@ -39,6 +39,7 @@ enum
 	LAYERRENDERFLAG_TRANSPARENT=2,
 
 	TILERENDERFLAG_EXTEND=4,
+	TILERENDERFLAG_ANIMATED=8,
 };
 
 typedef void (*ENVELOPE_EVAL)(float TimeOffset, int Env, float *pChannels, void *pUser);
@@ -75,7 +76,7 @@ public:
 	// map render methods (gc_render_map.cpp)
 	static void RenderEvalEnvelope(CEnvPoint *pPoints, int NumPoints, int Channels, float Time, float *pResult);
 	void RenderQuads(CQuad *pQuads, int NumQuads, int Flags, ENVELOPE_EVAL pfnEval, void *pUser);
-	void RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 Color, int RenderFlags, ENVELOPE_EVAL pfnEval, void *pUser, int ColorEnv, int ColorEnvOffset, int TileMineTee = 0, bool Animated = false, void *pEffects = 0x0); // MineTee
+	void RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 Color, int RenderFlags, ENVELOPE_EVAL pfnEval, void *pUser, int ColorEnv, int ColorEnvOffset, int TextureId, int TileMineTee = 0, void *pEffects = 0x0); // MineTee
 
 	// helpers
 	void MapscreenToWorld(float CenterX, float CenterY, float ParallaxX, float ParallaxY,

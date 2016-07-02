@@ -62,14 +62,14 @@ void CLayerTiles::Render()
 {
 	if(m_Image >= 0 && m_Image < m_pEditor->m_Map.m_lImages.size())
 		m_TexID = m_pEditor->m_Map.m_lImages[m_Image]->m_TexID;
-	Graphics()->TextureSet(m_TexID);
+
 	vec4 Color = vec4(m_Color.r/255.0f, m_Color.g/255.0f, m_Color.b/255.0f, m_Color.a/255.0f);
 	Graphics()->BlendNone();
 	m_pEditor->RenderTools()->RenderTilemap(m_pTiles, m_Width, m_Height, 32.0f, Color, LAYERRENDERFLAG_OPAQUE,
-												m_pEditor->EnvelopeEval, m_pEditor, m_ColorEnv, m_ColorEnvOffset);
+												m_pEditor->EnvelopeEval, m_pEditor, m_ColorEnv, m_ColorEnvOffset, m_TexID); // MineTee
 	Graphics()->BlendNormal();
 	m_pEditor->RenderTools()->RenderTilemap(m_pTiles, m_Width, m_Height, 32.0f, Color, LAYERRENDERFLAG_TRANSPARENT,
-												m_pEditor->EnvelopeEval, m_pEditor, m_ColorEnv, m_ColorEnvOffset);
+												m_pEditor->EnvelopeEval, m_pEditor, m_ColorEnv, m_ColorEnvOffset, m_TexID); // MineTee
 }
 
 int CLayerTiles::ConvertX(float x) const { return (int)(x/32.0f); }

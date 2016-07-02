@@ -66,6 +66,13 @@ bool CBlockManager::Init(char *pData, int DataSize)
 					for (std::size_t e=0; e<JsonArray.u.array.length; pBlockInfo->m_Functionality.m_vExcludeBlocks.add(JsonArray.u.array.values[e++]->u.integer));
 				}
 			}
+
+			if (JsonObjectF["fuel"].type != json_none)
+			{
+				const json_value &JsonObjectG = JsonObjectF["fuel"];
+				pBlockInfo->m_Functionality.m_Fuel.m_BlockId = (JsonObjectG["blockId"].type == json_none)?-1:JsonObjectG["blockId"].u.integer;
+				pBlockInfo->m_Functionality.m_Fuel.m_Duration = (JsonObjectG["duration"].type == json_none)?-1:JsonObjectG["duration"].u.integer;
+			}
 		}
 
 		items = (*pJsonObject)["onCook"].u.object.length;

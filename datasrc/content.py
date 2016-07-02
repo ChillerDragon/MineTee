@@ -239,6 +239,7 @@ image_fileicons = Image("fileicons", "file_icons.png")
 image_guibuttons = Image("guibuttons", "gui_buttons.png")
 image_guiicons = Image("guiicons", "gui_icons.png")
 image_minetee_food = Image("minetee_food", "minetee-food.png") # MineTee
+mat_shatter = Image("mat_shatter", "mat_shatter.png") # MineTee
 
 
 container.images.Add(image_null)
@@ -260,6 +261,7 @@ container.images.Add(Image("minetee_fx_lava", "fx_lava.png"))
 container.images.Add(Image("minetee_fx_tombstone", "fx_tombstone.png"))
 container.images.Add(Image("inventory", "gui_inventory.png"))
 container.images.Add(image_minetee_food)
+container.images.Add(mat_shatter)
 
 container.pickups.Add(Pickup("health"))
 container.pickups.Add(Pickup("armor"))
@@ -280,6 +282,7 @@ set_fileicons = SpriteSet("fileicons", image_fileicons, 8, 1)
 set_guibuttons = SpriteSet("guibuttons", image_guibuttons, 12, 4)
 set_guiicons = SpriteSet("guiicons", image_guiicons, 8, 2)
 set_minetee_food = SpriteSet("minetee_food", image_minetee_food, 2, 1) # MineTee
+set_mat_shatter = SpriteSet("mat_shatter", mat_shatter, 10, 1) # MineTee
 
 container.spritesets.Add(set_particles)
 container.spritesets.Add(set_game)
@@ -291,6 +294,7 @@ container.spritesets.Add(set_fileicons)
 container.spritesets.Add(set_guibuttons)
 container.spritesets.Add(set_guiicons)
 container.spritesets.Add(set_minetee_food) # MineTee
+container.spritesets.Add(set_mat_shatter) # MineTee
 
 container.sprites.Add(Sprite("part_slice", set_particles, 0,0,1,1))
 container.sprites.Add(Sprite("part_ball", set_particles, 1,0,1,1))
@@ -424,6 +428,18 @@ container.sprites.Add(Sprite("guiicon_friend", set_guiicons, 4,0,4,2))
 # MineTee
 container.sprites.Add(Sprite("food01", set_minetee_food, 0,  0,  1,  1))
 container.sprites.Add(Sprite("food02", set_minetee_food, 1,  0,  1,  1))
+
+container.sprites.Add(Sprite("mat_shatter01", set_mat_shatter, 0,  0,  1,  1))
+container.sprites.Add(Sprite("mat_shatter02", set_mat_shatter, 1,  0,  1,  1))
+container.sprites.Add(Sprite("mat_shatter03", set_mat_shatter, 2,  0,  1,  1))
+container.sprites.Add(Sprite("mat_shatter04", set_mat_shatter, 3,  0,  1,  1))
+container.sprites.Add(Sprite("mat_shatter05", set_mat_shatter, 4,  0,  1,  1))
+container.sprites.Add(Sprite("mat_shatter06", set_mat_shatter, 5,  0,  1,  1))
+container.sprites.Add(Sprite("mat_shatter07", set_mat_shatter, 6,  0,  1,  1))
+container.sprites.Add(Sprite("mat_shatter08", set_mat_shatter, 7,  0,  1,  1))
+container.sprites.Add(Sprite("mat_shatter09", set_mat_shatter, 8,  0,  1,  1))
+container.sprites.Add(Sprite("mat_shatter10", set_mat_shatter, 9,  0,  1,  1))
+
 
 anim = Animation("base")
 anim.body.frames.Add(AnimKeyframe(0, 0, -4, 0))

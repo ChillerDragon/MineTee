@@ -217,10 +217,6 @@ void CMapLayers::OnRender()
 				if(pLayer->m_Type == LAYERTYPE_TILES)
 				{
 					CMapItemLayerTilemap *pTMap = (CMapItemLayerTilemap *)pLayer;
-					if(pTMap->m_Image == -1)
-						Graphics()->TextureSet(-1);
-					else
-						Graphics()->TextureSet(m_pClient->m_pMapimages->Get(pTMap->m_Image));
 
 					CTile *pTiles = (CTile *)m_pLayers->Map()->GetData(pTMap->m_Data);
 					Graphics()->BlendNone();
@@ -242,15 +238,17 @@ void CMapLayers::OnRender()
                     }
                     //
 
+                    const int TextureId = pTMap->m_Image == -1?-1:m_pClient->m_pMapimages->Get(pTMap->m_Image);
+
 					RenderTools()->RenderTilemap(pTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, Color, TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_OPAQUE,
-													EnvelopeEval, this, pTMap->m_ColorEnv, pTMap->m_ColorEnvOffset, MineTeeLayer, false, m_pClient->m_pEffects);
+													EnvelopeEval, this, pTMap->m_ColorEnv, pTMap->m_ColorEnvOffset, TextureId, MineTeeLayer, m_pClient->m_pEffects);
 					Graphics()->BlendNormal();
 					RenderTools()->RenderTilemap(pTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, Color, TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_TRANSPARENT,
-													EnvelopeEval, this, pTMap->m_ColorEnv, pTMap->m_ColorEnvOffset, MineTeeLayer, false, m_pClient->m_pEffects);
+													EnvelopeEval, this, pTMap->m_ColorEnv, pTMap->m_ColorEnvOffset, TextureId, MineTeeLayer, m_pClient->m_pEffects);
 
                     if (MineTeeLayer == 1)
-                        RenderTools()->RenderTilemap(pTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, Color, TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_TRANSPARENT,
-                                                        EnvelopeEval, this, pTMap->m_ColorEnv, pTMap->m_ColorEnvOffset, MineTeeLayer, true, m_pClient->m_pEffects);
+                        RenderTools()->RenderTilemap(pTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, Color, TILERENDERFLAG_EXTEND|TILERENDERFLAG_ANIMATED|LAYERRENDERFLAG_TRANSPARENT,
+                                                        EnvelopeEval, this, pTMap->m_ColorEnv, pTMap->m_ColorEnvOffset, TextureId, MineTeeLayer, m_pClient->m_pEffects);
 				}
 				else if(pLayer->m_Type == LAYERTYPE_QUADS)
 				{
