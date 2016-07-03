@@ -142,7 +142,7 @@ void CPet::TickBotAI()
 
 void CPet::FillAccountPetData(void *pPetInfo)
 {
-	IAccountSystem::ACCOUNT_INFO::PepInfo *pPetI = (IAccountSystem::ACCOUNT_INFO::PepInfo*)pPetInfo;
+	IAccountSystem::ACCOUNT_INFO::PetInfo *pPetI = (IAccountSystem::ACCOUNT_INFO::PetInfo*)pPetInfo;
 	pPetI->m_Alive = true;
 	pPetI->m_Pos = m_Pos;
 	pPetI->m_ActiveWeapon = m_ActiveWeapon;
@@ -153,7 +153,7 @@ void CPet::FillAccountPetData(void *pPetInfo)
 
 void CPet::UseAccountPetData(void *pPetInfo)
 {
-	IAccountSystem::ACCOUNT_INFO::PepInfo *pPetI = (IAccountSystem::ACCOUNT_INFO::PepInfo*)pPetInfo;
+	IAccountSystem::ACCOUNT_INFO::PetInfo *pPetI = (IAccountSystem::ACCOUNT_INFO::PetInfo*)pPetInfo;
 	m_Core.m_Pos = m_Pos = pPetI->m_Pos;
 	mem_copy(m_aWeapons, pPetI->m_aWeapons, sizeof(WeaponStat)*NUM_WEAPONS);
 	m_ActiveWeapon = pPetI->m_ActiveWeapon;

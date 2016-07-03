@@ -2075,7 +2075,7 @@ void CGameContext::SaveAccount(int ClientID)
 		pAccountInfo->m_Alive = false;
 
 	// Pet Info
-	mem_zero(&pAccountInfo->m_PetInfo, sizeof(IAccountSystem::ACCOUNT_INFO::PepInfo));
+	mem_zero(&pAccountInfo->m_PetInfo, sizeof(IAccountSystem::ACCOUNT_INFO::PetInfo));
 	CPet *pPet = pPlayer->GetPet();
 	if (pPet)
 		pPet->FillAccountPetData(&pAccountInfo->m_PetInfo);

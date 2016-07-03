@@ -35,8 +35,8 @@ public:
 		CCharacter::BlockStat m_aBlocks[CBlockManager::MAX_BLOCKS];
 		CCharacter::WeaponStat m_aWeapons[NUM_WEAPONS];
 
-		// Per Info
-		struct PepInfo
+		// Pet Info
+		struct PetInfo
 		{
 			vec2 m_Pos;
 			int m_Type;
