@@ -72,9 +72,9 @@ Objects = [
 
 		NetIntRange("m_PlayerFlags", 0, 256),
 
-		NetIntAny("m_WantedWeapon"),
-		NetIntAny("m_NextWeapon"),
-		NetIntAny("m_PrevWeapon"),
+		NetIntAny("m_WantedInventoryItem"),
+		NetIntAny("m_NextInventoryItem"),
+		NetIntAny("m_PrevInventoryItem"),
 	]),
 
 	NetObject("Projectile", [
@@ -380,12 +380,7 @@ Messages = [
 		NetStringStrict("m_Reason"),
 	]),
 		
-	# MineTee
-	NetMessage("COMP1", []),
-	NetMessage("COMP2", []),
-	NetMessage("COMP3", []),
-	NetMessage("COMP4", []),
-	
+	# MineTee	
 	NetMessage("SvAn_TileModif", [
 		NetIntAny("m_X"),
 		NetIntAny("m_Y"),
@@ -399,4 +394,10 @@ Messages = [
 	NetMessage("Cl_DropItemInventary", [
 		NetIntAny("m_Pos"),
 	]),
+		
+	NetMessage("Cl_ActiveBlock", []),
+	
+	#NetMessage("", []),
+	#NetMessage("", []),
+	#NetMessage("", []),
 ]

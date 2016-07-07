@@ -83,7 +83,8 @@ class WeaponSpec(Struct):
 		self.maxammo = Int(10)
 		self.ammoregentime = Int(0)
 		self.damage = Int(1)
-		self.duration = Int(1) # MineTee
+		self.durability = Int(1) # MineTee
+		self.blockdamage = Int(1) # MineTee
 
 		self.offsetx = Float(0)
 		self.offsety = Float(0)
@@ -99,6 +100,11 @@ class WeaponSpec(Struct):
 				elif sprite.name.value == "weapon_"+name+"_proj": self.sprite_proj.Set(sprite)
 				elif "weapon_"+name+"_muzzle" in sprite.name.value:
 					self.sprite_muzzles.Add(Pointer(Sprite, sprite))
+					
+class Weapon_None(Struct):
+	def __init__(self):
+		Struct.__init__(self, "CDataWeaponspecNone")
+		self.base = Pointer(WeaponSpec, WeaponSpec())
 
 class Weapon_Hammer(Struct):
 	def __init__(self):
@@ -158,6 +164,7 @@ class Weapon_Hammer_Stone(Struct):
 class Weapons(Struct):
 	def __init__(self):
 		Struct.__init__(self, "CDataWeaponspecs")
+		self.none = Weapon_None()
 		self.hammer = Weapon_Hammer()
 		self.gun = Weapon_Gun()
 		self.shotgun = Weapon_Shotgun()
@@ -441,6 +448,10 @@ container.sprites.Add(Sprite("weapon_hammer_stone_body", set_game, 20,8,4,3))
 container.sprites.Add(Sprite("weapon_hammer_stone_cursor", set_game, 0,0,2,2))
 container.sprites.Add(Sprite("weapon_hammer_stone_proj", set_game, 0,0,0,0))
 
+container.sprites.Add(Sprite("weapon_none_body", set_game, 0,0,0,0))
+container.sprites.Add(Sprite("weapon_none_cursor", set_game, 0,0,2,2))
+container.sprites.Add(Sprite("weapon_none_proj", set_game, 0,0,0,0))
+
 container.sprites.Add(Sprite("food01", set_minetee_food, 0,  0,  1,  1))
 container.sprites.Add(Sprite("food02", set_minetee_food, 1,  0,  1,  1))
 
@@ -512,6 +523,17 @@ anim.attach.frames.Add(AnimKeyframe(0.50, 0, 0, 0.35))
 anim.attach.frames.Add(AnimKeyframe(1.00, 0, 0, -0.25))
 container.animations.Add(anim)
 
+# MineTee
+weapon = WeaponSpec(container, "none")
+weapon.firedelay.Set(125)
+weapon.damage.Set(1)
+weapon.visual_size.Set(96)
+weapon.offsetx.Set(4)
+weapon.offsety.Set(-20)
+container.weapons.none.base.Set(weapon)
+container.weapons.id.Add(weapon)
+##
+
 weapon = WeaponSpec(container, "hammer")
 weapon.firedelay.Set(125)
 weapon.damage.Set(3)
@@ -547,6 +569,7 @@ weapon.firedelay.Set(500) # TODO: fix this
 weapon.visual_size.Set(96)
 weapon.offsetx.Set(24)
 weapon.offsety.Set(-2)
+weapon.blockdamage.Set(5) # MineTee
 container.weapons.grenade.base.Set(weapon)
 container.weapons.id.Add(weapon)
 
@@ -577,7 +600,8 @@ weapon.damage.Set(3)
 weapon.visual_size.Set(96)
 weapon.offsetx.Set(4)
 weapon.offsety.Set(-20)
-weapon.duration.Set(120)
+weapon.durability.Set(120) # MineTee
+weapon.blockdamage.Set(4) # MineTee
 container.weapons.hammer_stone.base.Set(weapon)
 container.weapons.id.Add(weapon)
 ##
