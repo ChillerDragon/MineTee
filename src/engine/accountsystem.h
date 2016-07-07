@@ -30,10 +30,8 @@ public:
 		vec2 m_Pos;
 		bool m_Alive;
 		int m_Health;
-		int m_ActiveWeapon;
-		CCharacter::Inventory m_Inventory;
-		CCharacter::BlockStat m_aBlocks[CBlockManager::MAX_BLOCKS];
-		CCharacter::WeaponStat m_aWeapons[NUM_WEAPONS];
+		int m_ActiveInventoryItem;
+		CCellData m_Inventory[NUM_ITEMS_INVENTORY];
 
 		// Pet Info
 		struct PetInfo
@@ -42,8 +40,8 @@ public:
 			int m_Type;
 			char m_aSkinName[64];
 			char m_aName[MAX_NAME_LENGTH];
-			CCharacter::WeaponStat m_aWeapons[NUM_WEAPONS];
-			int m_ActiveWeapon;
+			CCellData m_Inventory[NUM_ITEMS_INVENTORY];
+			int m_ActiveInventoryItem;
 			bool m_Alive;
 		} m_PetInfo;
 	};

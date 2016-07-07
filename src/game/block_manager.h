@@ -187,7 +187,7 @@ public:
     		m_vCraft.clear();
     		m_Explode = false;
 
-    		m_Functionality.m_Type[0] = 0;
+    		mem_zero(m_Functionality.m_aType, sizeof(m_Functionality.m_aType));
     		m_Functionality.m_OnActive = -1;
     		m_Functionality.m_vExcludeBlocks.clear();
     		m_Functionality.m_Fuel.m_BlockId = -1;
@@ -224,7 +224,7 @@ public:
 
 		struct
 		{
-			char m_Type[12];
+			char m_aType[12];
 			int m_OnActive;
 			array<int> m_vExcludeBlocks;
 			struct

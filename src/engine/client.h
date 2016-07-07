@@ -6,6 +6,7 @@
 #include "kernel.h"
 
 #include "message.h"
+#include "shared/network.h"
 
 class IClient : public IInterface
 {
@@ -164,7 +165,9 @@ public:
 	virtual const char *Version() = 0;
 	virtual const char *NetVersion() = 0;
 
-	virtual void GetServerTime(bool *pIsDay, int64 *pTime) = 0; // MineTee
+	// MineTee
+	virtual void GetServerTime(bool *pIsDay, int64 *pTime) = 0;
+	virtual void SetLastestCellsData(CCellData *pData, int NumItems, int CellsType, int TokenID) = 0;
 };
 
 extern IGameClient *CreateGameClient();

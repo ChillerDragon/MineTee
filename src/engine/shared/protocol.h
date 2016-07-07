@@ -71,6 +71,14 @@ enum
 	// sent by server (todo: move it up)
 	NETMSG_RCON_CMD_ADD,
 	NETMSG_RCON_CMD_REM,
+
+	//// MineTee
+	// Server
+	NETMSG_CELLS_DATA,		// contains the cells items
+	NETMSG_CELL_MOVE_FAIL,	// abort cell movement
+
+	// Client
+	NETMSG_CELL_MOVE,		// request for move a chest item
 };
 
 // this should be revised

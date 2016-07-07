@@ -8,6 +8,7 @@
 #include <game/generated/server_data.h>
 #include <game/generated/protocol.h>
 #include <game/block_manager.h> // MineTee
+#include <engine/shared/network.h> // MineTee
 
 #include <game/gamecore.h>
 
@@ -42,11 +43,11 @@ public:
 
 	bool IsGrounded();
 
-	void SetWeapon(int W);
-	void HandleWeaponSwitch();
-	void DoWeaponSwitch();
+	void SetInventoryItem(int Index);
+	void HandleInventoryItemSwitch();
+	void DoInventoryItemSwitch();
 
-	void HandleWeapons();
+	void HandleInventoryItems();
 	void HandleNinja();
 
 	void OnPredictedInput(CNetObj_PlayerInput *pNewInput);
@@ -63,7 +64,7 @@ public:
 	bool IncreaseHealth(int Amount);
 	bool IncreaseArmor(int Amount);
 
-	bool GiveWeapon(int Weapon, int Ammo);
+	int GiveItem(int ItemID, int Amount);
 	void GiveNinja();
 
 	void SetEmote(int Emote, int Tick);
@@ -71,34 +72,21 @@ public:
 	bool IsAlive() const { return m_Alive; }
 	class CPlayer *GetPlayer() { return m_pPlayer; }
 
-	struct WeaponStat
-	{
-		int m_AmmoRegenStart;
-		int m_Ammo;
-		int m_Ammocost;
-		bool m_Got;
-
-	};
-
-    //H-Client
+    // MineTee
 	float m_TimeStuck;
 	CCharacterCore* GetCore() { return &m_Core; }
     void DropItem(int ItemID = -1);
 
-    struct Inventory {
-        int m_Items[9];
-        int m_Selected;
-    } m_Inventory;
+	int m_ActiveBlockId;
+	vec2 GetMousePosition() const { return vec2(m_Pos.x+m_LatestInput.m_TargetX, m_Pos.y+m_LatestInput.m_TargetY); }
+	vec2 GetMouseDirection() const { return normalize(vec2(m_LatestInput.m_TargetX, m_LatestInput.m_TargetY)); }
 
-	struct BlockStat
-	{
-	    int m_Amount;
-	    bool m_Got;
-	} m_aBlocks[CBlockManager::MAX_BLOCKS];
+	CCellData m_FastInventory[NUM_ITEMS_INVENTORY];
 
-	void UpdateInventory(int item = NUM_WEAPONS+CBlockManager::MAX_BLOCKS);
 	bool IsInventoryFull();
-	bool GiveBlock(int Block, int Amount);
+	int InInventory(int ItemID);
+	int GetFirstEmptyInventoryIndex();
+
     int GetCurrentAmmo(int wid);
     void FillAccountData(void *pAccountInfo);
     void UseAccountData(void *pAccountInfo);
@@ -113,11 +101,9 @@ private:
 	CEntity *m_apHitObjects[10];
 	int m_NumObjectsHit;
 
-	WeaponStat m_aWeapons[NUM_WEAPONS];
-
-	int m_ActiveWeapon;
-	int m_LastWeapon;
-	int m_QueuedWeapon;
+	int m_ActiveInventoryItem;
+	int m_LastInventoryItem;
+	int m_QueuedInventoryItem;
 
 	int m_ReloadTimer;
 	int m_AttackTick;
@@ -168,6 +154,7 @@ private:
 	float m_TimerFluidDamage;
 	bool m_InWater;
 	void Construct();
+	void UseInventoryItem(int Index);
 	//
 };
 

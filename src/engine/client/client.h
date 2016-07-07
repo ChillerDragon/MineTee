@@ -52,7 +52,6 @@ public:
 	void Update(CGraph *pGraph, int64 Target, int TimeLeft, int AdjustDirection);
 };
 
-
 class CClient : public IClient, public CDemoPlayer::IListner
 {
 	// needed interfaces

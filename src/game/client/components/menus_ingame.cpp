@@ -589,8 +589,3 @@ void CMenus::RenderServerControl(CUIRect MainView)
 		}
 	}
 }
-
-// MineTee
-void CMenus::RenderModalInventory(CUIRect MainView)
-{
-}

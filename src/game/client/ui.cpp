@@ -273,6 +273,13 @@ void CUIRect::HMargin(float Cut, CUIRect *pOtherRect) const
 	pOtherRect->h = r.h - 2*Cut;
 }
 
+// MineTee
+bool CUIRect::Contains(vec2 Point) const
+{
+	return (Point.x >= x && Point.x <= x+w && Point.y >= y && Point.y <= y+h);
+}
+//
+
 int CUI::DoButtonLogic(const void *pID, const char *pText, int Checked, const CUIRect *pRect)
 {
 	// logic

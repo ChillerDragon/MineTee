@@ -389,5 +389,18 @@ public:
 	static int IsSeqInBackroom(int Seq, int Ack);
 };
 
+// MineTee
+enum
+{
+	CELLS_NONE=0,
+	CELLS_CHEST,
+
+	NUM_CELLS_CHEST=9*4, // 3 for chest + 1 for fast invetory
+};
+struct CCellData
+{
+	unsigned char m_ItemId;
+	unsigned char m_Amount;
+};
 
 #endif

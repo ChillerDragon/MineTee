@@ -335,7 +335,7 @@ void CPlayers::RenderPlayer(
 	    {
             //Render Position Prev
             vec2 ProjStartPos= Position + Direction * 38.0f;
-            vec2 colTilePos = ProjStartPos+Direction * 120.0f;
+            vec2 colTilePos = ProjStartPos+Direction * MAX_CONSTRUCT_DISTANCE;
 
             if (pInfo.m_Team <= TEAM_BLUE && Collision()->IntersectLine(ProjStartPos, colTilePos, &colTilePos, 0x0, true))
             {

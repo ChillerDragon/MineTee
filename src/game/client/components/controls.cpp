@@ -42,7 +42,7 @@ void CControls::OnRelease()
 
 void CControls::OnPlayerDeath()
 {
-	m_LastData.m_WantedWeapon = m_InputData.m_WantedWeapon = 0;
+	m_LastData.m_WantedInventoryItem = m_InputData.m_WantedInventoryItem = 0;
 }
 
 static void ConKeyInputState(IConsole::IResult *pResult, void *pUserData)
@@ -76,7 +76,7 @@ static void ConKeyInputNextPrevWeapon(IConsole::IResult *pResult, void *pUserDat
 {
 	CInputSet *pSet = (CInputSet *)pUserData;
 	ConKeyInputCounter(pResult, pSet->m_pVariable);
-	pSet->m_pControls->m_InputData.m_WantedWeapon = 0;
+	pSet->m_pControls->m_InputData.m_WantedInventoryItem = 0;
 }
 
 void CControls::OnConsoleInit()
@@ -89,14 +89,18 @@ void CControls::OnConsoleInit()
 	Console()->Register("+fire", "", CFGFLAG_CLIENT, ConKeyInputCounter, &m_InputData.m_Fire, "Fire");
 	Console()->Register("+slow_mouse", "", CFGFLAG_CLIENT, ConKeyInputState, &m_SlowMouse, "Slow mouse for building precision");
 
-	{ static CInputSet s_Set = {this, &m_InputData.m_WantedWeapon, 1}; Console()->Register("+weapon1", "", CFGFLAG_CLIENT, ConKeyInputSet, (void *)&s_Set, "Switch to hammer"); }
-	{ static CInputSet s_Set = {this, &m_InputData.m_WantedWeapon, 2}; Console()->Register("+weapon2", "", CFGFLAG_CLIENT, ConKeyInputSet, (void *)&s_Set, "Switch to gun"); }
-	{ static CInputSet s_Set = {this, &m_InputData.m_WantedWeapon, 3}; Console()->Register("+weapon3", "", CFGFLAG_CLIENT, ConKeyInputSet, (void *)&s_Set, "Switch to shotgun"); }
-	{ static CInputSet s_Set = {this, &m_InputData.m_WantedWeapon, 4}; Console()->Register("+weapon4", "", CFGFLAG_CLIENT, ConKeyInputSet, (void *)&s_Set, "Switch to grenade"); }
-	{ static CInputSet s_Set = {this, &m_InputData.m_WantedWeapon, 5}; Console()->Register("+weapon5", "", CFGFLAG_CLIENT, ConKeyInputSet, (void *)&s_Set, "Switch to rifle"); }
+	{ static CInputSet s_Set = {this, &m_InputData.m_WantedInventoryItem, 1}; Console()->Register("+weapon1", "", CFGFLAG_CLIENT, ConKeyInputSet, (void *)&s_Set, "Switch to inventory slot 1"); }
+	{ static CInputSet s_Set = {this, &m_InputData.m_WantedInventoryItem, 2}; Console()->Register("+weapon2", "", CFGFLAG_CLIENT, ConKeyInputSet, (void *)&s_Set, "Switch to inventory slot 2"); }
+	{ static CInputSet s_Set = {this, &m_InputData.m_WantedInventoryItem, 3}; Console()->Register("+weapon3", "", CFGFLAG_CLIENT, ConKeyInputSet, (void *)&s_Set, "Switch to inventory slot 3"); }
+	{ static CInputSet s_Set = {this, &m_InputData.m_WantedInventoryItem, 4}; Console()->Register("+weapon4", "", CFGFLAG_CLIENT, ConKeyInputSet, (void *)&s_Set, "Switch to inventory slot 4"); }
+	{ static CInputSet s_Set = {this, &m_InputData.m_WantedInventoryItem, 5}; Console()->Register("+weapon5", "", CFGFLAG_CLIENT, ConKeyInputSet, (void *)&s_Set, "Switch to inventory slot 5"); }
+	{ static CInputSet s_Set = {this, &m_InputData.m_WantedInventoryItem, 6}; Console()->Register("+weapon6", "", CFGFLAG_CLIENT, ConKeyInputSet, (void *)&s_Set, "Switch to inventory slot 6"); }
+	{ static CInputSet s_Set = {this, &m_InputData.m_WantedInventoryItem, 7}; Console()->Register("+weapon7", "", CFGFLAG_CLIENT, ConKeyInputSet, (void *)&s_Set, "Switch to inventory slot 7"); }
+	{ static CInputSet s_Set = {this, &m_InputData.m_WantedInventoryItem, 8}; Console()->Register("+weapon8", "", CFGFLAG_CLIENT, ConKeyInputSet, (void *)&s_Set, "Switch to inventory slot 8"); }
+	{ static CInputSet s_Set = {this, &m_InputData.m_WantedInventoryItem, 9}; Console()->Register("+weapon9", "", CFGFLAG_CLIENT, ConKeyInputSet, (void *)&s_Set, "Switch to inventory slot 9"); }
 
-	{ static CInputSet s_Set = {this, &m_InputData.m_NextWeapon, 0}; Console()->Register("+nextweapon", "", CFGFLAG_CLIENT, ConKeyInputNextPrevWeapon, (void *)&s_Set, "Switch to next weapon"); }
-	{ static CInputSet s_Set = {this, &m_InputData.m_PrevWeapon, 0}; Console()->Register("+prevweapon", "", CFGFLAG_CLIENT, ConKeyInputNextPrevWeapon, (void *)&s_Set, "Switch to previous weapon"); }
+	{ static CInputSet s_Set = {this, &m_InputData.m_WantedInventoryItem, 0}; Console()->Register("+nextweapon", "", CFGFLAG_CLIENT, ConKeyInputNextPrevWeapon, (void *)&s_Set, "Switch to next weapon"); }
+	{ static CInputSet s_Set = {this, &m_InputData.m_WantedInventoryItem, 0}; Console()->Register("+prevweapon", "", CFGFLAG_CLIENT, ConKeyInputNextPrevWeapon, (void *)&s_Set, "Switch to previous weapon"); }
 }
 
 void CControls::OnMessage(int Msg, void *pRawMsg)
@@ -105,7 +109,7 @@ void CControls::OnMessage(int Msg, void *pRawMsg)
 	{
 		CNetMsg_Sv_WeaponPickup *pMsg = (CNetMsg_Sv_WeaponPickup *)pRawMsg;
 		if(g_Config.m_ClAutoswitchWeapons)
-			m_InputData.m_WantedWeapon = pMsg->m_Weapon+1;
+			m_InputData.m_WantedInventoryItem = pMsg->m_Weapon+1;
 	}
 }
 
@@ -176,7 +180,7 @@ int CControls::SnapInput(int *pData)
 			m_InputData.m_Jump = ((int)t);
 			m_InputData.m_Fire = ((int)(t*10));
 			m_InputData.m_Hook = ((int)(t*2))&1;
-			m_InputData.m_WantedWeapon = ((int)t)%NUM_WEAPONS;
+			m_InputData.m_WantedInventoryItem = ((int)t)%NUM_ITEMS_INVENTORY;
 			m_InputData.m_TargetX = (int)(sinf(t*3)*100.0f);
 			m_InputData.m_TargetY = (int)(cosf(t*3)*100.0f);
 		}
@@ -186,9 +190,9 @@ int CControls::SnapInput(int *pData)
 		else if(m_InputData.m_Jump != m_LastData.m_Jump) Send = true;
 		else if(m_InputData.m_Fire != m_LastData.m_Fire) Send = true;
 		else if(m_InputData.m_Hook != m_LastData.m_Hook) Send = true;
-		else if(m_InputData.m_WantedWeapon != m_LastData.m_WantedWeapon) Send = true;
-		else if(m_InputData.m_NextWeapon != m_LastData.m_NextWeapon) Send = true;
-		else if(m_InputData.m_PrevWeapon != m_LastData.m_PrevWeapon) Send = true;
+		else if(m_InputData.m_WantedInventoryItem != m_LastData.m_WantedInventoryItem) Send = true;
+		else if(m_InputData.m_NextInventoryItem != m_LastData.m_NextInventoryItem) Send = true;
+		else if(m_InputData.m_PrevInventoryItem != m_LastData.m_PrevInventoryItem) Send = true;
 
 		// send at at least 10hz
 		if(time_get() > LastSendTime + time_freq()/25)

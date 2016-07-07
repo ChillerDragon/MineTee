@@ -377,8 +377,8 @@ void CGameController::OnCharacterSpawn(class CCharacter *pChr)
 	pChr->IncreaseHealth(10);
 
 	// give default weapons
-	pChr->GiveWeapon(WEAPON_HAMMER, -1);
-	pChr->GiveWeapon(WEAPON_GUN, 10);
+	pChr->GiveItem(WEAPON_HAMMER, -1);
+	pChr->GiveItem(WEAPON_GUN, 10);
 }
 
 void CGameController::DoWarmup(int Seconds)
@@ -772,7 +772,7 @@ int CGameController::ClampTeam(int Team)
 	if(Team < 0)
 		return TEAM_SPECTATORS;
 
-    if (str_find_nocase(GameServer()->GameType(), "minetee") && Team > TEAM_BLUE) // MineTee
+    if (GameServer()->IsMineTeeSrv() && Team > TEAM_BLUE) // MineTee
         return Team;
 
 	if(IsTeamplay())

@@ -19,6 +19,7 @@ CGameControllerMineTee::CGameControllerMineTee(class CGameContext *pGameServer)
 	m_TimeDestruction = Server()->Tick();
 	m_TimeCook = Server()->Tick();
 	m_TimeWear = Server()->Tick();
+	m_lpChests.clear();
 }
 
 void CGameControllerMineTee::Tick()
@@ -472,22 +473,19 @@ void CGameControllerMineTee::OnCharacterSpawn(class CCharacter *pChr)
 			{
 				case BOT_MONSTER_TEEPER:
 					pChr->IncreaseHealth(10);
-					pChr->GiveBlock(CBlockManager::TNT, 1);
-					pChr->SetWeapon(NUM_WEAPONS+CBlockManager::TNT);
+					pChr->SetInventoryItem(pChr->GiveItem(NUM_WEAPONS+CBlockManager::TNT, 1));
 					break;
 
 				case BOT_MONSTER_ZOMBITEE:
 				//case CPlayer::BOT_MONSTER_SPIDERTEE:
 				case BOT_MONSTER_EYE:
 					pChr->IncreaseHealth(15);
-					pChr->GiveWeapon(WEAPON_HAMMER, -1);
-					pChr->SetWeapon(WEAPON_HAMMER);
+					pChr->SetInventoryItem(pChr->GiveItem(WEAPON_HAMMER, -1));
 					break;
 
 				case BOT_MONSTER_SKELETEE:
 					pChr->IncreaseHealth(20);
-					pChr->GiveWeapon(WEAPON_GRENADE, -1);
-					pChr->SetWeapon(WEAPON_GRENADE);
+					pChr->SetInventoryItem(pChr->GiveItem(WEAPON_GRENADE, -1));
 					break;
 			}
 		}
@@ -497,10 +495,9 @@ void CGameControllerMineTee::OnCharacterSpawn(class CCharacter *pChr)
 	else if (!pChr->GetPlayer()->IsBot())
 	{
 		pChr->IncreaseHealth(10);
-		pChr->GiveWeapon(WEAPON_HAMMER, -1);
-		pChr->GiveWeapon(WEAPON_HAMMER_STONE, -1);
-		pChr->GiveBlock(CBlockManager::TORCH, 1);
-		pChr->SetWeapon(NUM_WEAPONS+CBlockManager::TORCH);
+		pChr->GiveItem(WEAPON_HAMMER, -1);
+		pChr->GiveItem(WEAPON_HAMMER_STONE, -1);
+		pChr->SetInventoryItem(pChr->GiveItem(NUM_WEAPONS+CBlockManager::TORCH, 1));
 	}
 }
 
@@ -512,21 +509,18 @@ int CGameControllerMineTee::OnCharacterDeath(class CCharacter *pVictim, class CP
     {
 		for (size_t i=0; i<NUM_ITEMS_INVENTORY; i++)
 		{
-			int Index = pVictim->m_Inventory.m_Items[i];
+			int Index = pVictim->m_FastInventory[i].m_ItemId;
 
-			if (Index != NUM_WEAPONS+CBlockManager::MAX_BLOCKS)
+			if (Index != 0)
 			{
 				if (Index >= NUM_WEAPONS)
 				{
-					if (pVictim->m_aBlocks[Index-NUM_WEAPONS].m_Got)
-					{
-						CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_DROPITEM, Index-NUM_WEAPONS);
-						pPickup->m_Pos = pVictim->m_Pos;
-						pPickup->m_Pos.y -= 18.0f;
-						pPickup->m_Vel = vec2((((rand()%2)==0)?1:-1)*(rand()%10), -5);
-						pPickup->m_Amount = pVictim->m_aBlocks[Index-NUM_WEAPONS].m_Amount;
-						pPickup->m_Owner = pVictim->GetPlayer()->GetCID();
-					}
+					CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_DROPITEM, Index);
+					pPickup->m_Pos = pVictim->m_Pos;
+					pPickup->m_Pos.y -= 18.0f;
+					pPickup->m_Vel = vec2((((rand()%2)==0)?1:-1)*(rand()%10), -5);
+					pPickup->m_Amount = pVictim->m_FastInventory[i].m_Amount;
+					pPickup->m_Owner = pVictim->GetPlayer()->GetCID();
 				}
 			}
 		}
@@ -598,6 +592,125 @@ bool CGameControllerMineTee::CanSpawn(int Team, vec2 *pOutPos, int BotType)
 	GenerateRandomSpawn(&Eval, BotType);
 	*pOutPos = Eval.m_Pos;
 	return Eval.m_Got;
+}
+
+void CGameControllerMineTee::OnClientActiveBlock(int ClientID)
+{
+	CCharacter *pChar = GameServer()->GetPlayerChar(ClientID);
+	if (!pChar)
+		return;
+
+	const vec2 Direction = pChar->GetMouseDirection();
+    const vec2 StartPos= pChar->m_Pos + Direction * 38.0f;
+    vec2 colTilePos = StartPos+Direction * MAX_CONSTRUCT_DISTANCE;
+    bool Actived = false;
+
+	if (GameServer()->Collision()->IntersectLine(StartPos, colTilePos, &colTilePos, 0x0))
+	{
+		const vec2 finishPosPost = colTilePos-Direction * 8.0f;
+		if (GameServer()->Collision()->GetCollisionAt(finishPosPost.x, finishPosPost.y)&CCollision::COLFLAG_SOLID)
+		{
+			const int MTTIndex = GameServer()->Collision()->GetMineTeeTileIndexAt(finishPosPost);
+			CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(MTTIndex);
+
+			if (!pBlockInfo || pBlockInfo->m_Functionality.m_aType[0] == 0)
+			{
+				pChar->m_ActiveBlockId = -1;
+				return;
+			}
+
+			if (str_comp(pBlockInfo->m_Functionality.m_aType, "chest") == 0)
+			{
+				int ChestID = ((int)finishPosPost.y/32)*GameServer()->Collision()->GetWidth()+((int)finishPosPost.x/32);
+				std::map<int, CChest*>::iterator it = m_lpChests.find(ChestID);
+				if (it != m_lpChests.end())
+				{
+					GameServer()->SendCellData(ClientID, it->second->m_aItems, NUM_CELLS_CHEST, CELLS_CHEST, ChestID);
+					pChar->m_ActiveBlockId = MTTIndex;
+					Actived = true;
+				}
+			}
+		}
+	}
+
+	if (!Actived)
+		pChar->m_ActiveBlockId = -1;
+}
+
+void CGameControllerMineTee::OnPlayerPutBlock(int ClientID, ivec2 TilePos, int BlockID, int BlockFlags, int Reserved)
+{
+	CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(BlockID);
+	GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), BlockID, BlockFlags, Reserved);
+	GameServer()->CreateSound(vec2(TilePos.x*32.0f, TilePos.y*32.0f), SOUND_DESTROY_BLOCK);
+
+	if (pBlockInfo && str_comp(pBlockInfo->m_Functionality.m_aType, "chest") == 0)
+	{
+		int ChestID = TilePos.y*GameServer()->Collision()->GetWidth()+TilePos.x;
+		CChest *pCellModalData = (CChest*)mem_alloc(sizeof(CChest), 1);
+		mem_zero(pCellModalData->m_aItems, sizeof(CCellData)*NUM_CELLS_CHEST);
+		m_lpChests.insert(std::make_pair(ChestID, pCellModalData));
+	}
+}
+
+void CGameControllerMineTee::OnPlayerDestroyBlock(int ClientID, ivec2 TilePos, int BlockID)
+{
+	CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(BlockID);
+	const vec2 WorldTilePos = vec2(TilePos.x*32.0f, TilePos.y*32.0f);
+
+	GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0, 0);
+	GameServer()->Collision()->ModifTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0, 0);
+	GameServer()->CreateBlockRubble(WorldTilePos, BlockID);
+
+	if (pBlockInfo->m_Explode)
+	{
+		GameServer()->CreateExplosion(WorldTilePos, ClientID, WEAPON_WORLD, false);
+		GameServer()->CreateSound(WorldTilePos, SOUND_GRENADE_EXPLODE);
+	}
+	if (pBlockInfo->m_vOnBreak.size() > 0)
+	{
+		for (std::map<int, unsigned char>::iterator it = pBlockInfo->m_vOnBreak.begin(); it != pBlockInfo->m_vOnBreak.end(); it++)
+		{
+			if (it->first == 0)
+			{
+				++it;
+				continue;
+			}
+
+			CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, it->first);
+			pPickup->m_Pos = WorldTilePos + vec2(8.0f, 8.0f);
+			pPickup->m_Amount = it->second;
+		}
+	}
+	else
+	{
+		CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, BlockID);
+		pPickup->m_Pos = WorldTilePos + vec2(8.0f, 8.0f);
+	}
+
+	GameServer()->CreateSound(WorldTilePos, SOUND_DESTROY_BLOCK);
+
+	if (pBlockInfo && str_comp(pBlockInfo->m_Functionality.m_aType, "chest") == 0)
+	{
+		int ChestID = TilePos.y*GameServer()->Collision()->GetWidth()+TilePos.x;
+		std::map<int, CChest*>::iterator it = m_lpChests.find(ChestID);
+		CChest *pChest = it->second;
+		int ChestItemID = -1;
+		for (int i=0; i<NUM_CELLS_CHEST; i++)
+		{
+			ChestItemID = pChest->m_aItems[i].m_ItemId;
+			if (ChestItemID >= NUM_WEAPONS)
+			{
+				CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_DROPITEM, ChestItemID-NUM_WEAPONS);
+				pPickup->m_Pos = WorldTilePos;
+				pPickup->m_Pos.y -= 18.0f;
+				pPickup->m_Vel = vec2((((rand()%2)==0)?1:-1)*(rand()%10), -5);
+				pPickup->m_Amount = pChest->m_aItems[i].m_Amount;
+				pPickup->m_Owner = ClientID;
+			}
+		}
+		mem_free(pChest);
+		m_lpChests.erase(it);
+	}
 }
 
 bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
@@ -760,10 +873,13 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
 
 				BlockFounded = true;
 
+				int HasItem = -1;
+
 				bool CanCraft = true;
 				for (std::map<int, unsigned char>::iterator it = pBlockInfo->m_vCraft.begin(); it != pBlockInfo->m_vCraft.end(); it++)
 				{
-					if (!pChar->m_aBlocks[it->first].m_Got || pChar->m_aBlocks[it->first].m_Amount <= 0 )
+					HasItem = pChar->InInventory(it->first);
+					if (HasItem == -1 || pChar->m_FastInventory[HasItem].m_Amount <= 0)
 					{
 						CanCraft = false;
 						break;
@@ -792,16 +908,23 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
 				}
 
 				for (std::map<int, unsigned char>::iterator it = pBlockInfo->m_vCraft.begin(); it != pBlockInfo->m_vCraft.end(); it++)
-					pChar->m_aBlocks[it->first].m_Amount -= it->second;
+				{
+					HasItem = pChar->InInventory(it->first);
+					if (HasItem != -1)
+					{
+						pChar->m_FastInventory[HasItem].m_Amount = max(0, pChar->m_FastInventory[HasItem].m_Amount-it->second);
+					}
+				}
 
-				pChar->GiveBlock(u, pBlockInfo->m_CraftNum);
-				pChar->SetWeapon(NUM_WEAPONS+u);
+				const int InvIndex = pChar->GiveItem(NUM_WEAPONS+u, pBlockInfo->m_CraftNum);
+				if (InvIndex != -1)
+					pChar->SetInventoryItem(InvIndex);
 
 				str_format(aBuf, sizeof(aBuf), "** You have been added a %s!", pBlockInfo->m_aName);
 				GameServer()->SendChatTarget(cid, aBuff);
 			}
 
-			if (!BlockFounded)
+			/*if (!BlockFounded)
 			{
 				if (str_comp_nocase(ptr, "GLauncher") == 0)
 				{
@@ -898,7 +1021,7 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
 					GameServer()->SendChatTarget(cid,"Oops!: Unknown item");
 					return false;
 				}
-			}
+			}*/
 		}
     }
 	else

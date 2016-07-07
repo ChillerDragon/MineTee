@@ -250,7 +250,6 @@ class CMenus : public CComponent
 	void RenderServerControl(CUIRect MainView);
 	void RenderServerControlKick(CUIRect MainView, bool FilterSpectators);
 	void RenderServerControlServer(CUIRect MainView);
-	void RenderModalInventory(CUIRect MainView); // MineTee
 
 	// found in menus_browser.cpp
 	int m_SelectedIndex;

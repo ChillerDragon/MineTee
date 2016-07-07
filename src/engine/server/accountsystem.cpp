@@ -12,6 +12,9 @@ void CAccountSystem::Init(const char *pFileStore, IStorage *pStorage)
 
 IAccountSystem::ACCOUNT_INFO* CAccountSystem::Get(const unsigned char *pKey)
 {
+	if (!pKey)
+		return 0x0;
+
 	std::list<ACCOUNT_INFO>::iterator it = Find(pKey);
 	if (it != m_lAccounts.end())
 		return &(*it);
@@ -36,8 +39,7 @@ IAccountSystem::ACCOUNT_INFO* CAccountSystem::Create(const unsigned char *pKey)
 	NewAccount.m_Alive = false;
 	NewAccount.m_Pos = vec2(0.0f, 0.0f);
 	NewAccount.m_Level = 0;
-	mem_zero(NewAccount.m_aBlocks, sizeof(CCharacter::BlockStat)*255);
-	mem_zero(NewAccount.m_aWeapons, sizeof(CCharacter::WeaponStat)*NUM_WEAPONS);
+	mem_zero(NewAccount.m_Inventory, sizeof(CCellData)*NUM_ITEMS_INVENTORY);
 	m_lAccounts.push_back(NewAccount);
 	Save();
 	return &(*m_lAccounts.rbegin());
@@ -45,11 +47,14 @@ IAccountSystem::ACCOUNT_INFO* CAccountSystem::Create(const unsigned char *pKey)
 
 std::list<IAccountSystem::ACCOUNT_INFO>::iterator CAccountSystem::Find(const unsigned char *pKey)
 {
+	if (!pKey)
+		return m_lAccounts.end();
+
 	std::list<ACCOUNT_INFO>::iterator it = m_lAccounts.begin();
 	while (it != m_lAccounts.end())
 	{
 		ACCOUNT_INFO *pInfo = &(*it);
-		if (mem_comp(pInfo->m_aKey, pKey, sizeof(pInfo->m_aKey)) == 0)
+		if (pInfo && mem_comp(pInfo->m_aKey, pKey, sizeof(pInfo->m_aKey)) == 0)
 		{
 			return it;
 		}

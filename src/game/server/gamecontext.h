@@ -7,6 +7,7 @@
 #include <engine/server.h>
 #include <engine/console.h>
 #include <engine/storage.h> // MineTee
+#include <engine/shared/network.h> // MineTee
 #include <engine/shared/memheap.h>
 
 #include <game/layers.h>
@@ -75,6 +76,8 @@ class CGameContext : public IGameServer
 	void Construct(int Resetting);
 
 	bool m_Resetting;
+
+	bool m_IsMineTeeSrv; // MineTee
 public:
 	IServer *Server() const { return m_pServer; }
 	class IConsole *Console() { return m_pConsole; }
@@ -203,6 +206,8 @@ public:
 	virtual void SaveAccount(int ClientID);
 	virtual CPet* SpawnPet(CPlayer *pOwner, vec2 Pos);
 	virtual IBoss* SpawnBoss(vec2 Pos, int Type);
+	bool IsMineTeeSrv() const { return m_IsMineTeeSrv; }
+	void SendCellData(int ClientID, CCellData *pData, int Num, int CellsType, int TokenID);
 	//
 };
 

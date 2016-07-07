@@ -53,7 +53,8 @@ bool CBlockManager::Init(char *pData, int DataSize)
 		{
 			const json_value &JsonObjectF = (*pJsonObject)["functionality"];
 
-			str_copy(pBlockInfo->m_Functionality.m_Type, JsonObjectF["type"], sizeof(pBlockInfo->m_Functionality.m_Type));
+			if (JsonObjectF["type"].type != json_none)
+				str_copy(pBlockInfo->m_Functionality.m_aType, JsonObjectF["type"], sizeof(pBlockInfo->m_Functionality.m_aType));
 			pBlockInfo->m_Functionality.m_OnActive = (JsonObjectF["onActive"].type == json_none)?-1:JsonObjectF["onActive"].u.integer;
 
 			items = JsonObjectF["excludeBlocks"].u.array.length;

@@ -119,7 +119,7 @@ void CGameContext::CreateHammerHit(vec2 Pos)
 	}
 }
 
-
+// MineTee
 void CGameContext::CreateExplosion(vec2 Pos, int Owner, int Weapon, bool NoDamage)
 {
 	// create the event
@@ -130,12 +130,13 @@ void CGameContext::CreateExplosion(vec2 Pos, int Owner, int Weapon, bool NoDamag
 		pEvent->m_Y = (int)Pos.y;
 	}
 
+	const float Radius = 135.0f;
+	const float InnerRadius = 48.0f;
+
 	if (!NoDamage)
 	{
 		// deal damage
 		CCharacter *apEnts[MAX_CLIENTS];
-		float Radius = 135.0f;
-		float InnerRadius = 48.0f;
 		int Num = m_World.FindEntities(Pos, Radius, (CEntity**)apEnts, MAX_CLIENTS, CGameWorld::ENTTYPE_CHARACTER);
 		for(int i = 0; i < Num; i++)
 		{
@@ -152,7 +153,7 @@ void CGameContext::CreateExplosion(vec2 Pos, int Owner, int Weapon, bool NoDamag
 	}
 
 	// MineTee: Destroy Map
-    if (str_find_nocase(GameType(), "MineTee"))
+    if (IsMineTeeSrv() && !NoDamage)
     {
         vec2 ColTilePos = Pos;
         vec2 ColPos[] = {
@@ -181,50 +182,25 @@ void CGameContext::CreateExplosion(vec2 Pos, int Owner, int Weapon, bool NoDamag
                 if (!pTile || pTile->m_Index <= 0)
                     continue;
 
-                pTile->m_Reserved = max(0, pTile->m_Reserved-5); // TODO: Get value from block manager
+    			vec2 Diff = finishPosPost - Pos;
+    			vec2 ForceDir(0,1);
+    			float l = length(Diff);
+    			if(l)
+    				ForceDir = normalize(Diff);
+    			l = 1-clamp((l-InnerRadius)/(Radius-InnerRadius), 0.0f, 1.0f);
+    			float Dmg = pTile->m_Reserved-g_pData->m_Weapons.m_aId[Weapon].m_Blockdamage * l;
+    			if((int)Dmg)
+    			{
+					const int MTTIndex = pTile->m_Index;
+					pTile->m_Reserved =Dmg ;
 
-                if (pTile->m_Reserved == 0)
-                {
-					SendTileModif(ALL_PLAYERS, TilePos, Layers()->GetMineTeeGroupIndex(),  Layers()->GetMineTeeLayerIndex(), 0, 0, 0);
-					Collision()->ModifTile(TilePos, Layers()->GetMineTeeGroupIndex(),  Layers()->GetMineTeeLayerIndex(), 0, 0, 0);
-
-					if (pTile->m_Index == CBlockManager::TNT)
-					{
-						CreateExplosion(finishPosPost, Owner, WEAPON_WORLD, false);
-						CreateSound(finishPosPost, SOUND_GRENADE_EXPLODE);
-					}
+					if (pTile->m_Reserved == 0)
+						m_pController->OnPlayerDestroyBlock(Owner, TilePos, MTTIndex);
 					else
-					{
-						CBlockManager::CBlockInfo *pBlockInfo = m_BlockManager.GetBlockInfo(pTile->m_Index);
-						if (pBlockInfo)
-						{
-							if (pBlockInfo->m_vOnBreak.size() > 0)
-							{
-								for (std::map<int, unsigned char>::iterator it = pBlockInfo->m_vOnBreak.begin(); it != pBlockInfo->m_vOnBreak.end(); it++)
-								{
-									if (it->first == 0)
-									{
-										++it;
-										continue;
-									}
+						SendTileModif(ALL_PLAYERS, TilePos, Layers()->GetMineTeeGroupIndex(),  Layers()->GetMineTeeLayerIndex(), MTTIndex, pTile->m_Flags, pTile->m_Reserved);
 
-									CPickup *pPickup = new CPickup(&m_World, POWERUP_BLOCK, it->first);
-									pPickup->m_Pos = vec2(TilePos.x*32.0f + 8.0f, (TilePos.y)*32.0f + 8.0f);
-									pPickup->m_Amount = it->second;
-								}
-							}
-							else
-							{
-								CPickup *pPickup = new CPickup(&m_World, POWERUP_BLOCK, pTile->m_Index);
-								pPickup->m_Pos = vec2(TilePos.x*32.0f + 8.0f, TilePos.y*32.0f + 8.0f);
-							}
-						}
-					}
-                }
-                else
-                	SendTileModif(ALL_PLAYERS, TilePos, Layers()->GetMineTeeGroupIndex(),  Layers()->GetMineTeeLayerIndex(), pTile->m_Index, pTile->m_Index, pTile->m_Reserved);
-
-				CreateSound(finishPosPost, SOUND_DESTROY_BLOCK);
+					CreateSound(finishPosPost, SOUND_DESTROY_BLOCK);
+    			}
             }
         }
     }
@@ -627,7 +603,7 @@ void CGameContext::OnClientEnter(int ClientID)
 	m_VoteUpdate = true;
 
 	// MineTee
-    if (str_find_nocase(GameType(), "MineTee"))
+    if (IsMineTeeSrv())
     {
         SendChatTarget(ClientID, " ");
         SendChatTarget(ClientID, " ");
@@ -1027,13 +1003,19 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 			pPlayer->m_LastKill = Server()->Tick();
 			pPlayer->KillCharacter(WEAPON_SELF);
 		}
-	    else if (MsgID == NETMSGTYPE_CL_DROPITEMINVENTARY && !m_World.m_Paused) // MineTee
+		// MineTee
+	    else if (MsgID == NETMSGTYPE_CL_DROPITEMINVENTARY && !m_World.m_Paused)
 	    {
 	        CNetMsg_Cl_DropItemInventary *pMsg = (CNetMsg_Cl_DropItemInventary *)pRawMsg;
 	        int Index = pMsg->m_Pos;
 
 	        if (pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive())
 	            pPlayer->GetCharacter()->DropItem(Index);
+	    }
+	    else if (MsgID == NETMSGTYPE_CL_ACTIVEBLOCK && !m_World.m_Paused)
+	    {
+	        if (pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive())
+	        	m_pController->OnClientActiveBlock(ClientID);
 	    }
 	}
 	else
@@ -1629,8 +1611,10 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 	num_spawn_points[2] = 0;
 	*/
 
+	m_IsMineTeeSrv = str_find_nocase(GameType(), "MineTee");
+
 	// MineTee: Create Bot Players
-    if (str_find_nocase(GameType(), "minetee"))
+    if (IsMineTeeSrv())
     {
     	int CurID = 0;
     	for (int o=0; o<NUM_BOTS_ANIMAL; o++,CurID++)
@@ -2004,22 +1988,13 @@ void CGameContext::GiveItem(int ClientID, int ItemID, int ammo)
 	if (!pChar)
 		return;
 
-	if (ItemID >= NUM_WEAPONS)
+	CBlockManager::CBlockInfo *pBlockInfo = m_BlockManager.GetBlockInfo(ItemID);
+	if (pBlockInfo)
 	{
-		ItemID -= NUM_WEAPONS;
-		CBlockManager::CBlockInfo *pBlockInfo = m_BlockManager.GetBlockInfo(ItemID);
-		if (pBlockInfo)
-		{
-			pChar->GiveBlock(ItemID, ammo);
-			char aBuf[128];
-			str_format(aBuf, sizeof(aBuf), "Admin give you a '%s'! revise your inventory :)", pBlockInfo->m_aName);
-			SendChatTarget(ClientID, aBuf);
-		}
-	}
-	else
-	{
-		pChar->GiveWeapon(ItemID, ammo);
-		SendChatTarget(ClientID, "Admin give you a new weapon! revise your inventory :)");
+		pChar->GiveItem(ItemID, ammo);
+		char aBuf[128];
+		str_format(aBuf, sizeof(aBuf), "Admin give you a '%s'! revise your inventory :)", pBlockInfo->m_aName);
+		SendChatTarget(ClientID, aBuf);
 	}
 }
 
@@ -2095,4 +2070,16 @@ void CGameContext::CreateBlockRubble(vec2 Pos, int BlockId)
 		pEvent->m_Y = (int)Pos.y;
 		pEvent->m_BlockId = BlockId;
 	}
+}
+
+void CGameContext::SendCellData(int ClientID, CCellData *pData, int Num, int CellsType, int TokenID)
+{
+	dbg_msg("CHEST", "Sending Cells....");
+	const int TotalSize = sizeof(CCellData)*Num;
+	CMsgPacker Msg(NETMSG_CELLS_DATA);
+	Msg.AddInt(CellsType);
+	Msg.AddInt(TokenID);
+	Msg.AddInt(TotalSize);
+	Msg.AddRaw(pData, TotalSize);
+	Server()->SendMsgEx(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH, ClientID, true);
 }

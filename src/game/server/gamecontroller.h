@@ -156,6 +156,9 @@ public:
 	int GetRoundStartTick() const { return m_RoundStartTick; }
 	void AdvanceRoundStartTick(int amount) { m_RoundStartTick = max(m_RoundStartTick+amount, 0); }
 	virtual bool OnChat(int cid, int team, const char *msg) { return true; };
+	virtual void OnClientActiveBlock(int ClientID) {}
+	virtual void OnPlayerPutBlock(int ClientID, ivec2 TilePos, int BlockID, int BlockFlags, int Reserved) {}
+	virtual void OnPlayerDestroyBlock(int ClientID, ivec2 TilePos, int BlockID) {}
 };
 
 #endif

@@ -120,6 +120,7 @@ public:
 	virtual bool DemoRecorder_IsRecording() = 0;
 
 	// MineTee
+	virtual int SendMsgEx(CMsgPacker *pMsg, int Flags, int ClientID, bool System) = 0;
 	virtual IAccountSystem *AccountSystem() = 0;
 	virtual void ResetBotInfo(int ClientID, int BotType, int BotSubType) = 0;
 	virtual char *GetMapName() = 0;

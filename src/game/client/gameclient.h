@@ -69,6 +69,7 @@ class CGameClient : public IGameClient
 	static void ConBackgroundPaint(IConsole::IResult *pResult, void *pUserData);
 	static void ConForegroundPaint(IConsole::IResult *pResult, void *pUserData);
 	static void ConDropItem(IConsole::IResult *pResult, void *pUserData);
+	static void ConActiveBlock(IConsole::IResult *pResult, void *pUserData);
 	//
 
 public:
@@ -271,7 +272,14 @@ public:
 	} m_Inventory;
 	int m_PaintMode;
 	void SendDropItem(int Index);
+	void SendActiveBlock();
 	virtual void GetServerTime(bool *pIsNight, int64 *pTime);
+
+	CCellData *m_apLatestCells;
+	unsigned m_NumCells;
+	int m_CellsToken;
+	int m_CellsType;
+	virtual void SetLastestCellsData(CCellData *pData, int NumItems, int CellsType, int TokenID);
 };
 
 

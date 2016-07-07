@@ -11,6 +11,8 @@
 #include <engine/shared/protocol.h>
 #include <game/generated/protocol.h>
 
+#define MAX_CONSTRUCT_DISTANCE	120.0f
+
 
 class CTuneParam
 {

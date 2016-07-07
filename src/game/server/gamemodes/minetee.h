@@ -6,6 +6,16 @@
 #include <game/server/gamecontroller.h>
 #include <game/mapitems.h>
 #include <game/block_manager.h>
+#include <engine/shared/network.h>
+
+class CChest
+{
+public:
+	CCellData m_aItems[NUM_CELLS_CHEST];
+
+	bool Move(int From, int To);
+	bool Remove(int Index, int amount = 0);
+};
 
 
 class CGameControllerMineTee : public CGameController
@@ -38,6 +48,11 @@ public:
 	virtual bool OnChat(int cid, int team, const char *msg);
 	virtual bool CanSpawn(int Team, vec2 *pPos, int BotType);
 	bool CanJoinTeam(int Team, int NotThisID);
+	void OnClientActiveBlock(int ClientID);
+	void OnPlayerPutBlock(int ClientID, ivec2 TilePos, int BlockID, int BlockFlags, int Reserved);
+	void OnPlayerDestroyBlock(int ClientID, ivec2 TilePos, int BlockID);
+
+	std::map<int, CChest*> m_lpChests;
 
 private:
 	float m_TimeVegetal;

@@ -1415,6 +1415,27 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 				}
 			}
 		}
+		// MineTee
+		else if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_CELLS_DATA)
+		{
+			const int CellsType = Unpacker.GetInt();
+			const int TokenID = Unpacker.GetInt();
+			const int Size = Unpacker.GetInt();
+			const unsigned char *pData = Unpacker.GetRaw(Size);
+
+			if(Unpacker.Error() || Size <= 0 || !pData)
+				return;
+
+			const int NumItems = Size/sizeof(CCellData);
+			if (CellsType == CELLS_CHEST)
+			{
+				if (NumItems > NUM_CELLS_CHEST || NumItems <= 0)
+					return;
+				CCellData *apCells = (CCellData*)mem_alloc(Size,1);
+				mem_copy(apCells, pData, Size);
+				m_pGameClient->SetLastestCellsData(apCells, NumItems, CellsType, TokenID);
+			}
+		}
 	}
 	else
 	{

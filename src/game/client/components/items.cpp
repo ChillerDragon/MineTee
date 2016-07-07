@@ -4,6 +4,7 @@
 #include <engine/graphics.h>
 #include <engine/demo.h>
 #include <engine/textrender.h> // MineTee
+#include <engine/serverbrowser.h> // MineTee
 #include <game/generated/protocol.h>
 #include <game/generated/client_data.h>
 
@@ -25,20 +26,27 @@ void CItems::OnReset()
 
 void CItems::RenderProjectile(const CNetObj_Projectile *pCurrent, int ItemID)
 {
+	// FIXME: Ugly...
+	int WeaponType = pCurrent->m_Type;
+    CServerInfo SInfo;
+    Client()->GetServerInfo(&SInfo);
+    if (!str_find_nocase(SInfo.m_aGameType, "minetee"))
+    	++WeaponType;
+
 	// get positions
 	float Curvature = 0;
 	float Speed = 0;
-	if(pCurrent->m_Type == WEAPON_GRENADE)
+	if(WeaponType == WEAPON_GRENADE)
 	{
 		Curvature = m_pClient->m_Tuning.m_GrenadeCurvature;
 		Speed = m_pClient->m_Tuning.m_GrenadeSpeed;
 	}
-	else if(pCurrent->m_Type == WEAPON_SHOTGUN)
+	else if(WeaponType == WEAPON_SHOTGUN)
 	{
 		Curvature = m_pClient->m_Tuning.m_ShotgunCurvature;
 		Speed = m_pClient->m_Tuning.m_ShotgunSpeed;
 	}
-	else if(pCurrent->m_Type == WEAPON_GUN)
+	else if(WeaponType == WEAPON_GUN)
 	{
 		Curvature = m_pClient->m_Tuning.m_GunCurvature;
 		Speed = m_pClient->m_Tuning.m_GunSpeed;
@@ -60,13 +68,13 @@ void CItems::RenderProjectile(const CNetObj_Projectile *pCurrent, int ItemID)
 	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_GAME].m_Id);
 	Graphics()->QuadsBegin();
 
-	RenderTools()->SelectSprite(g_pData->m_Weapons.m_aId[clamp(pCurrent->m_Type, 0, NUM_WEAPONS-1)].m_pSpriteProj);
+	RenderTools()->SelectSprite(g_pData->m_Weapons.m_aId[clamp(WeaponType, 0, NUM_WEAPONS-1)].m_pSpriteProj);
 	vec2 Vel = Pos-PrevPos;
 	//vec2 pos = mix(vec2(prev->x, prev->y), vec2(current->x, current->y), Client()->IntraGameTick());
 
 
 	// add particle for this projectile
-	if(pCurrent->m_Type == WEAPON_GRENADE)
+	if(WeaponType == WEAPON_GRENADE)
 	{
 		m_pClient->m_pEffects->SmokeTrail(Pos, Vel*-1);
 		static float s_Time = 0.0f;
@@ -106,18 +114,13 @@ void CItems::RenderProjectile(const CNetObj_Projectile *pCurrent, int ItemID)
 
 void CItems::RenderPickup(const CNetObj_Pickup *pPrev, const CNetObj_Pickup *pCurrent) // MineTee
 {
-    if (pCurrent->m_Type == POWERUP_BLOCK || (pCurrent->m_Type > POWERUP_DROPITEM && pCurrent->m_Type-POWERUP_DROPITEM >= NUM_WEAPONS-CBlockManager::MAX_BLOCKS))
+    if (pCurrent->m_Type == POWERUP_BLOCK || (pCurrent->m_Type > POWERUP_DROPITEM && pCurrent->m_Type-POWERUP_DROPITEM != 0))
     {
         //float Scale = 16.0f;
         float ScreenX0, ScreenY0, ScreenX1, ScreenY1;
         Graphics()->GetScreen(&ScreenX0, &ScreenY0, &ScreenX1, &ScreenY1);
 
         CMapItemLayerTilemap *pTMap = (CMapItemLayerTilemap *)Layers()->MineTeeLayer();
-        if(!pTMap || pTMap->m_Image == -1)
-            Graphics()->TextureSet(-1);
-        else
-            Graphics()->TextureSet(m_pClient->m_pMapimages->Get(pTMap->m_Image));
-
         vec2 Pos = mix(vec2(pPrev->m_X, pPrev->m_Y), vec2(pCurrent->m_X, pCurrent->m_Y), Client()->IntraGameTick());
 
         float Offset = Pos.y/32.0f + Pos.x/32.0f;
@@ -145,9 +148,23 @@ void CItems::RenderPickup(const CNetObj_Pickup *pPrev, const CNetObj_Pickup *pCu
             RenderTools()->RenderTile(pCurrent->m_Subtype, Pos, 16.0f);
         else
         {
+        	const int ItemID = pCurrent->m_Type-POWERUP_DROPITEM;
+        	if (ItemID < NUM_WEAPONS)
+        	{
+        		Graphics()->TextureSet(g_pData->m_aImages[IMAGE_GAME].m_Id);
+        		Graphics()->QuadsBegin();
+        		RenderTools()->SelectSprite(g_pData->m_Weapons.m_aId[clamp(pCurrent->m_Subtype, 0, NUM_WEAPONS-1)].m_pSpriteBody);
+        		RenderTools()->DrawSprite(Pos.x, Pos.y, 32.0f);
+        		Graphics()->QuadsEnd();
+        	}
+        	else
+        	{
+        		Graphics()->TextureSet((!pTMap || pTMap->m_Image == -1)?-1:m_pClient->m_pMapimages->Get(pTMap->m_Image));
+        		RenderTools()->RenderTile(ItemID-NUM_WEAPONS, Pos, 16.0f);
+        	}
+
             char aBuf[4];
             str_format(aBuf, sizeof(aBuf), "x%i", pCurrent->m_Subtype);
-            RenderTools()->RenderTile(pCurrent->m_Type-POWERUP_DROPITEM, Pos, 16.0f);
             TextRender()->Text(0, Pos.x, Pos.y-5.0f, 16.0f, aBuf, -1);
         }
 
@@ -195,11 +212,17 @@ void CItems::RenderPickup(const CNetObj_Pickup *pPrev, const CNetObj_Pickup *pCu
 	float Size = 64.0f;
 	if (pCurrent->m_Type == POWERUP_WEAPON)
 	{
+		int SpriteID = clamp(pCurrent->m_Subtype, 0, NUM_WEAPONS-1);
+	    CServerInfo SInfo;
+	    Client()->GetServerInfo(&SInfo);
+	    if (!str_find_nocase(SInfo.m_aGameType, "minetee"))
+	    	++SpriteID;
+
 		Angle = 0; //-pi/6;//-0.25f * pi * 2.0f;
-		RenderTools()->SelectSprite(g_pData->m_Weapons.m_aId[clamp(pCurrent->m_Subtype, 0, NUM_WEAPONS-1)].m_pSpriteBody);
+		RenderTools()->SelectSprite(g_pData->m_Weapons.m_aId[SpriteID].m_pSpriteBody);
 		Size = g_pData->m_Weapons.m_aId[clamp(pCurrent->m_Subtype, 0, NUM_WEAPONS-1)].m_VisualSize;
 	}
-	else if(pCurrent->m_Type > POWERUP_DROPITEM && pCurrent->m_Type-POWERUP_DROPITEM < NUM_WEAPONS-CBlockManager::MAX_BLOCKS)
+	else if(pCurrent->m_Type > POWERUP_DROPITEM && pCurrent->m_Type-POWERUP_DROPITEM > 0)
 	{
 		Angle = 0; //-pi/6;//-0.25f * pi * 2.0f;
 		RenderTools()->SelectSprite(g_pData->m_Weapons.m_aId[clamp(pCurrent->m_Type-POWERUP_DROPITEM, 0, NUM_WEAPONS-1)].m_pSpriteBody);

@@ -51,6 +51,7 @@
 #include "components/sounds.h"
 #include "components/spectator.h"
 #include "components/voting.h"
+#include "components/modalcell.h" // MineTee
 
 CGameClient g_GameClient;
 
@@ -85,6 +86,9 @@ static CMapImages gs_MapImages;
 
 static CMapLayers gs_MapLayersBackGround(CMapLayers::TYPE_BACKGROUND);
 static CMapLayers gs_MapLayersForeGround(CMapLayers::TYPE_FOREGROUND);
+
+// MineTee
+static CModalCell gs_ModalCell;
 
 CGameClient::CStack::CStack() { m_Num = 0; }
 void CGameClient::CStack::Add(class CComponent *pComponent) { m_paComponents[m_Num++] = pComponent; }
@@ -157,6 +161,7 @@ void CGameClient::OnConsoleInit()
 	m_All.Add(&gs_Hud);
 	m_All.Add(&gs_Spectator);
 	m_All.Add(&gs_Emoticon);
+	m_All.Add(&gs_ModalCell); // MineTee
 	m_All.Add(&gs_KillMessages);
 	m_All.Add(m_pChat);
 	m_All.Add(&gs_Broadcast);
@@ -172,6 +177,7 @@ void CGameClient::OnConsoleInit()
 	m_Input.Add(m_pGameConsole);
 	m_Input.Add(m_pChat); // chat has higher prio due to tha you can quit it by pressing esc
 	m_Input.Add(m_pMotd); // for pressing esc to remove it
+	m_Input.Add(&gs_ModalCell); // for pressing esc to remove it
 	m_Input.Add(m_pMenus);
 	m_Input.Add(&gs_Spectator);
 	m_Input.Add(&gs_Emoticon);
@@ -204,6 +210,7 @@ void CGameClient::OnConsoleInit()
 	Console()->Register("bgpaint", "", CFGFLAG_CLIENT, ConBackgroundPaint, this, "Toggle background paint");
 	Console()->Register("fgpaint", "", CFGFLAG_CLIENT, ConForegroundPaint, this, "Toggle foreground paint");
 	Console()->Register("drop", "?i", CFGFLAG_CLIENT, ConDropItem, this, "Drop item");
+	Console()->Register("active_block", "", CFGFLAG_CLIENT, ConActiveBlock, this, "Active Block");
 	//
 
 
@@ -281,6 +288,12 @@ void CGameClient::OnInit()
 	Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "gameclient", aBuf);
 
 	m_ServerMode = SERVERMODE_PURE;
+
+	// MineTee
+	m_CellsToken = -1;
+	m_CellsType = -1;
+	m_NumCells = 0;
+	m_apLatestCells = 0x0;
 }
 
 void CGameClient::DispatchInput()
@@ -596,7 +609,11 @@ void CGameClient::OnStateChange(int NewState, int OldState)
 		m_All.m_paComponents[i]->OnStateChange(NewState, OldState);
 }
 
-void CGameClient::OnShutdown() {}
+void CGameClient::OnShutdown()
+{
+	// MineTee
+	mem_free(m_apLatestCells);
+}
 void CGameClient::OnEnterGame() {}
 
 void CGameClient::OnGameOver()
@@ -803,6 +820,10 @@ void CGameClient::OnNewSnapshot()
 			{
 				const void *pOld = Client()->SnapFindItem(IClient::SNAP_PREV, NETOBJTYPE_CHARACTER, Item.m_ID);
 				m_Snap.m_aCharacters[Item.m_ID].m_Cur = *((const CNetObj_Character *)pData);
+
+				if (!str_find_nocase(CurrentServerInfo.m_aGameType, "minetee"))
+					++m_Snap.m_aCharacters[Item.m_ID].m_Cur.m_Weapon;
+
 				if(pOld)
 				{
 					m_Snap.m_aCharacters[Item.m_ID].m_Active = true;
@@ -855,25 +876,8 @@ void CGameClient::OnNewSnapshot()
 			else if(Item.m_Type == NETOBJTYPE_INVENTORY) // MineTee
 			{
 				const CNetObj_Inventory *pInfo = (const CNetObj_Inventory *)pData;
-				m_Inventory.m_Items[0] = pInfo->m_Item1;
-				m_Inventory.m_Items[1] = pInfo->m_Item2;
-				m_Inventory.m_Items[2] = pInfo->m_Item3;
-				m_Inventory.m_Items[3] = pInfo->m_Item4;
-				m_Inventory.m_Items[4] = pInfo->m_Item5;
-				m_Inventory.m_Items[5] = pInfo->m_Item6;
-				m_Inventory.m_Items[6] = pInfo->m_Item7;
-				m_Inventory.m_Items[7] = pInfo->m_Item8;
-				m_Inventory.m_Items[8] = pInfo->m_Item9;
-
-				m_Inventory.m_Ammo[0] = pInfo->m_Ammo1;
-				m_Inventory.m_Ammo[1] = pInfo->m_Ammo2;
-				m_Inventory.m_Ammo[2] = pInfo->m_Ammo3;
-				m_Inventory.m_Ammo[3] = pInfo->m_Ammo4;
-				m_Inventory.m_Ammo[4] = pInfo->m_Ammo5;
-				m_Inventory.m_Ammo[5] = pInfo->m_Ammo6;
-				m_Inventory.m_Ammo[6] = pInfo->m_Ammo7;
-				m_Inventory.m_Ammo[7] = pInfo->m_Ammo8;
-				m_Inventory.m_Ammo[8] = pInfo->m_Ammo9;
+				mem_copy(m_Inventory.m_Items, &pInfo->m_Item1, sizeof(int)*NUM_ITEMS_INVENTORY);
+				mem_copy(m_Inventory.m_Ammo, &pInfo->m_Ammo1, sizeof(int)*NUM_ITEMS_INVENTORY);
 				m_Inventory.m_Selected = pInfo->m_Selected;
 			}
 		}
@@ -1220,9 +1224,14 @@ IGameClient *CreateGameClient()
 // MineTee
 void CGameClient::SendDropItem(int Index)
 {
-	// send chat message
 	CNetMsg_Cl_DropItemInventary Msg;
 	Msg.m_Pos = Index;
+	Client()->SendPackMsg(&Msg, MSGFLAG_VITAL);
+}
+
+void CGameClient::SendActiveBlock()
+{
+	CNetMsg_Cl_ActiveBlock Msg;
 	Client()->SendPackMsg(&Msg, MSGFLAG_VITAL);
 }
 
@@ -1244,11 +1253,14 @@ void CGameClient::ConDropItem(IConsole::IResult *pResult, void *pUserData)
 	if(pResult->NumArguments() > 0)
 		ItemID = pResult->GetInteger(0);
 
-	// send chat message
 	((CGameClient *)pUserData)->SendDropItem(ItemID);
 }
 
-// MineTee
+void CGameClient::ConActiveBlock(IConsole::IResult *pResult, void *pUserData)
+{
+	((CGameClient *)pUserData)->SendActiveBlock();
+}
+
 void CGameClient::GetServerTime(bool *pIsDay, int64 *pTime)
 {
     *pTime = 0;
@@ -1256,4 +1268,13 @@ void CGameClient::GetServerTime(bool *pIsDay, int64 *pTime)
         *pTime = (Client()->GameTick()-m_Snap.m_pGameInfoObj->m_RoundStartTick) / (float)Client()->GameTickSpeed();
 
     *pIsDay = (*pTime%static_cast<int>(m_Tuning.m_DayNightDuration) < m_Tuning.m_DayNightDuration/2.0f);
+}
+
+void CGameClient::SetLastestCellsData(CCellData *pData, int NumItems, int CellsType, int TokenID)
+{
+	mem_free(m_apLatestCells);
+	m_apLatestCells = pData;
+	m_NumCells = NumItems;
+	m_CellsToken = TokenID;
+	m_CellsType = CellsType;
 }

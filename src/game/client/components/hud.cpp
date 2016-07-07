@@ -577,7 +577,7 @@ void CHud::RenderInventoryHud()
 		{
 			int item = m_pClient->m_Inventory.m_Items[i];
 			int ammo = m_pClient->m_Inventory.m_Ammo[i];
-			if (item == NUM_WEAPONS+CBlockManager::MAX_BLOCKS)
+			if (item == 0)
 				continue;
 
 			float x = (m_Width/2-outboxSize/2)+5.0f+3.0f+(i*cellSize)+(3.0f*i);

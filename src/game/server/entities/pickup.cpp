@@ -112,18 +112,9 @@ void CPickup::Tick()
 		{
 			// MineTee
 			case POWERUP_DROPITEM:
-				if (m_Subtype >= NUM_WEAPONS-CBlockManager::MAX_BLOCKS)
+				if (pChr->GiveItem(m_Subtype, m_Amount))
 				{
-					if (pChr->GiveBlock(m_Subtype, m_Amount))
-					{
-						GameServer()->CreateSound(m_Pos, SOUND_PICKUP_BLOCK);
-						GameWorld()->DestroyEntity(this);
-						return;
-					}
-				}
-				else
-				{
-					if(pChr->GiveWeapon(m_Subtype, m_Amount))
+					if (m_Subtype < NUM_WEAPONS)
 					{
 						RespawnTime = g_pData->m_aPickups[m_Type].m_Respawntime;
 
@@ -137,10 +128,16 @@ void CPickup::Tick()
 						if(pChr->GetPlayer())
 							GameServer()->SendWeaponPickup(pChr->GetPlayer()->GetCID(), m_Subtype);
 					}
+					else
+					{
+						GameServer()->CreateSound(m_Pos, SOUND_PICKUP_BLOCK);
+						GameWorld()->DestroyEntity(this);
+					}
+					return;
 				}
 				break;
 			case POWERUP_BLOCK:
-				if (pChr->GiveBlock(m_Subtype, 1))
+				if (pChr->GiveItem(NUM_WEAPONS+m_Subtype, 1))
 				{
 					GameServer()->CreateSound(m_Pos, SOUND_PICKUP_BLOCK);
 					GameWorld()->DestroyEntity(this);
@@ -188,7 +185,7 @@ void CPickup::Tick()
 			case POWERUP_WEAPON:
 				if(m_Subtype >= 0 && m_Subtype < NUM_WEAPONS)
 				{
-					if(pChr->GiveWeapon(m_Subtype, 10))
+					if(pChr->GiveItem(m_Subtype, 10))
 					{
 						RespawnTime = g_pData->m_aPickups[m_Type].m_Respawntime;
 
@@ -204,24 +201,6 @@ void CPickup::Tick()
 					}
 				}
 				break;
-
-			case POWERUP_NINJA:
-				{
-					// activate ninja on target player
-					pChr->GiveNinja();
-					RespawnTime = g_pData->m_aPickups[m_Type].m_Respawntime;
-
-					// loop through all players, setting their emotes
-					CCharacter *pC = static_cast<CCharacter *>(GameServer()->m_World.FindFirst(CGameWorld::ENTTYPE_CHARACTER));
-					for(; pC; pC = (CCharacter *)pC->TypeNext())
-					{
-						if (pC != pChr)
-							pC->SetEmote(EMOTE_SURPRISE, Server()->Tick() + Server()->TickSpeed());
-					}
-
-					pChr->SetEmote(EMOTE_ANGRY, Server()->Tick() + 1200 * Server()->TickSpeed() / 1000);
-					break;
-				}
 
 			default:
 				break;

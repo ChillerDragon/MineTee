@@ -70,7 +70,7 @@ void CMonster::RunAction()
 			{ // Kill-Self
 
 				Die(m_pPlayer->GetCID(), WEAPON_WORLD);
-				GameServer()->CreateExplosion(m_Pos, m_pPlayer->GetCID(), WEAPON_WORLD, false);
+				GameServer()->CreateExplosion(m_Pos, m_pPlayer->GetCID(), WEAPON_GRENADE, false);
 				GameServer()->CreateSound(m_Pos, SOUND_GRENADE_EXPLODE);
 			}
 			break;

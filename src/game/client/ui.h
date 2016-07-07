@@ -3,6 +3,8 @@
 #ifndef GAME_CLIENT_UI_H
 #define GAME_CLIENT_UI_H
 
+#include <base/vmath.h> // MineTee
+
 class CUIRect
 {
 	// TODO: Refactor: Redo UI scaling
@@ -21,6 +23,7 @@ public:
 	void VMargin(float Cut, CUIRect *pOtherRect) const;
 	void HMargin(float Cut, CUIRect *pOtherRect) const;
 
+	bool Contains(vec2 Point) const; // MineTee
 };
 
 class CUI
