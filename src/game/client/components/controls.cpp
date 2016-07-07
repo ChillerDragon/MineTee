@@ -99,8 +99,8 @@ void CControls::OnConsoleInit()
 	{ static CInputSet s_Set = {this, &m_InputData.m_WantedInventoryItem, 8}; Console()->Register("+weapon8", "", CFGFLAG_CLIENT, ConKeyInputSet, (void *)&s_Set, "Switch to inventory slot 8"); }
 	{ static CInputSet s_Set = {this, &m_InputData.m_WantedInventoryItem, 9}; Console()->Register("+weapon9", "", CFGFLAG_CLIENT, ConKeyInputSet, (void *)&s_Set, "Switch to inventory slot 9"); }
 
-	{ static CInputSet s_Set = {this, &m_InputData.m_WantedInventoryItem, 0}; Console()->Register("+nextweapon", "", CFGFLAG_CLIENT, ConKeyInputNextPrevWeapon, (void *)&s_Set, "Switch to next weapon"); }
-	{ static CInputSet s_Set = {this, &m_InputData.m_WantedInventoryItem, 0}; Console()->Register("+prevweapon", "", CFGFLAG_CLIENT, ConKeyInputNextPrevWeapon, (void *)&s_Set, "Switch to previous weapon"); }
+	{ static CInputSet s_Set = {this, &m_InputData.m_NextInventoryItem, 0}; Console()->Register("+nextweapon", "", CFGFLAG_CLIENT, ConKeyInputNextPrevWeapon, (void *)&s_Set, "Switch to next weapon"); }
+	{ static CInputSet s_Set = {this, &m_InputData.m_PrevInventoryItem, 0}; Console()->Register("+prevweapon", "", CFGFLAG_CLIENT, ConKeyInputNextPrevWeapon, (void *)&s_Set, "Switch to previous weapon"); }
 }
 
 void CControls::OnMessage(int Msg, void *pRawMsg)

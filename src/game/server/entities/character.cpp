@@ -166,16 +166,15 @@ void CCharacter::HandleInventoryItemSwitch()
 	int Next = CountInput(m_LatestPrevInput.m_NextInventoryItem, m_LatestInput.m_NextInventoryItem).m_Presses;
 	int Prev = CountInput(m_LatestPrevInput.m_PrevInventoryItem, m_LatestInput.m_PrevInventoryItem).m_Presses;
 
-	dbg_msg("TEEM", "Pasa por ak! AA: %d -- %d", Next, Prev);
-
 	if(Next < 128) // make sure we only try sane stuff
 	{
 		while(Next) // Next Weapon selection
 		{
-			dbg_msg("TEEM", "Pasa por ak! BB");
 			WantedInventoryItem = min(WantedInventoryItem+1, NUM_ITEMS_INVENTORY-1);
 			if (m_FastInventory[WantedInventoryItem].m_ItemId != 0)
 				m_ActiveInventoryItem = WantedInventoryItem;
+			else
+				++WantedInventoryItem;
 			Next--;
 		}
 	}
@@ -187,6 +186,8 @@ void CCharacter::HandleInventoryItemSwitch()
 			WantedInventoryItem = max(WantedInventoryItem-1, 0);
 			if (m_FastInventory[WantedInventoryItem].m_ItemId != 0)
 				m_ActiveInventoryItem = WantedInventoryItem;
+			else
+				--WantedInventoryItem;
 			Prev--;
 		}
 	}
