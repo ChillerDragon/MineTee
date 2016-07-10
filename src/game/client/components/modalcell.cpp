@@ -58,7 +58,6 @@ bool CModalCell::OnInput(IInput::CEvent e)
 		if(e.m_Key == KEY_ESCAPE)
 		{
 			m_EscapePressed = true;
-			m_pClient->m_CellsToken = -1;
 			m_pClient->m_CellsType = -1;
 			mem_free(m_pClient->m_apLatestCells);
 			m_pClient->m_apLatestCells = 0x0;
@@ -79,7 +78,7 @@ void CModalCell::OnRender()
 		return;
 	}
 
-	if (m_pClient->m_apLatestCells && m_pClient->m_CellsToken != -1)
+	if (m_pClient->m_apLatestCells)
 	{
 		m_Active = true;
 		CUIRect Screen = *UI()->Screen();
@@ -108,7 +107,7 @@ void CModalCell::OnRender()
 			Chest.Margin(5.0f, &Chest);
 			const float CellSize = Chest.w/9.0f;
 			CUIRect Button, ButtonLine;
-			for (int y=0; y<3; y++)
+			for (int y=1; y<3; y++)
 			{
 				Chest.HSplitTop(30.0f, &ButtonLine, &Chest);
 				for (int x=0; x<9; x++)
@@ -117,6 +116,14 @@ void CModalCell::OnRender()
 					Button.Margin(3.0f, &Button);
 					RenderTools()->DrawUIRect(&Button, vec4(1.0f,1.0f,1.0f,0.5f), 0, 10.0f);
 				}
+			}
+
+			Chest.HSplitTop(60.0f, &ButtonLine, &Chest);
+			for (int x=0; x<9; x++)
+			{
+				ButtonLine.VSplitLeft(CellSize, &Button, &ButtonLine);
+				Button.Margin(3.0f, &Button);
+				RenderTools()->DrawUIRect(&Button, vec4(1.0f,1.0f,1.0f,0.5f), 0, 10.0f);
 			}
 		}
 

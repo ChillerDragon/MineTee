@@ -120,7 +120,7 @@ void CItems::RenderPickup(const CNetObj_Pickup *pPrev, const CNetObj_Pickup *pCu
         float ScreenX0, ScreenY0, ScreenX1, ScreenY1;
         Graphics()->GetScreen(&ScreenX0, &ScreenY0, &ScreenX1, &ScreenY1);
 
-        CMapItemLayerTilemap *pTMap = (CMapItemLayerTilemap *)Layers()->MineTeeLayer();
+        //CMapItemLayerTilemap *pTMap = (CMapItemLayerTilemap *)Layers()->MineTeeLayer();
         vec2 Pos = mix(vec2(pPrev->m_X, pPrev->m_Y), vec2(pCurrent->m_X, pCurrent->m_Y), Client()->IntraGameTick());
 
         float Offset = Pos.y/32.0f + Pos.x/32.0f;
@@ -145,23 +145,11 @@ void CItems::RenderPickup(const CNetObj_Pickup *pPrev, const CNetObj_Pickup *pCu
         }
 
         if (pCurrent->m_Type == POWERUP_BLOCK)
-            RenderTools()->RenderTile(pCurrent->m_Subtype, Pos, 16.0f);
+        	RenderTools()->RenderItem(NUM_WEAPONS+pCurrent->m_Subtype, Pos, m_pClient->m_pMapimages->Get(Layers()->MineTeeLayer()->m_Image), 16.0f, vec2(24.0f, 16.0f));
         else
         {
         	const int ItemID = pCurrent->m_Type-POWERUP_DROPITEM;
-        	if (ItemID < NUM_WEAPONS)
-        	{
-        		Graphics()->TextureSet(g_pData->m_aImages[IMAGE_GAME].m_Id);
-        		Graphics()->QuadsBegin();
-        		RenderTools()->SelectSprite(g_pData->m_Weapons.m_aId[clamp(pCurrent->m_Subtype, 0, NUM_WEAPONS-1)].m_pSpriteBody);
-        		RenderTools()->DrawSprite(Pos.x, Pos.y, 32.0f);
-        		Graphics()->QuadsEnd();
-        	}
-        	else
-        	{
-        		Graphics()->TextureSet((!pTMap || pTMap->m_Image == -1)?-1:m_pClient->m_pMapimages->Get(pTMap->m_Image));
-        		RenderTools()->RenderTile(ItemID-NUM_WEAPONS, Pos, 16.0f);
-        	}
+			RenderTools()->RenderItem(ItemID, Pos, m_pClient->m_pMapimages->Get(Layers()->MineTeeLayer()->m_Image), 16.0f, vec2(24.0f, 16.0f));
 
             char aBuf[4];
             str_format(aBuf, sizeof(aBuf), "x%i", pCurrent->m_Subtype);

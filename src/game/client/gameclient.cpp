@@ -290,7 +290,6 @@ void CGameClient::OnInit()
 	m_ServerMode = SERVERMODE_PURE;
 
 	// MineTee
-	m_CellsToken = -1;
 	m_CellsType = -1;
 	m_NumCells = 0;
 	m_apLatestCells = 0x0;
@@ -1270,11 +1269,10 @@ void CGameClient::GetServerTime(bool *pIsDay, int64 *pTime)
     *pIsDay = (*pTime%static_cast<int>(m_Tuning.m_DayNightDuration) < m_Tuning.m_DayNightDuration/2.0f);
 }
 
-void CGameClient::SetLastestCellsData(CCellData *pData, int NumItems, int CellsType, int TokenID)
+void CGameClient::SetLastestCellsData(CCellData *pData, int NumItems, int CellsType)
 {
 	mem_free(m_apLatestCells);
 	m_apLatestCells = pData;
 	m_NumCells = NumItems;
-	m_CellsToken = TokenID;
 	m_CellsType = CellsType;
 }

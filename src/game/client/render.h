@@ -84,6 +84,7 @@ public:
 
 	// MineTee
 	void RenderTile(int Index, vec2 Pos, float Scale, float Alpha = 1.0f, float Rot = 0.0f);
+	void RenderItem(int ItemID, vec2 Pos, int TextureBlocks, float Scale, vec2 WeaponSize, float Alpha = 1.0f, float Rot = 0.0f);
 };
 
 #endif

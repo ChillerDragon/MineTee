@@ -569,7 +569,7 @@ weapon.firedelay.Set(500) # TODO: fix this
 weapon.visual_size.Set(96)
 weapon.offsetx.Set(24)
 weapon.offsety.Set(-2)
-weapon.blockdamage.Set(5) # MineTee
+weapon.blockdamage.Set(4) # MineTee
 container.weapons.grenade.base.Set(weapon)
 container.weapons.id.Add(weapon)
 

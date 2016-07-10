@@ -583,21 +583,7 @@ void CHud::RenderInventoryHud()
 			float x = (m_Width/2-outboxSize/2)+5.0f+3.0f+(i*cellSize)+(3.0f*i);
 			float y = m_Height-30.f;
 
-			if (item >= NUM_WEAPONS)
-			{
-				Graphics()->TextureSet(m_pClient->m_pMapimages->Get(Layers()->MineTeeLayer()->m_Image));
-				RenderTools()->RenderTile((item-NUM_WEAPONS)%CBlockManager::MAX_BLOCKS, vec2(x+7.5f, y+3.5f), 8.0f);
-			}
-			else
-			{
-				Graphics()->TextureSet(g_pData->m_aImages[IMAGE_GAME].m_Id);
-				Graphics()->QuadsBegin();
-					RenderTools()->SelectSprite(g_pData->m_Weapons.m_aId[item%NUM_WEAPONS].m_pSpriteBody);
-					Graphics()->SetColor(1.0f, 1.0f, 1.0f, 1.0f);
-					IGraphics::CQuadItem QuadItem(x,y,24,16);
-					Graphics()->QuadsDrawTL(&QuadItem, 1);
-				Graphics()->QuadsEnd();
-			}
+			RenderTools()->RenderItem(item, vec2(x, y), m_pClient->m_pMapimages->Get(Layers()->MineTeeLayer()->m_Image), 8.0f, vec2(24.0f, 16.0f));
 
 			str_format(buff, sizeof(buff), "%i", ammo);
 			float TWidth = TextRender()->TextWidth(0, 8.0f, buff, -1);

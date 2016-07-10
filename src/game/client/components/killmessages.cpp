@@ -7,6 +7,7 @@
 
 #include <game/client/gameclient.h>
 #include <game/client/animstate.h>
+#include "mapimages.h" // MineTee
 #include "killmessages.h"
 
 void CKillMessages::OnReset()
@@ -97,11 +98,16 @@ void CKillMessages::OnRender()
 		x -= 44.0f;
 		if (m_aKillmsgs[r].m_Weapon >= 0)
 		{
-			Graphics()->TextureSet(g_pData->m_aImages[IMAGE_GAME].m_Id);
-			Graphics()->QuadsBegin();
-			RenderTools()->SelectSprite(g_pData->m_Weapons.m_aId[m_aKillmsgs[r].m_Weapon].m_pSpriteBody);
-			RenderTools()->DrawSprite(x, y+28, 96);
-			Graphics()->QuadsEnd();
+			if (m_aKillmsgs[r].m_Weapon >= NUM_WEAPONS)
+				RenderTools()->RenderItem(m_aKillmsgs[r].m_Weapon, vec2(x,y+28), m_pClient->m_pMapimages->Get(Layers()->MineTeeLayer()->m_Image), 16.0f, vec2(0,0));
+			else
+			{
+				Graphics()->TextureSet(g_pData->m_aImages[IMAGE_GAME].m_Id);
+				Graphics()->QuadsBegin();
+				RenderTools()->SelectSprite(g_pData->m_Weapons.m_aId[m_aKillmsgs[r].m_Weapon].m_pSpriteBody);
+				RenderTools()->DrawSprite(x, y+28, 96);
+				Graphics()->QuadsEnd();
+			}
 		}
 		x -= 52.0f;
 

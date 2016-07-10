@@ -331,3 +331,68 @@ void CRenderTools::RenderTilemapGenerateSkip(class CLayers *pLayers)
 		}
 	}
 }
+
+// MineTee
+void CRenderTools::RenderTile(int Index, vec2 Pos, float Scale, float Alpha, float Rot)
+{
+	float ScreenX0, ScreenY0, ScreenX1, ScreenY1;
+	Graphics()->GetScreen(&ScreenX0, &ScreenY0, &ScreenX1, &ScreenY1);
+
+	// calculate the final pixelsize for the tiles
+	float TilePixelSize = 1024/32.0f;
+	float FinalTileSize = Scale/(ScreenX1-ScreenX0) * Graphics()->ScreenWidth();
+	float FinalTilesetScale = FinalTileSize/TilePixelSize;
+
+
+	Graphics()->QuadsBegin();
+	Graphics()->SetColor(1.0f, 1.0f, 1.0f, Alpha);
+
+	// adjust the texture shift according to mipmap level
+	float TexSize = 1024.0f;
+	float Frac = (1.25f/TexSize) * (1/FinalTilesetScale);
+	float Nudge = (0.5f/TexSize) * (1/FinalTilesetScale);
+
+    int tx = Index%16;
+    int ty = Index/16;
+    int Px0 = tx*(1024/16);
+    int Py0 = ty*(1024/16);
+    int Px1 = Px0+(1024/16)-1;
+    int Py1 = Py0+(1024/16)-1;
+
+    float x0 = Nudge + Px0/TexSize+Frac;
+    float y0 = Nudge + Py0/TexSize+Frac;
+    float x1 = Nudge + Px1/TexSize-Frac;
+    float y1 = Nudge + Py0/TexSize+Frac;
+    float x2 = Nudge + Px1/TexSize-Frac;
+    float y2 = Nudge + Py1/TexSize-Frac;
+    float x3 = Nudge + Px0/TexSize+Frac;
+    float y3 = Nudge + Py1/TexSize-Frac;
+
+    Graphics()->QuadsSetSubsetFree(x0, y0, x1, y1, x2, y2, x3, y3);
+    IGraphics::CQuadItem QuadItem(Pos.x, Pos.y, Scale, Scale);
+    Graphics()->QuadsSetRotation(Rot);
+    Graphics()->QuadsDrawTL(&QuadItem, 1);
+
+	Graphics()->QuadsEnd();
+	//Graphics()->MapScreen(ScreenX0, ScreenY0, ScreenX1, ScreenY1);
+}
+
+void CRenderTools::RenderItem(int ItemID, vec2 Pos, int TextureBlocks, float Scale, vec2 WeaponSize, float Alpha, float Rot)
+{
+	if (ItemID >= NUM_WEAPONS)
+	{
+		Graphics()->TextureSet(TextureBlocks);
+		RenderTile((ItemID-NUM_WEAPONS)%CBlockManager::MAX_BLOCKS, vec2(Pos.x+7.5f, Pos.y+3.5f), Scale, Alpha, Rot);
+	}
+	else
+	{
+		Graphics()->TextureSet(g_pData->m_aImages[IMAGE_GAME].m_Id);
+		Graphics()->QuadsBegin();
+			SelectSprite(g_pData->m_Weapons.m_aId[ItemID%NUM_WEAPONS].m_pSpriteBody);
+			Graphics()->SetColor(1.0f, 1.0f, 1.0f, Alpha);
+			IGraphics::CQuadItem QuadItem(Pos.x, Pos.y, WeaponSize.x, WeaponSize.y);
+			Graphics()->QuadsSetRotation(Rot);
+			Graphics()->QuadsDrawTL(&QuadItem, 1);
+		Graphics()->QuadsEnd();
+	}
+}

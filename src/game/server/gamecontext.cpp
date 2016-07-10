@@ -120,7 +120,7 @@ void CGameContext::CreateHammerHit(vec2 Pos)
 }
 
 // MineTee
-void CGameContext::CreateExplosion(vec2 Pos, int Owner, int Weapon, bool NoDamage)
+void CGameContext::CreateExplosion(vec2 Pos, int Owner, int ItemID, bool NoDamage)
 {
 	// create the event
 	CNetEvent_Explosion *pEvent = (CNetEvent_Explosion *)m_Events.Create(NETEVENTTYPE_EXPLOSION, sizeof(CNetEvent_Explosion));
@@ -130,8 +130,14 @@ void CGameContext::CreateExplosion(vec2 Pos, int Owner, int Weapon, bool NoDamag
 		pEvent->m_Y = (int)Pos.y;
 	}
 
-	const float Radius = 135.0f;
-	const float InnerRadius = 48.0f;
+	float Radius = 135.0f;
+	float InnerRadius = 48.0f;
+
+	if (ItemID >= NUM_WEAPONS)
+	{
+		Radius = 230.0f;
+		InnerRadius = 160.0f;
+	}
 
 	if (!NoDamage)
 	{
@@ -148,60 +154,50 @@ void CGameContext::CreateExplosion(vec2 Pos, int Owner, int Weapon, bool NoDamag
 			l = 1-clamp((l-InnerRadius)/(Radius-InnerRadius), 0.0f, 1.0f);
 			float Dmg = 6 * l;
 			if((int)Dmg)
-				apEnts[i]->TakeDamage(ForceDir*Dmg*2, (int)Dmg, Owner, Weapon);
+				apEnts[i]->TakeDamage(ForceDir*Dmg*2, (int)Dmg, Owner, ItemID);
 		}
 	}
 
 	// MineTee: Destroy Map
     if (IsMineTeeSrv() && !NoDamage)
     {
-        vec2 ColTilePos = Pos;
-        vec2 ColPos[] = {
-                        vec2(ColTilePos.x, ColTilePos.y),
-                        vec2(ColTilePos.x+32.0f,ColTilePos.y),
-                        vec2(ColTilePos.x,ColTilePos.y+32.0f),
-                        vec2(ColTilePos.x+32.0f,ColTilePos.y+32.0f),
-                        vec2(ColTilePos.x-32.0f,ColTilePos.y),
-                        vec2(ColTilePos.x-32.0f,ColTilePos.y-32.0f),
-                        vec2(ColTilePos.x,ColTilePos.y-32.0f),
-                        vec2(ColTilePos.x+32.0f,ColTilePos.y-32.0f),
-                        vec2(ColTilePos.x-32.0f,ColTilePos.y+32.0f)
-                        };
+		int ExplosionSize = 8; // Magic Value. TODO: Get From blocks.json
+		if (ItemID < NUM_WEAPONS)
+			ExplosionSize = g_pData->m_Weapons.m_aId[ItemID].m_Blockdamage;
 
-        for (int e=0; e<9; e++)
+        for (int e=0; e<=ExplosionSize; e++)
         {
-            vec2 Direction = normalize(Pos - ColPos[e]);
-            if (distance(Pos, ColPos[e]) == 0)
-                Direction = vec2(0.01f, 0.01f);
-            vec2 finishPosPost = ColPos[e];
+            const int ff = (ExplosionSize-e)/2;
+            for (int i=ff; i>=-ff; i--)
+                for (int o=-ff; o<=ff; o++)
+                {
+                	vec2 finishPosPost = vec2(Pos.x+(o*32), Pos.y-(i*32));
+                	if (Collision()->GetCollisionAt(finishPosPost.x, finishPosPost.y) == CCollision::COLFLAG_SOLID)
+                	{
+                    	const ivec2 TilePos(finishPosPost.x/32, finishPosPost.y/32);
+                    	CTile *pTile = Collision()->GetMineTeeTileAt(finishPosPost);
+                        if (!pTile || pTile->m_Index <= 0)
+                            continue;
 
-            if (Collision()->GetCollisionAt(finishPosPost.x, finishPosPost.y) == CCollision::COLFLAG_SOLID)
-            {
-            	const ivec2 TilePos(finishPosPost.x/32, finishPosPost.y/32);
-            	CTile *pTile = Collision()->GetMineTeeTileAt(finishPosPost);
-                if (!pTile || pTile->m_Index <= 0)
-                    continue;
+            			vec2 Diff = finishPosPost - Pos;
+            			float l = length(Diff);
+            			l = 1-clamp((l-InnerRadius)/(Radius-InnerRadius), 0.0f, 1.0f);
 
-    			vec2 Diff = finishPosPost - Pos;
-    			vec2 ForceDir(0,1);
-    			float l = length(Diff);
-    			if(l)
-    				ForceDir = normalize(Diff);
-    			l = 1-clamp((l-InnerRadius)/(Radius-InnerRadius), 0.0f, 1.0f);
-    			float Dmg = pTile->m_Reserved-g_pData->m_Weapons.m_aId[Weapon].m_Blockdamage * l;
-    			if((int)Dmg)
-    			{
-					const int MTTIndex = pTile->m_Index;
-					pTile->m_Reserved =Dmg ;
+            			const int Dmg = ExplosionSize * l;
+            			if(Dmg)
+            			{
+        					const int MTTIndex = pTile->m_Index;
+        					pTile->m_Reserved = max(pTile->m_Reserved-Dmg, 0) ;
 
-					if (pTile->m_Reserved == 0)
-						m_pController->OnPlayerDestroyBlock(Owner, TilePos, MTTIndex);
-					else
-						SendTileModif(ALL_PLAYERS, TilePos, Layers()->GetMineTeeGroupIndex(),  Layers()->GetMineTeeLayerIndex(), MTTIndex, pTile->m_Flags, pTile->m_Reserved);
+        					if (pTile->m_Reserved == 0)
+        						m_pController->OnPlayerDestroyBlock(Owner, TilePos, MTTIndex);
+        					else
+        						SendTileModif(ALL_PLAYERS, TilePos, Layers()->GetMineTeeGroupIndex(),  Layers()->GetMineTeeLayerIndex(), MTTIndex, pTile->m_Flags, pTile->m_Reserved);
 
-					CreateSound(finishPosPost, SOUND_DESTROY_BLOCK);
-    			}
-            }
+        					CreateSound(finishPosPost, SOUND_DESTROY_BLOCK);
+            			}
+                	}
+                }
         }
     }
 }

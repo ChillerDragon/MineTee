@@ -663,28 +663,31 @@ void CGameControllerMineTee::OnPlayerDestroyBlock(int ClientID, ivec2 TilePos, i
 
 	if (pBlockInfo->m_Explode)
 	{
-		GameServer()->CreateExplosion(WorldTilePos, ClientID, WEAPON_WORLD, false);
+		GameServer()->CreateExplosion(WorldTilePos, ClientID, BlockID, false);
 		GameServer()->CreateSound(WorldTilePos, SOUND_GRENADE_EXPLODE);
-	}
-	if (pBlockInfo->m_vOnBreak.size() > 0)
-	{
-		for (std::map<int, unsigned char>::iterator it = pBlockInfo->m_vOnBreak.begin(); it != pBlockInfo->m_vOnBreak.end(); it++)
-		{
-			if (it->first == 0)
-			{
-				++it;
-				continue;
-			}
-
-			CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, it->first);
-			pPickup->m_Pos = WorldTilePos + vec2(8.0f, 8.0f);
-			pPickup->m_Amount = it->second;
-		}
 	}
 	else
 	{
-		CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, BlockID);
-		pPickup->m_Pos = WorldTilePos + vec2(8.0f, 8.0f);
+		if (pBlockInfo->m_vOnBreak.size() > 0)
+		{
+			for (std::map<int, unsigned char>::iterator it = pBlockInfo->m_vOnBreak.begin(); it != pBlockInfo->m_vOnBreak.end(); it++)
+			{
+				if (it->first == 0)
+				{
+					++it;
+					continue;
+				}
+
+				CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, it->first);
+				pPickup->m_Pos = WorldTilePos + vec2(8.0f, 8.0f);
+				pPickup->m_Amount = it->second;
+			}
+		}
+		else
+		{
+			CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, BlockID);
+			pPickup->m_Pos = WorldTilePos + vec2(8.0f, 8.0f);
+		}
 	}
 
 	GameServer()->CreateSound(WorldTilePos, SOUND_DESTROY_BLOCK);

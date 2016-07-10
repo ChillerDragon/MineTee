@@ -132,7 +132,7 @@ public:
 			weapon - What weapon that killed it. Can be -1 for undefined
 				weapon when switching team or player suicides.
 	*/
-	virtual int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon);
+	virtual int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int ItemID);
 
 
 	virtual void OnPlayerInfoChange(class CPlayer *pP);

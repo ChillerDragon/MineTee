@@ -342,7 +342,7 @@ void CCharacter::Construct()
 
 void CCharacter::UseInventoryItem(int Index)
 {
-	if (m_FastInventory[Index].m_ItemId != -1)
+	if (m_FastInventory[Index].m_ItemId != 0)
 	{
 		CCellData *pCellData = &m_FastInventory[Index];
 		--pCellData->m_Amount;
@@ -886,17 +886,17 @@ bool CCharacter::IncreaseArmor(int Amount)
 	return true;
 }
 
-void CCharacter::Die(int Killer, int Weapon)
+void CCharacter::Die(int Killer, int ItemID)
 {
 	// we got to wait 0.5 secs or 20 if bot before respawning
 	float RespawnTick = (m_pPlayer->IsBot())?Server()->TickSpeed()*20:Server()->TickSpeed()/2; // MineTee
     m_pPlayer->m_RespawnTick = Server()->Tick()+RespawnTick;
-	int ModeSpecial = GameServer()->m_pController->OnCharacterDeath(this, GameServer()->m_apPlayers[Killer], Weapon);
+	int ModeSpecial = GameServer()->m_pController->OnCharacterDeath(this, GameServer()->m_apPlayers[Killer], ItemID);
 
 	char aBuf[256];
 	str_format(aBuf, sizeof(aBuf), "kill killer='%d:%d:%s' victim='%d:%d:%s' weapon=%d special=%d",
 		Killer, GameServer()->m_apPlayers[Killer]->GetTeam(), Server()->ClientName(Killer),
-		m_pPlayer->GetCID(), m_pPlayer->GetTeam(), Server()->ClientName(m_pPlayer->GetCID()), Weapon, ModeSpecial); // MineTee
+		m_pPlayer->GetCID(), m_pPlayer->GetTeam(), Server()->ClientName(m_pPlayer->GetCID()), ItemID, ModeSpecial); // MineTee
 	GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
 
 	// send the kill message
@@ -905,7 +905,7 @@ void CCharacter::Die(int Killer, int Weapon)
 		CNetMsg_Sv_KillMsg Msg;
 		Msg.m_Killer = Killer;
 		Msg.m_Victim = m_pPlayer->GetCID();
-		Msg.m_Weapon = Weapon;
+		Msg.m_Weapon = ItemID;
 		Msg.m_ModeSpecial = ModeSpecial;
 		Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, -1);
 	}
@@ -928,7 +928,7 @@ void CCharacter::Die(int Killer, int Weapon)
 	}
 }
 
-bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
+bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int ItemID)
 {
 	m_Core.m_Vel += Force;
 
@@ -995,7 +995,7 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 	// check for death
 	if(m_Health <= 0)
 	{
-		Die(From, Weapon);
+		Die(From, ItemID);
 
 		// set attacker's face to happy (taunt!)
 		if (From >= 0 && From != m_pPlayer->GetCID() && GameServer()->m_apPlayers[From])

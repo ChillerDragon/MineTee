@@ -1419,7 +1419,6 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 		else if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_CELLS_DATA)
 		{
 			const int CellsType = Unpacker.GetInt();
-			const int TokenID = Unpacker.GetInt();
 			const int Size = Unpacker.GetInt();
 			const unsigned char *pData = Unpacker.GetRaw(Size);
 
@@ -1433,7 +1432,7 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 					return;
 				CCellData *apCells = (CCellData*)mem_alloc(Size,1);
 				mem_copy(apCells, pData, Size);
-				m_pGameClient->SetLastestCellsData(apCells, NumItems, CellsType, TokenID);
+				m_pGameClient->SetLastestCellsData(apCells, NumItems, CellsType);
 			}
 		}
 	}

@@ -277,9 +277,8 @@ public:
 
 	CCellData *m_apLatestCells;
 	unsigned m_NumCells;
-	int m_CellsToken;
 	int m_CellsType;
-	virtual void SetLastestCellsData(CCellData *pData, int NumItems, int CellsType, int TokenID);
+	virtual void SetLastestCellsData(CCellData *pData, int NumItems, int CellsType);
 };
 
 

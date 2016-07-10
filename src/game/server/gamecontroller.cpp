@@ -352,10 +352,10 @@ void CGameController::OnPlayerInfoChange(class CPlayer *pP)
 }
 
 
-int CGameController::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon)
+int CGameController::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int ItemID)
 {
 	// do scoreing
-	if(!pKiller || Weapon == WEAPON_GAME)
+	if(!pKiller || ItemID == WEAPON_GAME)
 		return 0;
 	if(pKiller == pVictim->GetPlayer())
 		pVictim->GetPlayer()->m_Score--; // suicide
@@ -366,7 +366,7 @@ int CGameController::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *
 		else
 			pKiller->m_Score++; // normal kill
 	}
-	if(Weapon == WEAPON_SELF)
+	if(ItemID == WEAPON_SELF)
 		pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*3.0f;
 	return 0;
 }
