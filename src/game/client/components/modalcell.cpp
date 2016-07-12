@@ -84,8 +84,6 @@ bool CModalCell::OnInput(IInput::CEvent e)
 
 void CModalCell::OnRender()
 {
-	static int SelectedIndex = -1;
-
 	if(m_pClient->m_Snap.m_SpecInfo.m_Active)
 	{
 		m_Active = false;
@@ -108,117 +106,9 @@ void CModalCell::OnRender()
 		Graphics()->TextureSet(-1);
 
 		if (m_pClient->m_CellsType == CELLS_CHEST)
-		{
-			const int NumRows = (m_pClient->m_NumCells-NUM_CELLS_LINE)/NUM_CELLS_LINE; // One line for fast inventory (the first 9 cells)
-
-			CUIRect Modal = MainView;
-			Modal.h = (NumRows+3.0f)*30.0f+5.0f;
-			Modal.y = Screen.h/2.0f - Modal.h/2.0f;
-			// render background
-			RenderTools()->DrawUIRect(&Modal, vec4(0,0,0,0.5f), CUI::CORNER_T, 10.0f);
-
-			Modal.Margin(5.0f, &Modal);
-
-			CUIRect Title;
-			Modal.HSplitTop(30.0f, &Title, &Modal);
-			TextRender()->TextColor(1.0f, 1.0f, 1.0f, 0.85f);
-			TextRender()->Text(0x0, Title.x, Title.y, 28.0f, "CHEST", -1);
-			TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
-
-			Modal.HSplitTop(10.0f, 0x0, &Modal);
-
-			int CurItemID = -1;
-			const float CellSize = Modal.w/NUM_CELLS_LINE;
-			CUIRect Button, ButtonLine;
-			int InvIndex = NUM_CELLS_LINE;
-			for (int y=0; y<NumRows; y++)
-			{
-				Modal.HSplitTop(30.0f, &ButtonLine, &Modal);
-				for (int x=0; x<NUM_CELLS_LINE; x++)
-				{
-					CurItemID = m_pClient->m_apLatestCells[InvIndex].m_ItemId;
-					ButtonLine.VSplitLeft(CellSize, &Button, &ButtonLine);
-					Button.Margin(3.0f, &Button);
-					RenderTools()->DrawUIRect(&Button, vec4(1.0f,1.0f,1.0f,0.5f), 0, 10.0f);
-					if (CurItemID != 0 && SelectedIndex != InvIndex)
-					{
-						vec2 DPos = vec2(Button.x+(Button.w/2-8.0f), Button.y+(Button.h/2-8.0f));
-						if (CurItemID >= NUM_WEAPONS)
-							DPos = vec2(Button.x+(Button.w/2-16.0f), Button.y+(Button.h/2-12.0f));
-
-						RenderTools()->RenderItem(CurItemID, DPos, m_pClient->m_pMapimages->Get(Layers()->MineTeeLayer()->m_Image), 16.0f, vec2(24.0f, 16.0f));
-
-						TextRender()->TextColor(1.0f, 1.0f, 1.0f, 0.85f);
-						char aBuf[8];
-						str_format(aBuf, sizeof(aBuf), "x%d", m_pClient->m_apLatestCells[InvIndex].m_Amount);
-						TextRender()->Text(0x0, Button.x+2.0f, Button.y, 8.0f, aBuf, -1);
-						TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
-
-						if (SelectedIndex == -1 && Button.Contains(m_SelectorMouse) && m_MousePressed)
-							SelectedIndex = InvIndex;
-					}
-
-					if (SelectedIndex != -1 && Button.Contains(m_SelectorMouse) && !m_MousePressed)
-					{
-						MoveItem(SelectedIndex, InvIndex);
-						SelectedIndex = -1;
-					}
-
-					++InvIndex;
-				}
-			}
-
-			Modal.HSplitTop(15.0f, &ButtonLine, &Modal);
-			Modal.HSplitTop(30.0f, &ButtonLine, &Modal);
-			for (int x=0; x<NUM_CELLS_LINE; x++)
-			{
-				CurItemID = m_pClient->m_apLatestCells[x].m_ItemId;
-				ButtonLine.VSplitLeft(CellSize, &Button, &ButtonLine);
-				Button.Margin(3.0f, &Button);
-				RenderTools()->DrawUIRect(&Button, vec4(1.0f,1.0f,1.0f,0.5f), 0, 10.0f);
-				if (CurItemID != 0 && SelectedIndex != x)
-				{
-					vec2 DPos = vec2(Button.x+(Button.w/2-8.0f), Button.y+(Button.h/2-8.0f));
-					if (CurItemID >= NUM_WEAPONS)
-						DPos = vec2(Button.x+(Button.w/2-16.0f), Button.y+(Button.h/2-12.0f));
-
-					RenderTools()->RenderItem(CurItemID, DPos, m_pClient->m_pMapimages->Get(Layers()->MineTeeLayer()->m_Image), 16.0f, vec2(24.0f, 16.0f));
-
-					TextRender()->TextColor(1.0f, 1.0f, 1.0f, 0.85f);
-					char aBuf[8];
-					str_format(aBuf, sizeof(aBuf), "x%d", m_pClient->m_apLatestCells[x].m_Amount);
-					TextRender()->Text(0x0, Button.x+2.0f, Button.y, 8.0f, aBuf, -1);
-					TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
-
-					if (SelectedIndex == -1 && Button.Contains(m_SelectorMouse) && m_MousePressed)
-						SelectedIndex = x;
-				}
-				if (SelectedIndex != -1 && Button.Contains(m_SelectorMouse) && !m_MousePressed)
-				{
-					MoveItem(SelectedIndex, x);
-					SelectedIndex = -1;
-				}
-			}
-
-			if (SelectedIndex != -1)
-			{
-				if (!m_MousePressed)
-				{
-					MoveItem(SelectedIndex, -1);
-					SelectedIndex = -1;
-				}
-				else
-				{
-					RenderTools()->RenderItem(m_pClient->m_apLatestCells[SelectedIndex].m_ItemId, vec2(m_SelectorMouse.x-12.0f, m_SelectorMouse.y-12.0f), m_pClient->m_pMapimages->Get(Layers()->MineTeeLayer()->m_Image), 16.0f, vec2(24.0f, 16.0f));
-
-					TextRender()->TextColor(1.0f, 1.0f, 1.0f, 0.85f);
-					char aBuf[8];
-					str_format(aBuf, sizeof(aBuf), "x%d", m_pClient->m_apLatestCells[SelectedIndex].m_Amount);
-					TextRender()->Text(0x0, m_SelectorMouse.x-12.0f, m_SelectorMouse.y-12.0f, 8.0f, aBuf, -1);
-					TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
-				}
-			}
-		}
+			RenderChest(MainView);
+		else if (m_pClient->m_CellsType == CELLS_INVENTORY)
+			RenderInventory(MainView);
 
 		Graphics()->TextureSet(g_pData->m_aImages[IMAGE_CURSOR].m_Id);
 		Graphics()->QuadsBegin();
@@ -244,4 +134,232 @@ void CModalCell::MoveItem(int From, int To)
 	}
 
 	Client()->SendMoveCell(From, To);
+}
+
+void CModalCell::RenderChest(CUIRect MainView)
+{
+	static int SelectedIndex = -1;
+	const int NumRows = (m_pClient->m_NumCells-NUM_CELLS_LINE)/NUM_CELLS_LINE; // One line for fast inventory (the first 9 cells)
+
+	CUIRect Modal = MainView;
+	Modal.h = (NumRows+3.0f)*30.0f+5.0f;
+	Modal.y = MainView.h/2.0f;
+	// render background
+	RenderTools()->DrawUIRect(&Modal, vec4(0,0,0,0.5f), CUI::CORNER_T, 10.0f);
+
+	Modal.Margin(5.0f, &Modal);
+
+	CUIRect Title;
+	Modal.HSplitTop(30.0f, &Title, &Modal);
+	TextRender()->TextColor(1.0f, 1.0f, 1.0f, 0.85f);
+	TextRender()->Text(0x0, Title.x, Title.y, 28.0f, "CHEST", -1);
+	TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+	Modal.HSplitTop(10.0f, 0x0, &Modal);
+
+	int CurItemID = -1;
+	const float CellSize = Modal.w/NUM_CELLS_LINE;
+	CUIRect Button, ButtonLine;
+	int InvIndex = NUM_CELLS_LINE;
+	for (int y=0; y<NumRows; y++)
+	{
+		Modal.HSplitTop(30.0f, &ButtonLine, &Modal);
+		for (int x=0; x<NUM_CELLS_LINE; x++)
+		{
+			CurItemID = m_pClient->m_apLatestCells[InvIndex].m_ItemId;
+			ButtonLine.VSplitLeft(CellSize, &Button, &ButtonLine);
+			Button.Margin(3.0f, &Button);
+			RenderTools()->DrawUIRect(&Button, vec4(1.0f,1.0f,1.0f,0.5f), 0, 10.0f);
+			if (CurItemID != 0 && SelectedIndex != InvIndex)
+			{
+				vec2 DPos = vec2(Button.x+(Button.w/2-8.0f), Button.y+(Button.h/2-8.0f));
+				if (CurItemID >= NUM_WEAPONS)
+					DPos = vec2(Button.x+(Button.w/2-16.0f), Button.y+(Button.h/2-12.0f));
+
+				RenderTools()->RenderItem(CurItemID, DPos, m_pClient->m_pMapimages->Get(Layers()->MineTeeLayer()->m_Image), 16.0f, vec2(24.0f, 16.0f));
+
+				TextRender()->TextColor(1.0f, 1.0f, 1.0f, 0.85f);
+				char aBuf[8];
+				str_format(aBuf, sizeof(aBuf), "x%d", m_pClient->m_apLatestCells[InvIndex].m_Amount);
+				TextRender()->Text(0x0, Button.x+2.0f, Button.y, 8.0f, aBuf, -1);
+				TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+				if (SelectedIndex == -1 && Button.Contains(m_SelectorMouse) && m_MousePressed)
+					SelectedIndex = InvIndex;
+			}
+
+			if (SelectedIndex != -1 && Button.Contains(m_SelectorMouse) && !m_MousePressed)
+			{
+				MoveItem(SelectedIndex, InvIndex);
+				SelectedIndex = -1;
+			}
+
+			++InvIndex;
+		}
+	}
+
+	Modal.HSplitTop(15.0f, &ButtonLine, &Modal);
+	Modal.HSplitTop(30.0f, &ButtonLine, &Modal);
+	for (int x=0; x<NUM_CELLS_LINE; x++)
+	{
+		CurItemID = m_pClient->m_apLatestCells[x].m_ItemId;
+		ButtonLine.VSplitLeft(CellSize, &Button, &ButtonLine);
+		Button.Margin(3.0f, &Button);
+		RenderTools()->DrawUIRect(&Button, vec4(1.0f,1.0f,1.0f,0.5f), 0, 10.0f);
+		if (CurItemID != 0 && SelectedIndex != x)
+		{
+			vec2 DPos = vec2(Button.x+(Button.w/2-8.0f), Button.y+(Button.h/2-8.0f));
+			if (CurItemID >= NUM_WEAPONS)
+				DPos = vec2(Button.x+(Button.w/2-16.0f), Button.y+(Button.h/2-12.0f));
+
+			RenderTools()->RenderItem(CurItemID, DPos, m_pClient->m_pMapimages->Get(Layers()->MineTeeLayer()->m_Image), 16.0f, vec2(24.0f, 16.0f));
+
+			TextRender()->TextColor(1.0f, 1.0f, 1.0f, 0.85f);
+			char aBuf[8];
+			str_format(aBuf, sizeof(aBuf), "x%d", m_pClient->m_apLatestCells[x].m_Amount);
+			TextRender()->Text(0x0, Button.x+2.0f, Button.y, 8.0f, aBuf, -1);
+			TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+			if (SelectedIndex == -1 && Button.Contains(m_SelectorMouse) && m_MousePressed)
+				SelectedIndex = x;
+		}
+		if (SelectedIndex != -1 && Button.Contains(m_SelectorMouse) && !m_MousePressed)
+		{
+			MoveItem(SelectedIndex, x);
+			SelectedIndex = -1;
+		}
+	}
+
+	if (SelectedIndex != -1)
+	{
+		if (!m_MousePressed)
+		{
+			MoveItem(SelectedIndex, -1);
+			SelectedIndex = -1;
+		}
+		else
+		{
+			RenderTools()->RenderItem(m_pClient->m_apLatestCells[SelectedIndex].m_ItemId, vec2(m_SelectorMouse.x-12.0f, m_SelectorMouse.y-12.0f), m_pClient->m_pMapimages->Get(Layers()->MineTeeLayer()->m_Image), 16.0f, vec2(24.0f, 16.0f));
+
+			TextRender()->TextColor(1.0f, 1.0f, 1.0f, 0.85f);
+			char aBuf[8];
+			str_format(aBuf, sizeof(aBuf), "x%d", m_pClient->m_apLatestCells[SelectedIndex].m_Amount);
+			TextRender()->Text(0x0, m_SelectorMouse.x-12.0f, m_SelectorMouse.y-12.0f, 8.0f, aBuf, -1);
+			TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+		}
+	}
+}
+
+void CModalCell::RenderInventory(CUIRect MainView)
+{
+	static int SelectedIndex = -1;
+	const int NumRows = (m_pClient->m_NumCells-NUM_CELLS_LINE)/NUM_CELLS_LINE; // One line for fast inventory (the first 9 cells)
+
+	CUIRect Modal = MainView;
+	Modal.h = (NumRows+3.0f)*30.0f+5.0f;
+	Modal.y = MainView.h/2.0f;
+	// render background
+	RenderTools()->DrawUIRect(&Modal, vec4(0,0,0,0.5f), CUI::CORNER_T, 10.0f);
+
+	Modal.Margin(5.0f, &Modal);
+
+	CUIRect Title;
+	Modal.HSplitTop(30.0f, &Title, &Modal);
+	TextRender()->TextColor(1.0f, 1.0f, 1.0f, 0.85f);
+	TextRender()->Text(0x0, Title.x, Title.y, 28.0f, "INVENTORY", -1);
+	TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+	Modal.HSplitTop(10.0f, 0x0, &Modal);
+
+	int CurItemID = -1;
+	const float CellSize = Modal.w/NUM_CELLS_LINE;
+	CUIRect Button, ButtonLine;
+	int InvIndex = NUM_CELLS_LINE;
+	for (int y=0; y<NumRows; y++)
+	{
+		Modal.HSplitTop(30.0f, &ButtonLine, &Modal);
+		for (int x=0; x<NUM_CELLS_LINE; x++)
+		{
+			CurItemID = m_pClient->m_apLatestCells[InvIndex].m_ItemId;
+			ButtonLine.VSplitLeft(CellSize, &Button, &ButtonLine);
+			Button.Margin(3.0f, &Button);
+			RenderTools()->DrawUIRect(&Button, vec4(1.0f,1.0f,1.0f,0.5f), 0, 10.0f);
+			if (CurItemID != 0 && SelectedIndex != InvIndex)
+			{
+				vec2 DPos = vec2(Button.x+(Button.w/2-8.0f), Button.y+(Button.h/2-8.0f));
+				if (CurItemID >= NUM_WEAPONS)
+					DPos = vec2(Button.x+(Button.w/2-16.0f), Button.y+(Button.h/2-12.0f));
+
+				RenderTools()->RenderItem(CurItemID, DPos, m_pClient->m_pMapimages->Get(Layers()->MineTeeLayer()->m_Image), 16.0f, vec2(24.0f, 16.0f));
+
+				TextRender()->TextColor(1.0f, 1.0f, 1.0f, 0.85f);
+				char aBuf[8];
+				str_format(aBuf, sizeof(aBuf), "x%d", m_pClient->m_apLatestCells[InvIndex].m_Amount);
+				TextRender()->Text(0x0, Button.x+2.0f, Button.y, 8.0f, aBuf, -1);
+				TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+				if (SelectedIndex == -1 && Button.Contains(m_SelectorMouse) && m_MousePressed)
+					SelectedIndex = InvIndex;
+			}
+
+			if (SelectedIndex != -1 && Button.Contains(m_SelectorMouse) && !m_MousePressed)
+			{
+				MoveItem(SelectedIndex, InvIndex);
+				SelectedIndex = -1;
+			}
+
+			++InvIndex;
+		}
+	}
+
+	Modal.HSplitTop(15.0f, &ButtonLine, &Modal);
+	Modal.HSplitTop(30.0f, &ButtonLine, &Modal);
+	for (int x=0; x<NUM_CELLS_LINE; x++)
+	{
+		CurItemID = m_pClient->m_apLatestCells[x].m_ItemId;
+		ButtonLine.VSplitLeft(CellSize, &Button, &ButtonLine);
+		Button.Margin(3.0f, &Button);
+		RenderTools()->DrawUIRect(&Button, vec4(1.0f,1.0f,1.0f,0.5f), 0, 10.0f);
+		if (CurItemID != 0 && SelectedIndex != x)
+		{
+			vec2 DPos = vec2(Button.x+(Button.w/2-8.0f), Button.y+(Button.h/2-8.0f));
+			if (CurItemID >= NUM_WEAPONS)
+				DPos = vec2(Button.x+(Button.w/2-16.0f), Button.y+(Button.h/2-12.0f));
+
+			RenderTools()->RenderItem(CurItemID, DPos, m_pClient->m_pMapimages->Get(Layers()->MineTeeLayer()->m_Image), 16.0f, vec2(24.0f, 16.0f));
+
+			TextRender()->TextColor(1.0f, 1.0f, 1.0f, 0.85f);
+			char aBuf[8];
+			str_format(aBuf, sizeof(aBuf), "x%d", m_pClient->m_apLatestCells[x].m_Amount);
+			TextRender()->Text(0x0, Button.x+2.0f, Button.y, 8.0f, aBuf, -1);
+			TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+			if (SelectedIndex == -1 && Button.Contains(m_SelectorMouse) && m_MousePressed)
+				SelectedIndex = x;
+		}
+		if (SelectedIndex != -1 && Button.Contains(m_SelectorMouse) && !m_MousePressed)
+		{
+			MoveItem(SelectedIndex, x);
+			SelectedIndex = -1;
+		}
+	}
+
+	if (SelectedIndex != -1)
+	{
+		if (!m_MousePressed)
+		{
+			MoveItem(SelectedIndex, -1);
+			SelectedIndex = -1;
+		}
+		else
+		{
+			RenderTools()->RenderItem(m_pClient->m_apLatestCells[SelectedIndex].m_ItemId, vec2(m_SelectorMouse.x-12.0f, m_SelectorMouse.y-12.0f), m_pClient->m_pMapimages->Get(Layers()->MineTeeLayer()->m_Image), 16.0f, vec2(24.0f, 16.0f));
+
+			TextRender()->TextColor(1.0f, 1.0f, 1.0f, 0.85f);
+			char aBuf[8];
+			str_format(aBuf, sizeof(aBuf), "x%d", m_pClient->m_apLatestCells[SelectedIndex].m_Amount);
+			TextRender()->Text(0x0, m_SelectorMouse.x-12.0f, m_SelectorMouse.y-12.0f, 8.0f, aBuf, -1);
+			TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+		}
+	}
 }

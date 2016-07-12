@@ -65,7 +65,7 @@ void CCharacter::Reset()
 bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 {
 	// MineTee
-	mem_zero(m_FastInventory, sizeof(CCellData)*NUM_ITEMS_INVENTORY);
+	mem_zero(m_FastInventory, sizeof(CCellData)*NUM_CELLS_LINE);
     //
 
 	m_EmoteStop = -1;
@@ -170,8 +170,8 @@ void CCharacter::HandleInventoryItemSwitch()
 	{
 		while(Next) // Next Weapon selection
 		{
-			WantedInventoryItem = min(WantedInventoryItem+1, NUM_ITEMS_INVENTORY-1);
-			while (WantedInventoryItem < NUM_ITEMS_INVENTORY && m_FastInventory[WantedInventoryItem].m_ItemId == 0)
+			WantedInventoryItem = min(WantedInventoryItem+1, NUM_CELLS_LINE-1);
+			while (WantedInventoryItem < NUM_CELLS_LINE && m_FastInventory[WantedInventoryItem].m_ItemId == 0)
 				++WantedInventoryItem;
 			m_ActiveInventoryItem = WantedInventoryItem;
 			Next--;
@@ -267,13 +267,14 @@ void CCharacter::Construct()
     }
     else if (GameServer()->Collision()->IntersectLine(ProjStartPos, colTilePos, &colTilePos, 0x0))
     {
-
         vec2 finishPosPost = colTilePos-Direction * 8.0f;
         if (!(GameServer()->Collision()->GetCollisionAt(finishPosPost.x, finishPosPost.y)&CCollision::COLFLAG_SOLID))
         {
             ivec2 TilePos(finishPosPost.x/32, finishPosPost.y/32);
             CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(ActiveBlock);
             int TileIndex = pBlockInfo->m_OnPut;
+            if (TileIndex == -1)
+            	return;
 
             //Check player stuck
             for (int i=0; i<MAX_CLIENTS; i++)
@@ -1107,11 +1108,11 @@ void CCharacter::Snap(int SnappingClient)
 				return;
 
 			//TODO: Ugly
-			int Items[NUM_ITEMS_INVENTORY], Amounts[NUM_ITEMS_INVENTORY];
-			for (int u=0; u<NUM_ITEMS_INVENTORY; Items[u]=m_FastInventory[u].m_ItemId,++u);
-			for (int u=0; u<NUM_ITEMS_INVENTORY; Amounts[u]=m_FastInventory[u].m_Amount,++u);
-			mem_copy(&pClientInventory->m_Item1, Items, sizeof(int)*NUM_ITEMS_INVENTORY);
-			mem_copy(&pClientInventory->m_Ammo1, Amounts, sizeof(int)*NUM_ITEMS_INVENTORY);
+			int Items[NUM_CELLS_LINE], Amounts[NUM_CELLS_LINE];
+			for (int u=0; u<NUM_CELLS_LINE; Items[u]=m_FastInventory[u].m_ItemId,++u);
+			for (int u=0; u<NUM_CELLS_LINE; Amounts[u]=m_FastInventory[u].m_Amount,++u);
+			mem_copy(&pClientInventory->m_Item1, Items, sizeof(int)*NUM_CELLS_LINE);
+			mem_copy(&pClientInventory->m_Ammo1, Amounts, sizeof(int)*NUM_CELLS_LINE);
 			pClientInventory->m_Selected = m_ActiveInventoryItem;
 
 			m_NeedSendInventory = false;
@@ -1122,7 +1123,7 @@ void CCharacter::Snap(int SnappingClient)
 // MineTee
 bool CCharacter::IsInventoryFull()
 {
-    for (int i=0; i<NUM_ITEMS_INVENTORY; i++)
+    for (int i=0; i<NUM_CELLS_LINE; i++)
     {
         if (m_FastInventory[i].m_ItemId == 0)
             return false;
@@ -1133,7 +1134,7 @@ bool CCharacter::IsInventoryFull()
 
 void CCharacter::DropItem(int Index)
 {
-    if (Index < 0 || Index >= NUM_ITEMS_INVENTORY)
+    if (Index < 0 || Index >= NUM_CELLS_LINE)
     	Index = m_ActiveInventoryItem;
 
     int ItemID = m_FastInventory[Index].m_ItemId;
@@ -1169,7 +1170,7 @@ void CCharacter::FillAccountData(void *pAccountInfo)
 	pInfo->m_Pos = m_Pos;
 	pInfo->m_Health = m_Health;
 	pInfo->m_ActiveInventoryItem = m_ActiveInventoryItem;
-	mem_copy(&pInfo->m_Inventory, &m_FastInventory, sizeof(CCellData)*NUM_ITEMS_INVENTORY);
+	mem_copy(&pInfo->m_FastInventory, &m_FastInventory, sizeof(CCellData)*NUM_CELLS_LINE);
 }
 void CCharacter::UseAccountData(void *pAccountInfo)
 {
@@ -1177,7 +1178,7 @@ void CCharacter::UseAccountData(void *pAccountInfo)
 	m_Core.m_Pos = m_Pos = pInfo->m_Pos;
 	m_Health = pInfo->m_Health;
 	m_ActiveInventoryItem = pInfo->m_ActiveInventoryItem;
-	mem_copy(&m_FastInventory, &pInfo->m_Inventory, sizeof(CCellData)*NUM_ITEMS_INVENTORY);
+	mem_copy(&m_FastInventory, &pInfo->m_FastInventory, sizeof(CCellData)*NUM_CELLS_LINE);
 
 	// Check that can spawn in the place
 	if (GameServer()->Collision()->GetMineTeeTileIndexAt(m_Pos))
@@ -1186,7 +1187,7 @@ void CCharacter::UseAccountData(void *pAccountInfo)
 
 int CCharacter::InInventory(int ItemID)
 {
-	for (int i=0; i<NUM_ITEMS_INVENTORY; i++)
+	for (int i=0; i<NUM_CELLS_LINE; i++)
 	{
 		if (m_FastInventory[i].m_ItemId == ItemID)
 			return i;
@@ -1197,7 +1198,7 @@ int CCharacter::InInventory(int ItemID)
 
 int CCharacter::GetFirstEmptyInventoryIndex()
 {
-	for (int i=0; i<NUM_ITEMS_INVENTORY; i++)
+	for (int i=0; i<NUM_CELLS_LINE; i++)
 	{
 		if (m_FastInventory[i].m_ItemId <= 0)
 			return i;

@@ -180,7 +180,7 @@ int CControls::SnapInput(int *pData)
 			m_InputData.m_Jump = ((int)t);
 			m_InputData.m_Fire = ((int)(t*10));
 			m_InputData.m_Hook = ((int)(t*2))&1;
-			m_InputData.m_WantedInventoryItem = ((int)t)%NUM_ITEMS_INVENTORY;
+			m_InputData.m_WantedInventoryItem = ((int)t)%NUM_CELLS_LINE;
 			m_InputData.m_TargetX = (int)(sinf(t*3)*100.0f);
 			m_InputData.m_TargetY = (int)(cosf(t*3)*100.0f);
 		}

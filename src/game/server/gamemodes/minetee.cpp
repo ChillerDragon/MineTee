@@ -539,7 +539,7 @@ int CGameControllerMineTee::OnCharacterDeath(class CCharacter *pVictim, class CP
 
     if (!(pVictim->GetPlayer()->IsBot() && pVictim->GetPlayer() == pKiller) && Weapon > WEAPON_WORLD)
     {
-		for (size_t i=0; i<NUM_ITEMS_INVENTORY; i++)
+		for (size_t i=0; i<NUM_CELLS_LINE; i++)
 		{
 			int Index = pVictim->m_FastInventory[i].m_ItemId;
 
@@ -626,6 +626,20 @@ bool CGameControllerMineTee::CanSpawn(int Team, vec2 *pOutPos, int BotType)
 	return Eval.m_Got;
 }
 
+void CGameControllerMineTee::OnClientOpenInventory(int ClientID)
+{
+	CCharacter *pChar = GameServer()->GetPlayerChar(ClientID);
+	if (!pChar)
+		return;
+
+	CCellData *pCellData = (CCellData*)mem_alloc(sizeof(CCellData)*NUM_CELLS_LINE*4, 1);
+	mem_copy(pCellData, pChar->m_FastInventory, sizeof(CCellData)*NUM_CELLS_LINE);
+	mem_copy(pCellData+NUM_CELLS_LINE, pChar->GetPlayer()->m_Inventory, sizeof(CCellData)*NUM_CELLS_LINE*3);
+	GameServer()->SendCellData(ClientID, pCellData, NUM_CELLS_LINE*4, CELLS_INVENTORY);
+	mem_free(pCellData);
+	pChar->m_ActiveBlockId = -2; // Inventory
+}
+
 void CGameControllerMineTee::OnClientActiveBlock(int ClientID)
 {
 	CCharacter *pChar = GameServer()->GetPlayerChar(ClientID);
@@ -665,10 +679,10 @@ void CGameControllerMineTee::OnClientActiveBlock(int ClientID)
 			std::map<int, CChest*>::iterator it = m_lpChests.find(ChestID);
 			if (it != m_lpChests.end())
 			{
-				CCellData *pCellsData = (CCellData*)mem_alloc(sizeof(CCellData)*(it->second->m_NumItems+NUM_ITEMS_INVENTORY), 1);
-				mem_copy(pCellsData, pChar->m_FastInventory, sizeof(CCellData)*NUM_ITEMS_INVENTORY);
-				mem_copy(pCellsData+NUM_ITEMS_INVENTORY, it->second->m_apItems, sizeof(CCellData)*it->second->m_NumItems);
-				GameServer()->SendCellData(ClientID, pCellsData, it->second->m_NumItems+NUM_ITEMS_INVENTORY, CELLS_CHEST, ChestID);
+				CCellData *pCellsData = (CCellData*)mem_alloc(sizeof(CCellData)*(it->second->m_NumItems+NUM_CELLS_LINE), 1);
+				mem_copy(pCellsData, pChar->m_FastInventory, sizeof(CCellData)*NUM_CELLS_LINE);
+				mem_copy(pCellsData+NUM_CELLS_LINE, it->second->m_apItems, sizeof(CCellData)*it->second->m_NumItems);
+				GameServer()->SendCellData(ClientID, pCellsData, it->second->m_NumItems+NUM_CELLS_LINE, CELLS_CHEST);
 				mem_free(pCellsData);
 				pChar->m_ActiveBlockId = ChestID;
 				Actived = true;
@@ -1402,24 +1416,34 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To)
 	CCellData *pCellFrom = 0x0;
 	CCellData *pCellTo = 0x0;
 
-	if (From < NUM_ITEMS_INVENTORY)
+	if (From < NUM_CELLS_LINE)
 		pCellFrom = &pChar->m_FastInventory[From];
 	else
 	{
-		std::map<int, CChest*>::iterator it = m_lpChests.find(pChar->m_ActiveBlockId);
-		if (it != m_lpChests.end())
-			pCellFrom = &it->second->m_apItems[From-NUM_ITEMS_INVENTORY];
-	}
-
-	if (To != -1)
-	{
-		if (To < NUM_ITEMS_INVENTORY)
-			pCellTo = &pChar->m_FastInventory[To];
+		if (pChar->m_ActiveBlockId == -2)
+			pCellFrom = &pChar->GetPlayer()->m_Inventory[From-NUM_CELLS_LINE];
 		else
 		{
 			std::map<int, CChest*>::iterator it = m_lpChests.find(pChar->m_ActiveBlockId);
 			if (it != m_lpChests.end())
-				pCellTo = &it->second->m_apItems[To-NUM_ITEMS_INVENTORY];
+				pCellFrom = &it->second->m_apItems[From-NUM_CELLS_LINE];
+		}
+	}
+
+	if (To != -1)
+	{
+		if (To < NUM_CELLS_LINE)
+			pCellTo = &pChar->m_FastInventory[To];
+		else
+		{
+			if (pChar->m_ActiveBlockId == -2)
+				pCellTo = &pChar->GetPlayer()->m_Inventory[To-NUM_CELLS_LINE];
+			else
+			{
+				std::map<int, CChest*>::iterator it = m_lpChests.find(pChar->m_ActiveBlockId);
+				if (it != m_lpChests.end())
+					pCellTo = &it->second->m_apItems[To-NUM_CELLS_LINE];
+			}
 		}
 	}
 

@@ -23,6 +23,9 @@ class CModalCell : public CComponent
 
 	void MoveItem(int From, int To);
 
+	void RenderChest(CUIRect MainView);
+	void RenderInventory(CUIRect MainView);
+
 public:
 	CModalCell();
 

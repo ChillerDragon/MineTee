@@ -99,6 +99,7 @@ public:
 	} m_Latency;
 
 	// MineTee
+	CCellData m_Inventory[NUM_CELLS_LINE*3];
 	bool m_IsFirstJoin;
 	int m_Level;
 	bool IsBot() const { return m_Bot; }

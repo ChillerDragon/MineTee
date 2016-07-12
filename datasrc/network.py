@@ -29,8 +29,6 @@ enum
 	
 	ALL_PLAYERS=-1,
 	
-	NUM_ITEMS_INVENTORY=9,
-	
 	FOOD_COW=0,
 	FOOD_PIG,
 
@@ -39,6 +37,12 @@ enum
 	FLAG_TAKEN,
 
 	SPEC_FREEVIEW=-1,
+	
+	CELLS_NONE=0,
+	CELLS_CHEST,
+	CELLS_INVENTORY,
+
+	NUM_CELLS_LINE=9,
 };
 '''
 
@@ -395,7 +399,11 @@ Messages = [
 		NetIntAny("m_Pos"),
 	]),
 		
-	NetMessage("Cl_ActiveBlock", []),
+	# Here for preserve vanilla compatibility
+	NetMessage("Cl_MTInput", [
+		NetIntAny("m_ActiveBlock"),
+		NetIntAny("m_OpenInventory"),
+	]),
 	
 	#NetMessage("", []),
 	#NetMessage("", []),

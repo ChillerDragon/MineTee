@@ -70,6 +70,7 @@ class CGameClient : public IGameClient
 	static void ConForegroundPaint(IConsole::IResult *pResult, void *pUserData);
 	static void ConDropItem(IConsole::IResult *pResult, void *pUserData);
 	static void ConActiveBlock(IConsole::IResult *pResult, void *pUserData);
+	static void ConOpenInventory(IConsole::IResult *pResult, void *pUserData);
 	//
 
 public:
@@ -266,13 +267,13 @@ public:
 		PAINT_FOREGROUND
 	};
 	struct {
-	    int m_Items[NUM_ITEMS_INVENTORY];
-	    int m_Ammo[NUM_ITEMS_INVENTORY];
+	    int m_Items[NUM_CELLS_LINE];
+	    int m_Ammo[NUM_CELLS_LINE];
         int m_Selected;
 	} m_Inventory;
 	int m_PaintMode;
 	void SendDropItem(int Index);
-	void SendActiveBlock();
+	void SendMTInput(bool ActiveBlock, bool OpenInventory);
 	virtual void GetServerTime(bool *pIsNight, int64 *pTime);
 
 	CCellData *m_apLatestCells;

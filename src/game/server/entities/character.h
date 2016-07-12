@@ -81,7 +81,7 @@ public:
 	vec2 GetMousePosition() const { return vec2(m_Pos.x+m_LatestInput.m_TargetX, m_Pos.y+m_LatestInput.m_TargetY); }
 	vec2 GetMouseDirection() const { return normalize(vec2(m_LatestInput.m_TargetX, m_LatestInput.m_TargetY)); }
 
-	CCellData m_FastInventory[NUM_ITEMS_INVENTORY];
+	CCellData m_FastInventory[NUM_CELLS_LINE];
 
 	bool IsInventoryFull();
 	int InInventory(int ItemID);

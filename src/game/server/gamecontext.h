@@ -207,7 +207,7 @@ public:
 	virtual CPet* SpawnPet(CPlayer *pOwner, vec2 Pos);
 	virtual IBoss* SpawnBoss(vec2 Pos, int Type);
 	bool IsMineTeeSrv() const { return m_IsMineTeeSrv; }
-	void SendCellData(int ClientID, CCellData *pData, int Num, int CellsType, int TokenID);
+	void SendCellData(int ClientID, CCellData *pData, int Num, int CellsType);
 	void OnClientMoveCell(int ClientID, int From, int To);
 	//
 };

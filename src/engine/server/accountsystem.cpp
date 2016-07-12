@@ -39,7 +39,7 @@ IAccountSystem::ACCOUNT_INFO* CAccountSystem::Create(const unsigned char *pKey)
 	NewAccount.m_Alive = false;
 	NewAccount.m_Pos = vec2(0.0f, 0.0f);
 	NewAccount.m_Level = 0;
-	mem_zero(NewAccount.m_Inventory, sizeof(CCellData)*NUM_ITEMS_INVENTORY);
+	mem_zero(NewAccount.m_FastInventory, sizeof(CCellData)*(NUM_CELLS_LINE*4));
 	m_lAccounts.push_back(NewAccount);
 	Save();
 	return &(*m_lAccounts.rbegin());

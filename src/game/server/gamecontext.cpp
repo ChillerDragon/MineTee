@@ -996,10 +996,16 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 	        if (pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive())
 	            pPlayer->GetCharacter()->DropItem(Index);
 	    }
-	    else if (MsgID == NETMSGTYPE_CL_ACTIVEBLOCK && !m_World.m_Paused)
+	    else if (MsgID == NETMSGTYPE_CL_MTINPUT && !m_World.m_Paused)
 	    {
+	    	CNetMsg_Cl_MTInput *pMsg = (CNetMsg_Cl_MTInput *)pRawMsg;
 	        if (pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive())
-	        	m_pController->OnClientActiveBlock(ClientID);
+	        {
+	        	if (pMsg->m_ActiveBlock)
+	        		m_pController->OnClientActiveBlock(ClientID);
+	        	if (pMsg->m_OpenInventory)
+	        		m_pController->OnClientOpenInventory(ClientID);
+	        }
 	    }
 	}
 	else
@@ -2066,7 +2072,7 @@ void CGameContext::CreateBlockRubble(vec2 Pos, int BlockId)
 	}
 }
 
-void CGameContext::SendCellData(int ClientID, CCellData *pData, int Num, int CellsType, int TokenID)
+void CGameContext::SendCellData(int ClientID, CCellData *pData, int Num, int CellsType)
 {
 	const int TotalSize = sizeof(CCellData)*Num;
 	CMsgPacker Msg(NETMSG_CELLS_DATA);

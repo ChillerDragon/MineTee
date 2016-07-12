@@ -31,7 +31,8 @@ public:
 		bool m_Alive;
 		int m_Health;
 		int m_ActiveInventoryItem;
-		CCellData m_Inventory[NUM_ITEMS_INVENTORY];
+		CCellData m_FastInventory[NUM_CELLS_LINE];
+		CCellData m_Inventory[NUM_CELLS_LINE*3];
 
 		// Pet Info
 		struct PetInfo
@@ -40,7 +41,7 @@ public:
 			int m_Type;
 			char m_aSkinName[64];
 			char m_aName[MAX_NAME_LENGTH];
-			CCellData m_Inventory[NUM_ITEMS_INVENTORY];
+			CCellData m_Inventory[NUM_CELLS_LINE*4];
 			int m_ActiveInventoryItem;
 			bool m_Alive;
 		} m_PetInfo;

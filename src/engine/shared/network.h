@@ -390,13 +390,6 @@ public:
 };
 
 // MineTee
-enum
-{
-	CELLS_NONE=0,
-	CELLS_CHEST,
-
-	NUM_CELLS_LINE=9,
-};
 struct CCellData
 {
 	unsigned char m_ItemId;

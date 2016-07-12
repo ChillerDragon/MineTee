@@ -84,6 +84,7 @@ public:
 	virtual bool CanSpawn(int Team, vec2 *pPos, int BotType);
 	bool CanJoinTeam(int Team, int NotThisID);
 	void OnClientActiveBlock(int ClientID);
+	void OnClientOpenInventory(int ClientID);
 	void OnPlayerPutBlock(int ClientID, ivec2 TilePos, int BlockID, int BlockFlags, int Reserved);
 	void OnPlayerDestroyBlock(int ClientID, ivec2 TilePos);
 	void OnClientMoveCell(int ClientID, int From, int To);

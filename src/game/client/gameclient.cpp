@@ -211,6 +211,7 @@ void CGameClient::OnConsoleInit()
 	Console()->Register("fgpaint", "", CFGFLAG_CLIENT, ConForegroundPaint, this, "Toggle foreground paint");
 	Console()->Register("drop", "?i", CFGFLAG_CLIENT, ConDropItem, this, "Drop item");
 	Console()->Register("active_block", "", CFGFLAG_CLIENT, ConActiveBlock, this, "Active Block");
+	Console()->Register("open_inventory", "", CFGFLAG_CLIENT, ConOpenInventory, this, "Open Inventory");
 	//
 
 
@@ -881,8 +882,8 @@ void CGameClient::OnNewSnapshot()
 			else if(Item.m_Type == NETOBJTYPE_INVENTORY) // MineTee
 			{
 				const CNetObj_Inventory *pInfo = (const CNetObj_Inventory *)pData;
-				mem_copy(m_Inventory.m_Items, &pInfo->m_Item1, sizeof(int)*NUM_ITEMS_INVENTORY);
-				mem_copy(m_Inventory.m_Ammo, &pInfo->m_Ammo1, sizeof(int)*NUM_ITEMS_INVENTORY);
+				mem_copy(m_Inventory.m_Items, &pInfo->m_Item1, sizeof(int)*NUM_CELLS_LINE);
+				mem_copy(m_Inventory.m_Ammo, &pInfo->m_Ammo1, sizeof(int)*NUM_CELLS_LINE);
 				m_Inventory.m_Selected = pInfo->m_Selected;
 			}
 		}
@@ -1234,9 +1235,11 @@ void CGameClient::SendDropItem(int Index)
 	Client()->SendPackMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 }
 
-void CGameClient::SendActiveBlock()
+void CGameClient::SendMTInput(bool ActiveBlock, bool OpenInventory)
 {
-	CNetMsg_Cl_ActiveBlock Msg;
+	CNetMsg_Cl_MTInput Msg;
+	Msg.m_ActiveBlock = (ActiveBlock)?1:0;
+	Msg.m_OpenInventory = (OpenInventory)?1:0;
 	Client()->SendPackMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 }
 
@@ -1263,8 +1266,14 @@ void CGameClient::ConDropItem(IConsole::IResult *pResult, void *pUserData)
 
 void CGameClient::ConActiveBlock(IConsole::IResult *pResult, void *pUserData)
 {
-	((CGameClient *)pUserData)->SendActiveBlock();
+	((CGameClient *)pUserData)->SendMTInput(true, false);
 }
+
+void CGameClient::ConOpenInventory(IConsole::IResult *pResult, void *pUserData)
+{
+	((CGameClient *)pUserData)->SendMTInput(false, true);
+}
+
 
 void CGameClient::GetServerTime(bool *pIsDay, int64 *pTime)
 {
