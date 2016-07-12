@@ -1426,14 +1426,9 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 				return;
 
 			const int NumItems = Size/sizeof(CCellData);
-			if (CellsType == CELLS_CHEST)
-			{
-				if (NumItems > NUM_CELLS_CHEST || NumItems <= 0)
-					return;
-				CCellData *apCells = (CCellData*)mem_alloc(Size,1);
-				mem_copy(apCells, pData, Size);
-				m_pGameClient->SetLastestCellsData(apCells, NumItems, CellsType);
-			}
+			CCellData *apCells = (CCellData*)mem_alloc(Size,1);
+			mem_copy(apCells, pData, Size);
+			m_pGameClient->SetLastestCellsData(apCells, NumItems, CellsType);
 		}
 	}
 	else
@@ -2440,4 +2435,14 @@ int main(int argc, const char **argv) // ignore_convention
 	pConfig->Save();
 
 	return 0;
+}
+
+
+// MineTee
+void CClient::SendMoveCell(int From, int To)
+{
+	CMsgPacker Msg(NETMSG_CELL_MOVE);
+	Msg.AddInt(From);
+	Msg.AddInt(To);
+	SendMsgEx(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 }

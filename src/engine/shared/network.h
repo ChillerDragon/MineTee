@@ -395,7 +395,7 @@ enum
 	CELLS_NONE=0,
 	CELLS_CHEST,
 
-	NUM_CELLS_CHEST=9*4, // 3 for chest + 1 for fast invetory
+	NUM_CELLS_LINE=9,
 };
 struct CCellData
 {

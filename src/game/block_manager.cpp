@@ -74,6 +74,9 @@ bool CBlockManager::Init(char *pData, int DataSize)
 				pBlockInfo->m_Functionality.m_Fuel.m_BlockId = (JsonObjectG["blockId"].type == json_none)?-1:JsonObjectG["blockId"].u.integer;
 				pBlockInfo->m_Functionality.m_Fuel.m_Duration = (JsonObjectG["duration"].type == json_none)?-1:JsonObjectG["duration"].u.integer;
 			}
+
+			pBlockInfo->m_Functionality.m_NormalItems = (JsonObjectF["normalItems"].type == json_none)?0:JsonObjectF["normalItems"].u.integer;
+			pBlockInfo->m_Functionality.m_MutatedItems = (JsonObjectF["mutatedItems"].type == json_none)?0:JsonObjectF["mutatedItems"].u.integer;
 		}
 
 		items = (*pJsonObject)["onCook"].u.object.length;

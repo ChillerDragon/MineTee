@@ -44,11 +44,14 @@ void CLaser::DoBounce()
 	}
 
 	vec2 To = m_Pos + m_Dir * m_Energy;
-
-	if(GameServer()->Collision()->IntersectLine(m_Pos, To, 0x0, &To))
+	vec2 ColPos;
+	if(GameServer()->Collision()->IntersectLine(m_Pos, To, &ColPos, &To))
 	{
 		if(!HitCharacter(m_Pos, To))
 		{
+			// MineTee: Damage Block
+			GameServer()->m_pController->TakeBlockDamage(ColPos, WEAPON_RIFLE, 2, m_Owner);
+
 			// intersected
 			m_From = m_Pos;
 			m_Pos = To;

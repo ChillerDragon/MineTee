@@ -1128,6 +1128,16 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 			CMsgPacker Msg(NETMSG_PING_REPLY);
 			SendMsgEx(&Msg, 0, ClientID, true);
 		}
+		// MineTee
+		else if (Msg == NETMSG_CELL_MOVE)
+		{
+			int From = Unpacker.GetInt();
+			int To = Unpacker.GetInt();
+
+			if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Unpacker.Error() == 0)
+				m_pGameServer->OnClientMoveCell(ClientID, From, To);
+		}
+		//
 		else
 		{
 			if(g_Config.m_Debug)

@@ -151,7 +151,7 @@ void CItems::RenderPickup(const CNetObj_Pickup *pPrev, const CNetObj_Pickup *pCu
         	const int ItemID = pCurrent->m_Type-POWERUP_DROPITEM;
 			RenderTools()->RenderItem(ItemID, Pos, m_pClient->m_pMapimages->Get(Layers()->MineTeeLayer()->m_Image), 16.0f, vec2(24.0f, 16.0f));
 
-            char aBuf[4];
+            char aBuf[6];
             str_format(aBuf, sizeof(aBuf), "x%i", pCurrent->m_Subtype);
             TextRender()->Text(0, Pos.x, Pos.y-5.0f, 16.0f, aBuf, -1);
         }

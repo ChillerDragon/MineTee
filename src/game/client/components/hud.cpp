@@ -524,13 +524,22 @@ void CHud::RenderInventoryHud()
     //RenderTools()->DrawRoundRectExt(m_Width/2-outboxSize/2, m_Height-30.f, outboxSize, 50.0f, 5.0f, CUI::CORNER_ALL);
 
     // Item Name
-    int SelectedItem = m_pClient->m_Inventory.m_Items[m_pClient->m_Inventory.m_Selected]-NUM_WEAPONS;
-    CBlockManager::CBlockInfo *pInfoBlock = m_pClient->m_BlockManager.GetBlockInfo(SelectedItem);
-    if (SelectedItem >= 0 && pInfoBlock)
-	{
-		float TWidth = TextRender()->TextWidth(0, 4.0f, pInfoBlock->m_aName, -1);
+    int SelectedItem = m_pClient->m_Inventory.m_Items[m_pClient->m_Inventory.m_Selected];
+    if (SelectedItem < NUM_WEAPONS)
+    {
+		float TWidth = TextRender()->TextWidth(0, 4.0f, gs_aWeaponNames[SelectedItem], -1);
 		TextRender()->TextColor(1.0f, 1.0f, 1.0f, 0.85f);
-		TextRender()->Text(0x0, (m_Width/2-TWidth/2), Outbox.y - 8.0f, 4.0f, pInfoBlock->m_aName, -1);
+		TextRender()->Text(0x0, (m_Width/2-TWidth/2), Outbox.y - 8.0f, 4.0f, gs_aWeaponNames[SelectedItem], -1);
+    }
+    else
+    {
+		CBlockManager::CBlockInfo *pInfoBlock = m_pClient->m_BlockManager.GetBlockInfo(SelectedItem-NUM_WEAPONS);
+		if (pInfoBlock)
+		{
+			float TWidth = TextRender()->TextWidth(0, 4.0f, pInfoBlock->m_aName, -1);
+			TextRender()->TextColor(1.0f, 1.0f, 1.0f, 0.85f);
+			TextRender()->Text(0x0, (m_Width/2-TWidth/2), Outbox.y - 8.0f, 4.0f, pInfoBlock->m_aName, -1);
+		}
     }
 
     Graphics()->TextureSet(-1);

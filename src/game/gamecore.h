@@ -13,6 +13,8 @@
 
 #define MAX_CONSTRUCT_DISTANCE	120.0f
 
+// MineTee -- TODO: Implement this on python scripts!
+static const char gs_aWeaponNames[NUM_WEAPONS][24]={"EMPTY","HAMMER","GUN","SHOTGUN","GRENADE LAUNCHER","RIFLE","NINJA","HAMMER STONE"};
 
 class CTuneParam
 {

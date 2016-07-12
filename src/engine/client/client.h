@@ -305,5 +305,8 @@ public:
 	void AutoScreenshot_Cleanup();
 
 	void ServerBrowserUpdate();
+
+	// MineTee
+	void SendMoveCell(int From, int To);
 };
 #endif

@@ -138,6 +138,8 @@ public:
 	virtual bool SoundInitFailed() = 0;
 
 	virtual int GetDebugFont() = 0;
+
+	virtual void SendMoveCell(int From, int To) = 0;
 };
 
 class IGameClient : public IInterface

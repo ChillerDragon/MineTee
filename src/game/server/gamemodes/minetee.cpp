@@ -200,10 +200,35 @@ void CGameControllerMineTee::EnvirionmentTick(CTile *pTempTiles, const int *pTil
 
 		if (MutationCheck)
 		{
+			const bool IsChest = (str_comp_nocase(pBlockInfo->m_Functionality.m_aType, "chest") == 0);
+
+			if (IsChest)
+			{
+				std::map<int, CChest*>::iterator it = m_lpChests.find(y*pTmap->m_Width+x);
+				if (it != m_lpChests.end())
+					it->second->Resize(pBlockInfo->m_Functionality.m_MutatedItems);
+			}
+
 			for (int e=0; e<NUM_TILE_POS; e++)
 			{
 				if ((*pArrayF)[e] == -1)
 					continue;
+
+				// Special checks
+				if (IsChest && (Positions[e].x != x || Positions[e].y != y))
+				{
+					const int CurChestID = Positions[e].y*pTmap->m_Width+Positions[e].x;
+					std::map<int, CChest*>::iterator StoredIt = m_lpChests.find(y*pTmap->m_Width+x);
+					std::map<int, CChest*>::iterator RemovedIt = m_lpChests.find(CurChestID);
+					if (RemovedIt != m_lpChests.end() && StoredIt != m_lpChests.end() && RemovedIt->second != StoredIt->second)
+					{
+						CChest *pChest = RemovedIt->second;
+						mem_copy(StoredIt->second->m_apItems, RemovedIt->second->m_apItems, RemovedIt->second->m_NumItems*sizeof(CCellData));
+						mem_free(pChest->m_apItems);
+						mem_free(pChest);
+						RemovedIt->second = StoredIt->second;
+					}
+				}
 
 				ModifTile(Positions[e], (*pArrayF)[e]);
 			}
@@ -335,6 +360,12 @@ void CGameControllerMineTee::DestructionTick(CTile *pTempTiles, const int *pTile
 	{
 		ModifTile(ivec2(x, y), 0);
 	}
+
+	// Remove 'Dead' Blocks
+	CMapItemLayerTilemap *pTmap = (CMapItemLayerTilemap *)GameServer()->Layers()->MineTeeLayer();
+	const int TileIndexTemp = y*pTmap->m_Width+x;
+	if (pTileIndex[TILE_CENTER] && pTempTiles[TileIndexTemp].m_Reserved == 0)
+		OnPlayerDestroyBlock(-1, ivec2(x, y)); // TODO: Implement last user recognition
 }
 
 void CGameControllerMineTee::WearTick(CTile *pTempTiles, const int *pTileIndex, int x, int y, const CBlockManager::CBlockInfo *pBlockInfo)
@@ -625,8 +656,12 @@ void CGameControllerMineTee::OnClientActiveBlock(int ClientID)
 				std::map<int, CChest*>::iterator it = m_lpChests.find(ChestID);
 				if (it != m_lpChests.end())
 				{
-					GameServer()->SendCellData(ClientID, it->second->m_aItems, NUM_CELLS_CHEST, CELLS_CHEST, ChestID);
-					pChar->m_ActiveBlockId = MTTIndex;
+					CCellData *pCellsData = (CCellData*)mem_alloc(sizeof(CCellData)*(it->second->m_NumItems+NUM_ITEMS_INVENTORY), 1);
+					mem_copy(pCellsData, pChar->m_FastInventory, sizeof(CCellData)*NUM_ITEMS_INVENTORY);
+					mem_copy(pCellsData+NUM_ITEMS_INVENTORY, it->second->m_apItems, sizeof(CCellData)*it->second->m_NumItems);
+					GameServer()->SendCellData(ClientID, pCellsData, it->second->m_NumItems+NUM_ITEMS_INVENTORY, CELLS_CHEST, ChestID);
+					mem_free(pCellsData);
+					pChar->m_ActiveBlockId = ChestID;
 					Actived = true;
 				}
 			}
@@ -643,27 +678,36 @@ void CGameControllerMineTee::OnPlayerPutBlock(int ClientID, ivec2 TilePos, int B
 	GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), BlockID, BlockFlags, Reserved);
 	GameServer()->CreateSound(vec2(TilePos.x*32.0f, TilePos.y*32.0f), SOUND_DESTROY_BLOCK);
 
+	// Create empty chest, but can be replaced in "mutation" process!
 	if (pBlockInfo && str_comp(pBlockInfo->m_Functionality.m_aType, "chest") == 0)
 	{
 		int ChestID = TilePos.y*GameServer()->Collision()->GetWidth()+TilePos.x;
 		CChest *pCellModalData = (CChest*)mem_alloc(sizeof(CChest), 1);
-		mem_zero(pCellModalData->m_aItems, sizeof(CCellData)*NUM_CELLS_CHEST);
+		pCellModalData->m_NumItems = pBlockInfo->m_Functionality.m_NormalItems;
+		pCellModalData->m_apItems = (CCellData*)mem_alloc(sizeof(CCellData)*pCellModalData->m_NumItems, 1);
+		mem_zero(pCellModalData->m_apItems, sizeof(CCellData)*pCellModalData->m_NumItems);
 		m_lpChests.insert(std::make_pair(ChestID, pCellModalData));
 	}
 }
 
-void CGameControllerMineTee::OnPlayerDestroyBlock(int ClientID, ivec2 TilePos, int BlockID)
+void CGameControllerMineTee::OnPlayerDestroyBlock(int ClientID, ivec2 TilePos)
 {
-	CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(BlockID);
 	const vec2 WorldTilePos = vec2(TilePos.x*32.0f, TilePos.y*32.0f);
+	CTile *pTile = GameServer()->Collision()->GetMineTeeTileAt(WorldTilePos);
+	if (!pTile)
+		return;
 
-	GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0, 0);
-	GameServer()->Collision()->ModifTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0, 0);
-	GameServer()->CreateBlockRubble(WorldTilePos, BlockID);
+	const int TileIndex = pTile->m_Index;
+	const int ItemID = TileIndex+NUM_WEAPONS;
+	CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(TileIndex);
+
+	GameServer()->CreateBlockRubble(WorldTilePos, TileIndex);
+	GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0, 0);
+	GameServer()->Collision()->ModifTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0, 0);
 
 	if (pBlockInfo->m_Explode)
 	{
-		GameServer()->CreateExplosion(WorldTilePos, ClientID, BlockID, false);
+		GameServer()->CreateExplosion(WorldTilePos, ClientID, ItemID, false);
 		GameServer()->CreateSound(WorldTilePos, SOUND_GRENADE_EXPLODE);
 	}
 	else
@@ -685,7 +729,7 @@ void CGameControllerMineTee::OnPlayerDestroyBlock(int ClientID, ivec2 TilePos, i
 		}
 		else
 		{
-			CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, BlockID);
+			CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, TileIndex);
 			pPickup->m_Pos = WorldTilePos + vec2(8.0f, 8.0f);
 		}
 	}
@@ -696,23 +740,36 @@ void CGameControllerMineTee::OnPlayerDestroyBlock(int ClientID, ivec2 TilePos, i
 	{
 		int ChestID = TilePos.y*GameServer()->Collision()->GetWidth()+TilePos.x;
 		std::map<int, CChest*>::iterator it = m_lpChests.find(ChestID);
-		CChest *pChest = it->second;
-		int ChestItemID = -1;
-		for (int i=0; i<NUM_CELLS_CHEST; i++)
+		if (it != m_lpChests.end())
 		{
-			ChestItemID = pChest->m_aItems[i].m_ItemId;
-			if (ChestItemID >= NUM_WEAPONS)
+			CChest *pChest = it->second;
+			for (unsigned i=0; i<pChest->m_NumItems; i++)
 			{
-				CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_DROPITEM, ChestItemID-NUM_WEAPONS);
+				if (pChest->m_apItems[i].m_ItemId == 0)
+					continue;
+
+				CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_DROPITEM, pChest->m_apItems[i].m_ItemId);
 				pPickup->m_Pos = WorldTilePos;
 				pPickup->m_Pos.y -= 18.0f;
 				pPickup->m_Vel = vec2((((rand()%2)==0)?1:-1)*(rand()%10), -5);
-				pPickup->m_Amount = pChest->m_aItems[i].m_Amount;
+				pPickup->m_Amount = pChest->m_apItems[i].m_Amount;
 				pPickup->m_Owner = ClientID;
 			}
+			mem_free(pChest->m_apItems);
+			mem_free(pChest);
+			m_lpChests.erase(it);
+
+			it = m_lpChests.begin();
+			while (it != m_lpChests.end())
+			{
+				if (it->second == pChest)
+				{
+					it = m_lpChests.erase(it);
+				}
+				else
+					++it;
+			}
 		}
-		mem_free(pChest);
-		m_lpChests.erase(it);
 	}
 }
 
@@ -1226,5 +1283,79 @@ void CGameControllerMineTee::UpdateLayerLights(vec2 Pos)
 		int ScreenX0, ScreenY0, ScreenX1, ScreenY1;
 		GetPlayerArea(Pos, &ScreenX0, &ScreenX1, &ScreenY0, &ScreenY1);
 		GameServer()->Collision()->UpdateLayerLights((float)ScreenX0*32.0f, (float)ScreenY0*32.0f, (float)ScreenX1*32.0f, (float)ScreenY1*32.0f, s_LightLevel);
+	}
+}
+
+bool CGameControllerMineTee::TakeBlockDamage(vec2 WorldPos, int WeaponItemID, int Dmg, int Owner)
+{
+	CTile *pTile = GameServer()->Collision()->GetMineTeeTileAt(WorldPos);
+	if (pTile && pTile->m_Index > 0)
+	{
+		pTile->m_Reserved = max(0, pTile->m_Reserved-Dmg);
+
+		const ivec2 TilePos = ivec2(WorldPos.x/32, WorldPos.y/32);
+		if (pTile->m_Reserved == 0)
+		{
+			if (WeaponItemID < NUM_WEAPONS)
+				OnPlayerDestroyBlock(Owner, TilePos);
+			return true;
+		}
+		else if (pTile->m_Reserved > 0)
+		{
+			ModifTile(TilePos, pTile->m_Index, pTile->m_Reserved);
+			GameServer()->CreateSound(WorldPos, SOUND_DESTROY_BLOCK);
+		}
+	}
+
+	return false;
+}
+
+void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To)
+{
+	CCharacter *pChar = GameServer()->GetPlayerChar(ClientID);
+	if (!pChar || pChar->m_ActiveBlockId == -1)
+		return;
+
+	CCellData *pCellFrom = 0x0;
+	CCellData *pCellTo = 0x0;
+
+	if (From < NUM_ITEMS_INVENTORY)
+		pCellFrom = &pChar->m_FastInventory[From];
+	else
+	{
+		std::map<int, CChest*>::iterator it = m_lpChests.find(pChar->m_ActiveBlockId);
+		if (it != m_lpChests.end())
+			pCellFrom = &it->second->m_apItems[From-NUM_ITEMS_INVENTORY];
+	}
+
+	if (To != -1)
+	{
+		if (To < NUM_ITEMS_INVENTORY)
+			pCellTo = &pChar->m_FastInventory[To];
+		else
+		{
+			std::map<int, CChest*>::iterator it = m_lpChests.find(pChar->m_ActiveBlockId);
+			if (it != m_lpChests.end())
+				pCellTo = &it->second->m_apItems[To-NUM_ITEMS_INVENTORY];
+		}
+	}
+
+	if (pCellFrom && pCellTo)
+	{
+		CCellData TempCell = *pCellTo;
+		*pCellTo = *pCellFrom;
+		*pCellFrom = TempCell;
+	}
+	else if (pCellFrom && !pCellTo)
+	{
+		CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_DROPITEM, pCellFrom->m_ItemId);
+		pPickup->m_Pos = pChar->m_Pos;
+		pPickup->m_Pos.y -= 18.0f;
+		pPickup->m_Vel = vec2((((rand()%2)==0)?1:-1)*(rand()%10), -5);
+		pPickup->m_Amount = pCellFrom->m_Amount;
+		pPickup->m_Owner = ClientID;
+
+		pCellFrom->m_ItemId = 0x0;
+		pCellFrom->m_Amount = 0;
 	}
 }

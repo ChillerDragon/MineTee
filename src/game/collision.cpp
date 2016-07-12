@@ -674,4 +674,3 @@ void CCollision::UpdateLayerLights(float ScreenX0, float ScreenY0, float ScreenX
     mem_copy(pLights, pLightsTemp, sizeof(CTile)*w*h);
     mem_free(pLightsTemp);
 }
-

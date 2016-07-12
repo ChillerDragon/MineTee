@@ -69,6 +69,10 @@ void CProjectile::Tick()
 
 	if(TargetChr || Collide || m_LifeSpan < 0 || GameLayerClipped(CurPos))
 	{
+		// MineTee
+		if (Collide)
+			GameServer()->m_pController->TakeBlockDamage(CurPos, m_Weapon, 1, m_Owner);
+
 		if(m_LifeSpan >= 0 || m_Weapon == WEAPON_GRENADE)
 			GameServer()->CreateSound(CurPos, m_SoundImpact);
 

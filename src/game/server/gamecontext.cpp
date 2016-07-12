@@ -161,9 +161,7 @@ void CGameContext::CreateExplosion(vec2 Pos, int Owner, int ItemID, bool NoDamag
 	// MineTee: Destroy Map
     if (IsMineTeeSrv() && !NoDamage)
     {
-		int ExplosionSize = 8; // Magic Value. TODO: Get From blocks.json
-		if (ItemID < NUM_WEAPONS)
-			ExplosionSize = g_pData->m_Weapons.m_aId[ItemID].m_Blockdamage;
+		int ExplosionSize = (ItemID < NUM_WEAPONS)?g_pData->m_Weapons.m_aId[ItemID].m_Blockdamage:8; // Magic Value. TODO: Get From blocks.json
 
         for (int e=0; e<=ExplosionSize; e++)
         {
@@ -185,17 +183,7 @@ void CGameContext::CreateExplosion(vec2 Pos, int Owner, int ItemID, bool NoDamag
 
             			const int Dmg = ExplosionSize * l;
             			if(Dmg)
-            			{
-        					const int MTTIndex = pTile->m_Index;
-        					pTile->m_Reserved = max(pTile->m_Reserved-Dmg, 0) ;
-
-        					if (pTile->m_Reserved == 0)
-        						m_pController->OnPlayerDestroyBlock(Owner, TilePos, MTTIndex);
-        					else
-        						SendTileModif(ALL_PLAYERS, TilePos, Layers()->GetMineTeeGroupIndex(),  Layers()->GetMineTeeLayerIndex(), MTTIndex, pTile->m_Flags, pTile->m_Reserved);
-
-        					CreateSound(finishPosPost, SOUND_DESTROY_BLOCK);
-            			}
+            				m_pController->TakeBlockDamage(finishPosPost, ItemID, Dmg, Owner);
                 	}
                 }
         }
@@ -1981,16 +1969,26 @@ void CGameContext::SaveMap(const char *path)
 void CGameContext::GiveItem(int ClientID, int ItemID, int ammo)
 {
 	CCharacter *pChar = GetPlayerChar(ClientID);
-	if (!pChar)
+	if (!pChar || ItemID <= 0)
 		return;
 
-	CBlockManager::CBlockInfo *pBlockInfo = m_BlockManager.GetBlockInfo(ItemID);
-	if (pBlockInfo)
+	if (ItemID < NUM_WEAPONS)
 	{
 		pChar->GiveItem(ItemID, ammo);
 		char aBuf[128];
-		str_format(aBuf, sizeof(aBuf), "Admin give you a '%s'! revise your inventory :)", pBlockInfo->m_aName);
+		str_format(aBuf, sizeof(aBuf), "Admin give you a '%s'! revise your inventory :)", gs_aWeaponNames[ItemID]);
 		SendChatTarget(ClientID, aBuf);
+	}
+	else
+	{
+		CBlockManager::CBlockInfo *pBlockInfo = m_BlockManager.GetBlockInfo(ItemID-NUM_WEAPONS);
+		if (pBlockInfo)
+		{
+			pChar->GiveItem(ItemID, ammo);
+			char aBuf[128];
+			str_format(aBuf, sizeof(aBuf), "Admin give you a '%s'! revise your inventory :)", pBlockInfo->m_aName);
+			SendChatTarget(ClientID, aBuf);
+		}
 	}
 }
 
@@ -2070,12 +2068,15 @@ void CGameContext::CreateBlockRubble(vec2 Pos, int BlockId)
 
 void CGameContext::SendCellData(int ClientID, CCellData *pData, int Num, int CellsType, int TokenID)
 {
-	dbg_msg("CHEST", "Sending Cells....");
 	const int TotalSize = sizeof(CCellData)*Num;
 	CMsgPacker Msg(NETMSG_CELLS_DATA);
 	Msg.AddInt(CellsType);
-	Msg.AddInt(TokenID);
 	Msg.AddInt(TotalSize);
 	Msg.AddRaw(pData, TotalSize);
 	Server()->SendMsgEx(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH, ClientID, true);
+}
+
+void CGameContext::OnClientMoveCell(int ClientID, int From, int To)
+{
+	m_pController->OnClientMoveCell(ClientID, From, To);
 }

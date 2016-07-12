@@ -384,6 +384,12 @@ void CGameClient::OnReset()
 	m_FlagDropTick[TEAM_RED] = 0;
 	m_FlagDropTick[TEAM_BLUE] = 0;
 	m_Tuning = CTuningParams();
+
+	// MineTee
+	mem_free(m_apLatestCells);
+	m_apLatestCells = 0x0;
+	m_NumCells = 0;
+	m_CellsType = -1;
 }
 
 
@@ -1225,13 +1231,13 @@ void CGameClient::SendDropItem(int Index)
 {
 	CNetMsg_Cl_DropItemInventary Msg;
 	Msg.m_Pos = Index;
-	Client()->SendPackMsg(&Msg, MSGFLAG_VITAL);
+	Client()->SendPackMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 }
 
 void CGameClient::SendActiveBlock()
 {
 	CNetMsg_Cl_ActiveBlock Msg;
-	Client()->SendPackMsg(&Msg, MSGFLAG_VITAL);
+	Client()->SendPackMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 }
 
 void CGameClient::ConBackgroundPaint(IConsole::IResult *pResult, void *pUserData)

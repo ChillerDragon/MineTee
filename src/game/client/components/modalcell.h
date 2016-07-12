@@ -7,16 +7,21 @@
 
 class CModalCell : public CComponent
 {
-	void DrawCircle(float x, float y, float r, int Segments);
+	enum
+	{
+		NUM_CELLS_LINE=9
+	};
 
-	int m_CellsType;
 	bool m_Active;
 
 	vec2 m_SelectorMouse;
+	bool m_MousePressed;
 	int m_SelectedCell;
 
 	bool m_EscapePressed;
 	int64 m_LastInput;
+
+	void MoveItem(int From, int To);
 
 public:
 	CModalCell();

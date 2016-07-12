@@ -11,10 +11,28 @@
 class CChest
 {
 public:
-	CCellData m_aItems[NUM_CELLS_CHEST];
+	CChest()
+	{
+		m_apItems = 0x0;
+		m_NumItems = 0;
+	}
 
-	bool Move(int From, int To);
-	bool Remove(int Index, int amount = 0);
+	CCellData *m_apItems;
+	unsigned m_NumItems;
+
+	void Resize(int NumItems)
+	{
+		if (!m_apItems)
+			return;
+
+		const unsigned TotalSize = NumItems*sizeof(CCellData);
+		CCellData *pNewItems = (CCellData*)mem_alloc(TotalSize, 1);
+		mem_zero(pNewItems, TotalSize);
+		mem_copy(pNewItems, m_apItems, m_NumItems*sizeof(CCellData));
+		mem_free(m_apItems);
+		m_apItems = pNewItems;
+		m_NumItems = NumItems;
+	}
 };
 
 
@@ -50,7 +68,9 @@ public:
 	bool CanJoinTeam(int Team, int NotThisID);
 	void OnClientActiveBlock(int ClientID);
 	void OnPlayerPutBlock(int ClientID, ivec2 TilePos, int BlockID, int BlockFlags, int Reserved);
-	void OnPlayerDestroyBlock(int ClientID, ivec2 TilePos, int BlockID);
+	void OnPlayerDestroyBlock(int ClientID, ivec2 TilePos);
+	void OnClientMoveCell(int ClientID, int From, int To);
+	bool TakeBlockDamage(vec2 WorldPos, int WeaponItemID, int Dmg, int Owner);
 
 	std::map<int, CChest*> m_lpChests;
 

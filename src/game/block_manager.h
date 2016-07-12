@@ -188,6 +188,8 @@ public:
     		m_Explode = false;
 
     		mem_zero(m_Functionality.m_aType, sizeof(m_Functionality.m_aType));
+    		m_Functionality.m_NormalItems = 0;
+    		m_Functionality.m_MutatedItems = 0;
     		m_Functionality.m_OnActive = -1;
     		m_Functionality.m_vExcludeBlocks.clear();
     		m_Functionality.m_Fuel.m_BlockId = -1;
@@ -232,6 +234,8 @@ public:
 				int m_BlockId;
 				int m_Duration;
 			} m_Fuel;
+			int m_NormalItems;
+			int m_MutatedItems;
 		} m_Functionality;
 
 		struct

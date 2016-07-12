@@ -171,10 +171,9 @@ void CCharacter::HandleInventoryItemSwitch()
 		while(Next) // Next Weapon selection
 		{
 			WantedInventoryItem = min(WantedInventoryItem+1, NUM_ITEMS_INVENTORY-1);
-			if (m_FastInventory[WantedInventoryItem].m_ItemId != 0)
-				m_ActiveInventoryItem = WantedInventoryItem;
-			else
+			while (WantedInventoryItem < NUM_ITEMS_INVENTORY && m_FastInventory[WantedInventoryItem].m_ItemId == 0)
 				++WantedInventoryItem;
+			m_ActiveInventoryItem = WantedInventoryItem;
 			Next--;
 		}
 	}
@@ -184,10 +183,9 @@ void CCharacter::HandleInventoryItemSwitch()
 		while(Prev) // Prev Weapon selection
 		{
 			WantedInventoryItem = max(WantedInventoryItem-1, 0);
-			if (m_FastInventory[WantedInventoryItem].m_ItemId != 0)
-				m_ActiveInventoryItem = WantedInventoryItem;
-			else
+			while (WantedInventoryItem > 0 && m_FastInventory[WantedInventoryItem].m_ItemId == 0)
 				--WantedInventoryItem;
+			m_ActiveInventoryItem = WantedInventoryItem;
 			Prev--;
 		}
 	}
@@ -240,7 +238,7 @@ void CCharacter::Construct()
             if (pMTTiles[Index].m_Index != 0 || pMTBGTiles[Index].m_Index == ActiveBlock)
                 return;
 
-            if (GameServer()->Collision()->ModifTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeBGLayerIndex(), (ActiveItem == WEAPON_HAMMER)?0:ActiveBlock, 0, 0))
+            if (GameServer()->Collision()->ModifTile(TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeBGLayerIndex(), (ActiveItem == WEAPON_HAMMER)?0:ActiveBlock, 0, 0))
             {
             	GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeBGLayerIndex(), (ActiveItem == WEAPON_HAMMER)?0:ActiveBlock, 0, 0);
             	GameServer()->CreateSound(m_Pos, SOUND_DESTROY_BLOCK);
@@ -358,22 +356,11 @@ void CCharacter::UseInventoryItem(int Index)
 
 void CCharacter::FireWeapon()
 {
-	if (m_ActiveInventoryItem == -1)
+	if(m_ReloadTimer != 0)
 		return;
 
 	const int ActiveItem = m_FastInventory[m_ActiveInventoryItem].m_ItemId;
 	const int ActiveItemAmount = m_FastInventory[m_ActiveInventoryItem].m_Amount;
-	// MineTee
-    if (GameServer()->IsMineTeeSrv()
-    		&& (ActiveItem >= NUM_WEAPONS || (ActiveItem == WEAPON_HAMMER && ((m_pPlayer->m_PlayerFlags&PLAYERFLAG_BGPAINT) || (m_pPlayer->m_PlayerFlags&PLAYERFLAG_FGPAINT)))))
-    {
-        Construct();
-        return;
-    }
-    //
-
-	if(m_ReloadTimer != 0)
-		return;
 
 	DoInventoryItemSwitch();
 	vec2 Direction = normalize(vec2(m_LatestInput.m_TargetX, m_LatestInput.m_TargetY));
@@ -408,6 +395,7 @@ void CCharacter::FireWeapon()
 	}
 
 	vec2 ProjStartPos = m_Pos+Direction*m_ProximityRadius*0.75f;
+	bool Fired = false;
 
 	switch(ActiveItem)
 	{
@@ -429,21 +417,9 @@ void CCharacter::FireWeapon()
                     	CTile *pMTTile = GameServer()->Collision()->GetMineTeeTileAt(finishPosPost);
                     	CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(pMTTile->m_Index);
 						if (pMTTile && pBlockInfo && pBlockInfo->m_Health > 0)
-						{
-							const int MTIndex = pMTTile->m_Index;
-							const ivec2 TilePos = ivec2(finishPosPost.x/32, finishPosPost.y/32);
-							pMTTile->m_Reserved = max(0, pMTTile->m_Reserved-g_pData->m_Weapons.m_aId[ActiveItem].m_Blockdamage);
-							if (pMTTile->m_Reserved == 0)
-							{
-								GameServer()->m_pController->OnPlayerDestroyBlock(m_pPlayer->GetCID(), TilePos, MTIndex);
-							}
-							else
-							{
-								GameServer()->SendTileModif(ALL_PLAYERS, TilePos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), MTIndex, pMTTile->m_Flags, pMTTile->m_Reserved);
-								GameServer()->CreateSound(m_Pos, SOUND_DESTROY_BLOCK);
-							}
-						}
+							GameServer()->m_pController->TakeBlockDamage(finishPosPost, ActiveItem, g_pData->m_Weapons.m_aId[ActiveItem].m_Blockdamage, m_pPlayer->GetCID());
 
+						Fired = true;
 						m_ReloadTimer=Server()->TickSpeed()/8;
                     }
                 }
@@ -480,7 +456,10 @@ void CCharacter::FireWeapon()
 
 			// if we Hit anything, we have to wait for the reload
 			if(Hits)
+			{
+				Fired = true;
 				m_ReloadTimer = Server()->TickSpeed()/3;
+			}
 
 		} break;
 
@@ -505,6 +484,7 @@ void CCharacter::FireWeapon()
 			Server()->SendMsg(&Msg, 0, m_pPlayer->GetCID());
 
 			GameServer()->CreateSound(m_Pos, SOUND_GUN_FIRE);
+			Fired = true;
 		} break;
 
 		case WEAPON_SHOTGUN:
@@ -539,6 +519,7 @@ void CCharacter::FireWeapon()
 			Server()->SendMsg(&Msg, 0,m_pPlayer->GetCID());
 
 			GameServer()->CreateSound(m_Pos, SOUND_SHOTGUN_FIRE);
+			Fired = true;
 		} break;
 
 		case WEAPON_GRENADE:
@@ -561,12 +542,14 @@ void CCharacter::FireWeapon()
 			Server()->SendMsg(&Msg, 0, m_pPlayer->GetCID());
 
 			GameServer()->CreateSound(m_Pos, SOUND_GRENADE_FIRE);
+			Fired = true;
 		} break;
 
 		case WEAPON_RIFLE:
 		{
 			new CLaser(GameWorld(), m_Pos, Direction, GameServer()->Tuning()->m_LaserReach, m_pPlayer->GetCID());
 			GameServer()->CreateSound(m_Pos, SOUND_RIFLE_FIRE);
+			Fired = true;
 		} break;
 
 		case WEAPON_NINJA:
@@ -579,14 +562,18 @@ void CCharacter::FireWeapon()
 			m_Ninja.m_OldVelAmount = length(m_Core.m_Vel);
 
 			GameServer()->CreateSound(m_Pos, SOUND_NINJA_FIRE);
+			Fired = true;
 		} break;
 
 	}
 
 	m_AttackTick = Server()->Tick();
 
-	if(ActiveItemAmount > 0) // -1 == unlimited
+	if(Fired && ActiveItemAmount > 0) // -1 == unlimited
 		m_FastInventory[m_ActiveInventoryItem].m_Amount--;
+
+	if (m_FastInventory[m_ActiveInventoryItem].m_Amount == 0)
+		m_FastInventory[m_ActiveInventoryItem].m_ItemId = 0;
 
 	if(!m_ReloadTimer)
 	{
@@ -608,36 +595,24 @@ void CCharacter::HandleInventoryItems()
 		return;
 	}
 
-	// fire Weapon, if wanted
-	FireWeapon();
-
 	return;
 }
 
 int CCharacter::GiveItem(int ItemID, int Amount)
 {
 	const bool IsWeapon = (ItemID < NUM_WEAPONS);
-	bool HasItem = true;
-	int InvItem = InInventory(ItemID);
-	if (InvItem == -1)
-	{
-		InvItem = GetFirstEmptyInventoryIndex();
-		HasItem = false;
-	}
-
-    if (IsInventoryFull() || InvItem == -1)
-        return -1;
-
-    CCellData *pCellData = &m_FastInventory[InvItem];
-
     if (IsWeapon)
     {
+    	int InvItem = GetFirstEmptyInventoryIndex();
+        if (IsInventoryFull() || InvItem == -1)
+            return -1;
+
+        CCellData *pCellData = &m_FastInventory[InvItem];
+
 		if(pCellData->m_Amount < g_pData->m_Weapons.m_aId[ItemID].m_Maxammo || InvItem == -1)
 		{
 			pCellData->m_Amount = min(g_pData->m_Weapons.m_aId[ItemID].m_Maxammo, pCellData->m_Amount+Amount);
-
-			if (!HasItem)
-				pCellData->m_ItemId = ItemID;
+			pCellData->m_ItemId = ItemID;
 
 			m_NeedSendInventory = true;
 			return InvItem;
@@ -645,6 +620,19 @@ int CCharacter::GiveItem(int ItemID, int Amount)
     }
     else
     {
+    	bool HasItem = true;
+    	int InvItem = InInventory(ItemID);
+    	if (InvItem == -1)
+    	{
+    		InvItem = GetFirstEmptyInventoryIndex();
+    		HasItem = false;
+    	}
+
+        if ((!HasItem && IsInventoryFull()) || InvItem == -1)
+            return -1;
+
+        CCellData *pCellData = &m_FastInventory[InvItem];
+
     	pCellData->m_Amount = min(255, pCellData->m_Amount+Amount);
     	if (!HasItem)
     		pCellData->m_ItemId = ItemID;
@@ -689,7 +677,19 @@ void CCharacter::OnDirectInput(CNetObj_PlayerInput *pNewInput)
 	if(m_NumInputs > 2 && m_pPlayer->GetTeam() != TEAM_SPECTATORS)
 	{
 		HandleInventoryItemSwitch();
-		FireWeapon();
+
+		// MineTee
+		if (m_ActiveInventoryItem == -1)
+			return;
+
+		const int ActiveItem = m_FastInventory[m_ActiveInventoryItem].m_ItemId;
+	    if (ActiveItem >= NUM_WEAPONS
+	    		|| (ActiveItem == WEAPON_HAMMER && ((m_pPlayer->m_PlayerFlags&PLAYERFLAG_BGPAINT) || (m_pPlayer->m_PlayerFlags&PLAYERFLAG_FGPAINT))))
+	    {
+	        Construct();
+	    }
+	    else
+	    	FireWeapon();
 	}
 
 	mem_copy(&m_LatestPrevInput, &m_LatestInput, sizeof(m_LatestInput));
@@ -888,6 +888,9 @@ bool CCharacter::IncreaseArmor(int Amount)
 
 void CCharacter::Die(int Killer, int ItemID)
 {
+	if (Killer == -1) // MineTee
+		Killer = m_pPlayer->GetCID();
+
 	// we got to wait 0.5 secs or 20 if bot before respawning
 	float RespawnTick = (m_pPlayer->IsBot())?Server()->TickSpeed()*20:Server()->TickSpeed()/2; // MineTee
     m_pPlayer->m_RespawnTick = Server()->Tick()+RespawnTick;
@@ -1175,6 +1178,10 @@ void CCharacter::UseAccountData(void *pAccountInfo)
 	m_Health = pInfo->m_Health;
 	m_ActiveInventoryItem = pInfo->m_ActiveInventoryItem;
 	mem_copy(&m_FastInventory, &pInfo->m_Inventory, sizeof(CCellData)*NUM_ITEMS_INVENTORY);
+
+	// Check that can spawn in the place
+	if (GameServer()->Collision()->GetMineTeeTileIndexAt(m_Pos))
+		GameServer()->Collision()->ModifTile(ivec2(m_Pos.x/32, m_Pos.y/32), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeBGLayerIndex(), 0, 0, 0);
 }
 
 int CCharacter::InInventory(int ItemID)

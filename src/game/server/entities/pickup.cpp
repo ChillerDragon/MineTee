@@ -112,32 +112,15 @@ void CPickup::Tick()
 		{
 			// MineTee
 			case POWERUP_DROPITEM:
-				if (pChr->GiveItem(m_Subtype, m_Amount))
+				if (pChr->GiveItem(m_Subtype, m_Amount) != -1)
 				{
-					if (m_Subtype < NUM_WEAPONS)
-					{
-						RespawnTime = g_pData->m_aPickups[m_Type].m_Respawntime;
-
-						if(m_Subtype == WEAPON_GRENADE)
-							GameServer()->CreateSound(m_Pos, SOUND_PICKUP_GRENADE);
-						else if(m_Subtype == WEAPON_SHOTGUN)
-							GameServer()->CreateSound(m_Pos, SOUND_PICKUP_SHOTGUN);
-						else if(m_Subtype == WEAPON_RIFLE)
-							GameServer()->CreateSound(m_Pos, SOUND_PICKUP_SHOTGUN);
-
-						if(pChr->GetPlayer())
-							GameServer()->SendWeaponPickup(pChr->GetPlayer()->GetCID(), m_Subtype);
-					}
-					else
-					{
-						GameServer()->CreateSound(m_Pos, SOUND_PICKUP_BLOCK);
-						GameWorld()->DestroyEntity(this);
-					}
+					GameServer()->CreateSound(m_Pos, SOUND_PICKUP_BLOCK);
+					GameWorld()->DestroyEntity(this);
 					return;
 				}
 				break;
 			case POWERUP_BLOCK:
-				if (pChr->GiveItem(NUM_WEAPONS+m_Subtype, 1))
+				if (pChr->GiveItem(NUM_WEAPONS+m_Subtype, 1) != -1)
 				{
 					GameServer()->CreateSound(m_Pos, SOUND_PICKUP_BLOCK);
 					GameWorld()->DestroyEntity(this);
