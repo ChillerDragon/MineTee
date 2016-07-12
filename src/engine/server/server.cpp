@@ -1356,6 +1356,21 @@ int CServer::LoadMap(const char *pMapSize, const char *pMapName, bool GenerateMa
 	if(!m_pMap->Load(aBuf))
 		return 0;
 
+	// MineTee
+	char aPath[512];
+	char aFullPath[512];
+	Storage()->GetCompletePath(IStorage::TYPE_SAVE, "worlds/", aPath, sizeof(aPath));
+	if (!fs_is_dir(aPath))
+		Storage()->CreateFolder("worlds/", IStorage::TYPE_SAVE);
+
+	str_format(aFullPath, sizeof(aFullPath), "worlds/%s/", pMapName);
+	Storage()->GetCompletePath(IStorage::TYPE_SAVE, aFullPath, aPath, sizeof(aPath));
+	if (!fs_is_dir(aPath))
+		Storage()->CreateFolder(aFullPath, IStorage::TYPE_SAVE);
+
+	str_format(aFullPath, sizeof(aFullPath), "worlds/%s/accounts.dat", pMapName);
+	m_AccountSystem.Init(aFullPath, Storage());
+
 	// stop recording when we change map
 	m_DemoRecorder.Stop();
 
@@ -1394,11 +1409,9 @@ int CServer::LoadMap(const char *pMapSize, const char *pMapName, bool GenerateMa
 				return 0;
 			}
 		}
-
 		m_CurrentBlocksSize = (int)io_length(File);
 		m_pCurrentBlocksData = (char *)mem_alloc(m_CurrentBlocksSize, 1);
 		io_read(File, m_pCurrentBlocksData, m_CurrentBlocksSize);
-
 		io_close(File);
 	}
 
@@ -1807,7 +1820,6 @@ void CServer::RegisterCommands()
 	// register console commands in sub parts
 	m_ServerBan.InitServerBan(Console(), Storage(), this);
 	m_pGameServer->OnConsoleInit();
-	m_AccountSystem.Init("accounts.dat", Storage());
 }
 
 

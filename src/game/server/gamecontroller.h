@@ -162,6 +162,8 @@ public:
 	virtual void OnPlayerDestroyBlock(int ClientID, ivec2 TilePos) {}
 	virtual bool TakeBlockDamage(vec2 WorldPos, int WeaponItemID, int Dmg, int Owner) { return false; }
 	virtual void OnClientMoveCell(int ClientID, int From, int To) { }
+	virtual void LoadData() {}
+	virtual void SaveData() {}
 };
 
 #endif

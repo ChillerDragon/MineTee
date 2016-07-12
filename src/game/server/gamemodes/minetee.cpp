@@ -21,6 +21,8 @@ CGameControllerMineTee::CGameControllerMineTee(class CGameContext *pGameServer)
 	m_TimeWear = Server()->Tick();
 	m_lpChests.clear();
 	m_lpSigns.clear();
+
+	LoadData();
 }
 
 void CGameControllerMineTee::Tick()
@@ -1465,4 +1467,80 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To)
 		pCellFrom->m_ItemId = 0x0;
 		pCellFrom->m_Amount = 0;
 	}
+}
+
+void CGameControllerMineTee::LoadData()
+{
+	char aBuf[512];
+	unsigned NumChests=0, NumSigns=0;
+
+	str_format(aBuf, sizeof(aBuf), "worlds/%s/minetee.dat", Server()->GetWorldName());
+	IOHANDLE File = GameServer()->Storage()->OpenFile(aBuf, IOFLAG_READ, IStorage::TYPE_SAVE);
+	if (!File)
+		return;
+
+	// Get Num of Regs
+	io_read(File, &NumChests, sizeof(unsigned));
+	io_read(File, &NumSigns, sizeof(unsigned));
+
+	// Load Chests
+	int ChestID;
+	for (unsigned i=0; i<NumChests; i++)
+	{
+		CChest *pStoredChest = (CChest*)mem_alloc(sizeof(CChest), 1);
+		io_read(File, &ChestID, sizeof(int)); // Get ID
+		io_read(File, pStoredChest, sizeof(CChest)); // Get base chest
+		pStoredChest->m_apItems = (CCellData*)mem_alloc(sizeof(CCellData)*pStoredChest->m_NumItems, 1);
+		mem_zero(pStoredChest->m_apItems, sizeof(pStoredChest->m_apItems));
+		io_read(File, pStoredChest->m_apItems, sizeof(CCellData)*pStoredChest->m_NumItems); // Get Items
+		m_lpChests.insert(std::make_pair(ChestID, pStoredChest));
+	}
+
+	int SignID;
+	CSign StoredSign((const unsigned char*)"");
+	for (unsigned i=0; i<NumSigns; i++)
+	{
+		io_read(File, &SignID, sizeof(int)); // Get ID
+		io_read(File, &StoredSign, sizeof(CSign)); // Get base sign
+		m_lpSigns.insert(std::make_pair(SignID, StoredSign));
+	}
+
+	io_close(File);
+}
+
+void CGameControllerMineTee::SaveData()
+{
+	char aBuf[512];
+	unsigned NumRegs = 0;
+
+	str_format(aBuf, sizeof(aBuf), "worlds/%s/minetee.dat", Server()->GetWorldName());
+	IOHANDLE File = GameServer()->Storage()->OpenFile(aBuf, IOFLAG_WRITE, IStorage::TYPE_SAVE);
+	if (!File)
+		return;
+
+	// Save num of regs
+	NumRegs = m_lpChests.size();
+	io_write(File, &NumRegs, sizeof(unsigned));
+	NumRegs = m_lpSigns.size();
+	io_write(File, &NumRegs, sizeof(unsigned));
+
+	// Save Chests
+	std::map<int, CChest*>::iterator itChest = m_lpChests.begin();
+	while (itChest != m_lpChests.end())
+	{
+		io_write(File, &itChest->first, sizeof(int)); // The ID
+		io_write(File, itChest->second, sizeof(CChest)); // The base info
+		io_write(File, itChest->second->m_apItems, sizeof(CCellData)*itChest->second->m_NumItems); // Chest Items
+		++itChest;
+	}
+
+	// Load Signs
+	std::map<int, CSign>::iterator itSign = m_lpSigns.begin();
+	while (itSign != m_lpSigns.end())
+	{
+		io_write(File, &itSign->first, sizeof(int)); // The ID
+		io_write(File, &itSign->second, sizeof(CSign)); // The base sign
+		++itSign;
+	}
+	io_close(File);
 }

@@ -258,6 +258,7 @@ public:
 	IAccountSystem *AccountSystem() { return &m_AccountSystem; }
 	virtual void InitClientBot(int ClientID);
 	int LoadPNG(CImageInfoFile *pImg, const char *pFilename, int StorageType);
+	virtual const char* GetWorldName() { return m_aCurrentMap; }
 	//
 };
 

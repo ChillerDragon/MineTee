@@ -992,7 +992,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 	    else if (MsgID == NETMSGTYPE_CL_DROPITEMINVENTARY && !m_World.m_Paused)
 	    {
 	        CNetMsg_Cl_DropItemInventary *pMsg = (CNetMsg_Cl_DropItemInventary *)pRawMsg;
-	        int Index = pMsg->m_Pos;
+	        int Index = pMsg->m_Index;
 
 	        if (pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive())
 	            pPlayer->GetCharacter()->DropItem(Index);
@@ -1575,7 +1575,10 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 	m_Collision.Init(&m_Layers, &m_BlockManager);
 	m_MapGen.Init(&m_Layers, &m_Collision, &m_BlockManager); // MineTee
 	if (g_Config.m_SvMapGeneration && m_pServer->m_MapGenerated) // generate a random world if wanted
+	{
 		m_MapGen.FillMap(g_Config.m_SvMapGenerationSeed);
+		SaveMap("");
+	}
 
 	// reset everything here
 	//world = new GAMEWORLD;
@@ -1583,10 +1586,7 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 
 	// select gametype
 	// MineTee: Removed other gamemodes!
-	if(str_comp(g_Config.m_SvGametype, "mod") == 0)
-		m_pController = new CGameControllerMOD(this);
-	else
-		m_pController = new CGameControllerMineTee(this);
+	m_pController = new CGameControllerMineTee(this);
 
 	// setup core world
 	//for(int i = 0; i < MAX_CLIENTS; i++)
@@ -1647,9 +1647,7 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 
 void CGameContext::OnShutdown()
 {
-	// FIXME: Can't Write & Read in the same file
-	//if (str_find_nocase(GameType(), "MineTee"))
-	//	SaveMap("");
+	SaveMap("");
 
 	for (int i=0; i<MAX_CLIENTS-MAX_BOTS; i++)
 	{
@@ -1660,6 +1658,7 @@ void CGameContext::OnShutdown()
 		m_apPlayers[i] = 0x0;
 	}
 
+	m_pController->SaveData();
 	delete m_pController;
 	m_pController = 0;
 	Clear();

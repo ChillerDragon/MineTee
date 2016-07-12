@@ -129,6 +129,7 @@ public:
 
 	virtual const unsigned char *ClientKey(int ClientID) = 0;
 	virtual void InitClientBot(int ClientID) = 0;
+	virtual const char* GetWorldName() = 0;
 	//
 };
 

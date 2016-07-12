@@ -1231,7 +1231,7 @@ IGameClient *CreateGameClient()
 void CGameClient::SendDropItem(int Index)
 {
 	CNetMsg_Cl_DropItemInventary Msg;
-	Msg.m_Pos = Index;
+	Msg.m_Index = Index;
 	Client()->SendPackMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 }
 

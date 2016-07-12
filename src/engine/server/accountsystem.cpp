@@ -89,6 +89,7 @@ void CAccountSystem::Load()
 	if (!File)
 		return;
 
+	m_lAccounts.clear();
 	int32_t Count = 0;
 	bool hasErrors = false;
 	io_read(File, &Count, sizeof(int32_t));

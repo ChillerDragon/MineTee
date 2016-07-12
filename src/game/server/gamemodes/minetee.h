@@ -18,9 +18,9 @@ public:
 		mem_zero(m_aOwnerKey, sizeof(m_aOwnerKey));
 	}
 
-	CCellData *m_apItems;
 	unsigned m_NumItems;
 	unsigned char m_aOwnerKey[MINETEE_USER_KEY_SIZE];
+	CCellData *m_apItems;
 
 	void Resize(int NumItems)
 	{
@@ -89,6 +89,9 @@ public:
 	void OnPlayerDestroyBlock(int ClientID, ivec2 TilePos);
 	void OnClientMoveCell(int ClientID, int From, int To);
 	bool TakeBlockDamage(vec2 WorldPos, int WeaponItemID, int Dmg, int Owner);
+
+	void LoadData();
+	void SaveData();
 
 	std::map<int, CChest*> m_lpChests;
 	std::map<int, CSign> m_lpSigns;

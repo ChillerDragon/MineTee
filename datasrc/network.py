@@ -391,18 +391,19 @@ Messages = [
 		NetIntAny("m_Group"),
 		NetIntAny("m_Layer"),
 		NetIntRange("m_Index", 0, 255),
-		NetIntRange("m_Flags", 0, 255),
-		NetIntRange("m_Reserved", 0, 255),
-	]),
-		
-	NetMessage("Cl_DropItemInventary", [
-		NetIntAny("m_Pos"),
+		NetIntAny("m_Flags"),
+		NetIntAny("m_Reserved"),
 	]),
 		
 	# Here for preserve vanilla compatibility
+	NetMessage("Cl_DropItemInventary", [
+		NetIntRange("m_Index", 0, 'NUM_CELLS_LINE-1'),
+	]),
+	
+	# Here for preserve vanilla compatibility
 	NetMessage("Cl_MTInput", [
-		NetIntAny("m_ActiveBlock"),
-		NetIntAny("m_OpenInventory"),
+		NetIntRange("m_ActiveBlock", 0, 1),
+		NetIntRange("m_OpenInventory", 0, 1),
 	]),
 	
 	#NetMessage("", []),
