@@ -15,12 +15,12 @@ public:
 	{
 		m_apItems = 0x0;
 		m_NumItems = 0;
-		m_Owner = -1;
+		mem_zero(m_aOwnerKey, sizeof(m_aOwnerKey));
 	}
 
 	CCellData *m_apItems;
 	unsigned m_NumItems;
-	int m_Owner;
+	unsigned char m_aOwnerKey[MINETEE_USER_KEY_SIZE];
 
 	void Resize(int NumItems)
 	{
@@ -40,14 +40,17 @@ public:
 class CSign
 {
 public:
-	CSign(int Owner = -1)
+	CSign(unsigned char *pOwnerKey)
 	{
-		m_Owner = Owner;
+		if (pOwnerKey)
+			mem_copy(m_aOwnerKey, pOwnerKey, sizeof(m_aOwnerKey));
+		else
+			mem_zero(m_aOwnerKey, sizeof(m_aOwnerKey));
 		mem_zero(m_aText, sizeof(m_aText));
 	}
 
 	char m_aText[MAX_INPUT_SIZE];
-	int m_Owner;
+	unsigned char m_aOwnerKey[MINETEE_USER_KEY_SIZE];
 };
 
 class CGameControllerMineTee : public CGameController

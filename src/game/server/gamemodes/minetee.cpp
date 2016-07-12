@@ -698,7 +698,7 @@ void CGameControllerMineTee::OnPlayerPutBlock(int ClientID, ivec2 TilePos, int B
 	{
 		int ChestID = TilePos.y*GameServer()->Collision()->GetWidth()+TilePos.x;
 		CChest *pChest = (CChest*)mem_alloc(sizeof(CChest), 1);
-		pChest->m_Owner = ClientID;
+		mem_copy(pChest->m_aOwnerKey, GameServer()->GetAccount(ClientID)->m_aKey, sizeof(pChest->m_aOwnerKey));
 		pChest->m_NumItems = pBlockInfo->m_Functionality.m_NormalItems;
 		pChest->m_apItems = (CCellData*)mem_alloc(sizeof(CCellData)*pChest->m_NumItems, 1);
 		mem_zero(pChest->m_apItems, sizeof(CCellData)*pChest->m_NumItems);
@@ -707,7 +707,7 @@ void CGameControllerMineTee::OnPlayerPutBlock(int ClientID, ivec2 TilePos, int B
 	if (pBlockInfo && str_comp(pBlockInfo->m_Functionality.m_aType, "sign") == 0)
 	{
 		int SignID = TilePos.y*GameServer()->Collision()->GetWidth()+TilePos.x;
-		m_lpSigns.insert(std::make_pair(SignID, CSign(ClientID)));
+		m_lpSigns.insert(std::make_pair(SignID, CSign(GameServer()->GetAccount(ClientID)->m_aKey)));
 	}
 }
 
@@ -908,8 +908,13 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
 				std::map<int, CSign>::iterator it = m_lpSigns.find(SignID);
 				if (it != m_lpSigns.end())
 				{
-					str_copy(it->second.m_aText, msg+6, sizeof(it->second.m_aText));
-					GameServer()->SendChatTarget(cid,"Sign text changed successfully!");
+					if (mem_comp(it->second.m_aOwnerKey, GameServer()->GetAccount(cid)->m_aKey, sizeof(it->second.m_aOwnerKey)) == 0)
+					{
+						str_copy(it->second.m_aText, msg+6, sizeof(it->second.m_aText));
+						GameServer()->SendChatTarget(cid,"Sign text changed successfully!");
+					}
+					else
+						GameServer()->SendChatTarget(cid,"You aren't the owner of this sign!");
 					return false;
 				}
 			}
