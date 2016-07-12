@@ -1496,8 +1496,9 @@ void CGameControllerMineTee::LoadData()
 		m_lpChests.insert(std::make_pair(ChestID, pStoredChest));
 	}
 
+	// Load Signs
 	int SignID;
-	CSign StoredSign((const unsigned char*)"");
+	CSign StoredSign(0);
 	for (unsigned i=0; i<NumSigns; i++)
 	{
 		io_read(File, &SignID, sizeof(int)); // Get ID
@@ -1534,7 +1535,7 @@ void CGameControllerMineTee::SaveData()
 		++itChest;
 	}
 
-	// Load Signs
+	// Save Signs
 	std::map<int, CSign>::iterator itSign = m_lpSigns.begin();
 	while (itSign != m_lpSigns.end())
 	{
