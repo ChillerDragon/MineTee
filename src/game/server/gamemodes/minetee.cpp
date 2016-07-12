@@ -20,6 +20,7 @@ CGameControllerMineTee::CGameControllerMineTee(class CGameContext *pGameServer)
 	m_TimeCook = Server()->Tick();
 	m_TimeWear = Server()->Tick();
 	m_lpChests.clear();
+	m_lpSigns.clear();
 }
 
 void CGameControllerMineTee::Tick()
@@ -631,40 +632,54 @@ void CGameControllerMineTee::OnClientActiveBlock(int ClientID)
 	if (!pChar)
 		return;
 
-	const vec2 Direction = pChar->GetMouseDirection();
-    const vec2 StartPos= pChar->m_Pos + Direction * 38.0f;
-    vec2 colTilePos = StartPos+Direction * MAX_CONSTRUCT_DISTANCE;
     bool Actived = false;
+    bool Collide = false;
+    const vec2 NextPos = pChar->m_Pos + pChar->GetMouseDirection() * 32.0f;
+    vec2 FinishPos;
 
-	if (GameServer()->Collision()->IntersectLine(StartPos, colTilePos, &colTilePos, 0x0))
+    if (GameServer()->Collision()->GetMineTeeTileIndexAt(pChar->m_Pos) != 0)
+    {
+    	FinishPos = pChar->m_Pos;
+    	Collide = true;
+    }
+    else if (GameServer()->Collision()->GetMineTeeTileIndexAt(NextPos) != 0)
+    {
+    	FinishPos = NextPos;
+    	Collide = true;
+    }
+
+	if (Collide)
 	{
-		const vec2 finishPosPost = colTilePos-Direction * 8.0f;
-		if (GameServer()->Collision()->GetCollisionAt(finishPosPost.x, finishPosPost.y)&CCollision::COLFLAG_SOLID)
+		const int MTTIndex = GameServer()->Collision()->GetMineTeeTileIndexAt(FinishPos);
+		CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(MTTIndex);
+
+		if (!pBlockInfo || pBlockInfo->m_Functionality.m_aType[0] == 0)
 		{
-			const int MTTIndex = GameServer()->Collision()->GetMineTeeTileIndexAt(finishPosPost);
-			CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(MTTIndex);
+			pChar->m_ActiveBlockId = -1;
+			return;
+		}
 
-			if (!pBlockInfo || pBlockInfo->m_Functionality.m_aType[0] == 0)
+		if (str_comp(pBlockInfo->m_Functionality.m_aType, "chest") == 0)
+		{
+			int ChestID = ((int)FinishPos.y/32)*GameServer()->Collision()->GetWidth()+((int)FinishPos.x/32);
+			std::map<int, CChest*>::iterator it = m_lpChests.find(ChestID);
+			if (it != m_lpChests.end())
 			{
-				pChar->m_ActiveBlockId = -1;
-				return;
+				CCellData *pCellsData = (CCellData*)mem_alloc(sizeof(CCellData)*(it->second->m_NumItems+NUM_ITEMS_INVENTORY), 1);
+				mem_copy(pCellsData, pChar->m_FastInventory, sizeof(CCellData)*NUM_ITEMS_INVENTORY);
+				mem_copy(pCellsData+NUM_ITEMS_INVENTORY, it->second->m_apItems, sizeof(CCellData)*it->second->m_NumItems);
+				GameServer()->SendCellData(ClientID, pCellsData, it->second->m_NumItems+NUM_ITEMS_INVENTORY, CELLS_CHEST, ChestID);
+				mem_free(pCellsData);
+				pChar->m_ActiveBlockId = ChestID;
+				Actived = true;
 			}
-
-			if (str_comp(pBlockInfo->m_Functionality.m_aType, "chest") == 0)
-			{
-				int ChestID = ((int)finishPosPost.y/32)*GameServer()->Collision()->GetWidth()+((int)finishPosPost.x/32);
-				std::map<int, CChest*>::iterator it = m_lpChests.find(ChestID);
-				if (it != m_lpChests.end())
-				{
-					CCellData *pCellsData = (CCellData*)mem_alloc(sizeof(CCellData)*(it->second->m_NumItems+NUM_ITEMS_INVENTORY), 1);
-					mem_copy(pCellsData, pChar->m_FastInventory, sizeof(CCellData)*NUM_ITEMS_INVENTORY);
-					mem_copy(pCellsData+NUM_ITEMS_INVENTORY, it->second->m_apItems, sizeof(CCellData)*it->second->m_NumItems);
-					GameServer()->SendCellData(ClientID, pCellsData, it->second->m_NumItems+NUM_ITEMS_INVENTORY, CELLS_CHEST, ChestID);
-					mem_free(pCellsData);
-					pChar->m_ActiveBlockId = ChestID;
-					Actived = true;
-				}
-			}
+		}
+		else if (str_comp(pBlockInfo->m_Functionality.m_aType, "sign") == 0)
+		{
+			int SignID = ((int)FinishPos.y/32)*GameServer()->Collision()->GetWidth()+((int)FinishPos.x/32);
+			std::map<int, CSign>::iterator it = m_lpSigns.find(SignID);
+			if (it != m_lpSigns.end())
+				GameServer()->SendChatTarget(ClientID, (it->second.m_aText[0] != 0)?it->second.m_aText:"EMPTY!");;
 		}
 	}
 
@@ -682,11 +697,17 @@ void CGameControllerMineTee::OnPlayerPutBlock(int ClientID, ivec2 TilePos, int B
 	if (pBlockInfo && str_comp(pBlockInfo->m_Functionality.m_aType, "chest") == 0)
 	{
 		int ChestID = TilePos.y*GameServer()->Collision()->GetWidth()+TilePos.x;
-		CChest *pCellModalData = (CChest*)mem_alloc(sizeof(CChest), 1);
-		pCellModalData->m_NumItems = pBlockInfo->m_Functionality.m_NormalItems;
-		pCellModalData->m_apItems = (CCellData*)mem_alloc(sizeof(CCellData)*pCellModalData->m_NumItems, 1);
-		mem_zero(pCellModalData->m_apItems, sizeof(CCellData)*pCellModalData->m_NumItems);
-		m_lpChests.insert(std::make_pair(ChestID, pCellModalData));
+		CChest *pChest = (CChest*)mem_alloc(sizeof(CChest), 1);
+		pChest->m_Owner = ClientID;
+		pChest->m_NumItems = pBlockInfo->m_Functionality.m_NormalItems;
+		pChest->m_apItems = (CCellData*)mem_alloc(sizeof(CCellData)*pChest->m_NumItems, 1);
+		mem_zero(pChest->m_apItems, sizeof(CCellData)*pChest->m_NumItems);
+		m_lpChests.insert(std::make_pair(ChestID, pChest));
+	}
+	if (pBlockInfo && str_comp(pBlockInfo->m_Functionality.m_aType, "sign") == 0)
+	{
+		int SignID = TilePos.y*GameServer()->Collision()->GetWidth()+TilePos.x;
+		m_lpSigns.insert(std::make_pair(SignID, CSign(ClientID)));
 	}
 }
 
@@ -771,6 +792,13 @@ void CGameControllerMineTee::OnPlayerDestroyBlock(int ClientID, ivec2 TilePos)
 			}
 		}
 	}
+	else if (pBlockInfo && str_comp(pBlockInfo->m_Functionality.m_aType, "sign") == 0)
+	{
+		int SignID = TilePos.y*GameServer()->Collision()->GetWidth()+TilePos.x;
+		std::map<int, CSign>::iterator it = m_lpSigns.find(SignID);
+		if (it != m_lpSigns.end())
+			m_lpSigns.erase(it);
+	}
 }
 
 bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
@@ -840,6 +868,56 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
 					return false;
 				}
 			} while ((ptr = strtok(NULL, " \n\t")) != NULL);
+		}
+	}
+	else if (str_comp_nocase(ptr,"/text") == 0 )
+	{
+		CCharacter *pChar = GameServer()->GetPlayerChar(cid);
+		if (!pChar)
+			return false;
+
+	    bool Collide = false;
+	    const vec2 NextPos = pChar->m_Pos + pChar->GetMouseDirection() * 32.0f;
+	    vec2 FinishPos;
+
+	    if (GameServer()->Collision()->GetMineTeeTileIndexAt(pChar->m_Pos) != 0)
+	    {
+	    	FinishPos = pChar->m_Pos;
+	    	Collide = true;
+	    }
+	    else if (GameServer()->Collision()->GetMineTeeTileIndexAt(NextPos) != 0)
+	    {
+	    	FinishPos = NextPos;
+	    	Collide = true;
+	    }
+
+		if (Collide)
+		{
+			const int MTTIndex = GameServer()->Collision()->GetMineTeeTileIndexAt(FinishPos);
+			CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(MTTIndex);
+
+			if (!pBlockInfo || pBlockInfo->m_Functionality.m_aType[0] == 0)
+			{
+				pChar->m_ActiveBlockId = -1;
+				return false;
+			}
+
+			if (str_comp(pBlockInfo->m_Functionality.m_aType, "sign") == 0)
+			{
+				int SignID = ((int)FinishPos.y/32)*GameServer()->Collision()->GetWidth()+((int)FinishPos.x/32);
+				std::map<int, CSign>::iterator it = m_lpSigns.find(SignID);
+				if (it != m_lpSigns.end())
+				{
+					str_copy(it->second.m_aText, msg+6, sizeof(it->second.m_aText));
+					GameServer()->SendChatTarget(cid,"Sign text changed successfully!");
+					return false;
+				}
+			}
+		}
+		else
+		{
+			GameServer()->SendChatTarget(cid,"Not block near to change text on it :/");
+			return false;
 		}
 	}
 	else if (str_comp_nocase(ptr,"/cmdlist") == 0 || str_comp_nocase(ptr,"/help") == 0)

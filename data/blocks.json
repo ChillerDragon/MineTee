@@ -195,7 +195,14 @@
         "halfTile": true,
     },
     {
-        "name": "NOT USED 39",
+        "name": "SIGN",
+        "health": 3,
+        "playerCollide": false,
+        "place": [[-2],[-2],[-2],[-2],[-1],[-2],[-2],[-2]],
+        "functionality":
+        {
+        	"type": "sign"
+        },
     },
     {
         "name": "NOT USED 40",

@@ -15,10 +15,12 @@ public:
 	{
 		m_apItems = 0x0;
 		m_NumItems = 0;
+		m_Owner = -1;
 	}
 
 	CCellData *m_apItems;
 	unsigned m_NumItems;
+	int m_Owner;
 
 	void Resize(int NumItems)
 	{
@@ -35,6 +37,18 @@ public:
 	}
 };
 
+class CSign
+{
+public:
+	CSign(int Owner = -1)
+	{
+		m_Owner = Owner;
+		mem_zero(m_aText, sizeof(m_aText));
+	}
+
+	char m_aText[MAX_INPUT_SIZE];
+	int m_Owner;
+};
 
 class CGameControllerMineTee : public CGameController
 {
@@ -73,6 +87,7 @@ public:
 	bool TakeBlockDamage(vec2 WorldPos, int WeaponItemID, int Dmg, int Owner);
 
 	std::map<int, CChest*> m_lpChests;
+	std::map<int, CSign> m_lpSigns;
 
 private:
 	float m_TimeVegetal;
