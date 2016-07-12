@@ -8,6 +8,7 @@
 #include <engine/console.h>
 #include <engine/shared/datafile.h> // MineTee
 #include <engine/storage.h> // MineTee
+#include <engine/server/accountsystem.h> // MineTee
 #include "gamecontext.h"
 #include <game/version.h>
 #include <game/collision.h>
@@ -601,7 +602,7 @@ void CGameContext::OnClientEnter(int ClientID)
         SendChatTarget(ClientID, " Say '/info craft' to view info about crafting");
         SendChatTarget(ClientID, " ");
         m_apPlayers[ClientID]->m_IsFirstJoin = true;
-        m_apPlayers[ClientID]->FillAccountData(GetAccount(ClientID));
+        m_apPlayers[ClientID]->UseAccountData(GetAccount(ClientID));
     }
 }
 

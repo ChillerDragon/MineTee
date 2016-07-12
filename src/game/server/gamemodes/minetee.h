@@ -40,7 +40,7 @@ public:
 class CSign
 {
 public:
-	CSign(unsigned char *pOwnerKey)
+	CSign(const unsigned char *pOwnerKey)
 	{
 		if (pOwnerKey)
 			mem_copy(m_aOwnerKey, pOwnerKey, sizeof(m_aOwnerKey));
