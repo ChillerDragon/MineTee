@@ -1349,12 +1349,12 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 		{
 			for (int i=0; i<NUM_CELLS_LINE; i++)
 			{
-				if (pPlayer->m_aCraftTake[i].m_ItemId == 0)
+				if (pPlayer->m_aCraftRecipe[i].m_ItemId == 0)
 					continue;
 
-				if (pPlayer->m_aCraftTake[i].m_ItemId == pPlayer->m_aCraft[i].m_ItemId)
+				if (pPlayer->m_aCraftRecipe[i].m_ItemId == pPlayer->m_aCraft[i].m_ItemId)
 				{
-					pPlayer->m_aCraft[i].m_Amount = max(0, pPlayer->m_aCraft[i].m_Amount-pPlayer->m_aCraftTake[i].m_Amount);
+					pPlayer->m_aCraft[i].m_Amount = max(0, pPlayer->m_aCraft[i].m_Amount-pPlayer->m_aCraftRecipe[i].m_Amount);
 					if (pPlayer->m_aCraft[i].m_Amount == 0)
 						pPlayer->m_aCraft[i].m_ItemId = 0;
 				}
@@ -1394,7 +1394,7 @@ void CGameControllerMineTee::CheckCraft(int ClientID)
 	bool Crafted = false;
 	for (int q=0; q<CBlockManager::MAX_BLOCKS; q++)
 	{
-		mem_zero(pPlayer->m_aCraftTake, sizeof(CCellData)*NUM_CELLS_LINE);
+		mem_zero(pPlayer->m_aCraftRecipe, sizeof(CCellData)*NUM_CELLS_LINE);
 
 		CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(q);
 		if (!pBlockInfo)
@@ -1415,14 +1415,14 @@ void CGameControllerMineTee::CheckCraft(int ClientID)
 			{
 				if (it->first > 0 && pChar->GetPlayer()->m_aCraft[i].m_ItemId == 0)
 				{
-					pPlayer->m_aCraftTake[i].m_ItemId = it->first+NUM_WEAPONS;
-					pPlayer->m_aCraftTake[i].m_Amount = it->second;
+					pPlayer->m_aCraftRecipe[i].m_ItemId = it->first+NUM_WEAPONS;
+					pPlayer->m_aCraftRecipe[i].m_Amount = it->second;
 				}
 				else if (it->first+NUM_WEAPONS == pChar->GetPlayer()->m_aCraft[i].m_ItemId
 					&& it->second <= pChar->GetPlayer()->m_aCraft[i].m_Amount)
 				{
-					pPlayer->m_aCraftTake[i].m_ItemId = it->first+NUM_WEAPONS;
-					pPlayer->m_aCraftTake[i].m_Amount = it->second;
+					pPlayer->m_aCraftRecipe[i].m_ItemId = it->first+NUM_WEAPONS;
+					pPlayer->m_aCraftRecipe[i].m_Amount = it->second;
 					break;
 				}
 
@@ -1436,7 +1436,7 @@ void CGameControllerMineTee::CheckCraft(int ClientID)
 		Crafted = true;
 		for (int i=0; i<NUM_CELLS_LINE; i++)
 		{
-			if (pPlayer->m_aCraftTake[i].m_ItemId != pChar->GetPlayer()->m_aCraft[i].m_ItemId)
+			if (pPlayer->m_aCraftRecipe[i].m_ItemId != pChar->GetPlayer()->m_aCraft[i].m_ItemId)
 			{
 				Crafted = false;
 				break;
@@ -1451,7 +1451,7 @@ void CGameControllerMineTee::CheckCraft(int ClientID)
 		}
 		else
 		{
-			mem_zero(pPlayer->m_aCraftTake, sizeof(CCellData)*NUM_CELLS_LINE);
+			mem_zero(pPlayer->m_aCraftRecipe, sizeof(CCellData)*NUM_CELLS_LINE);
 			pChar->GetPlayer()->m_aCraft[NUM_CELLS_LINE].m_ItemId = 0;
 			pChar->GetPlayer()->m_aCraft[NUM_CELLS_LINE].m_Amount = 0;
 

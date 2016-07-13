@@ -101,7 +101,7 @@ public:
 	// MineTee
 	CCellData m_aInventory[NUM_CELLS_LINE*3];
 	CCellData m_aCraft[NUM_CELLS_LINE+1]; // +1 because the last item its the result of the craft
-	CCellData m_aCraftTake[NUM_CELLS_LINE]; // The recipe of the current craft
+	CCellData m_aCraftRecipe[NUM_CELLS_LINE]; // The recipe of the current craft
 	bool m_IsFirstJoin;
 	int m_Level;
 	bool IsBot() const { return m_Bot; }

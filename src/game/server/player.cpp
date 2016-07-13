@@ -33,6 +33,7 @@ CPlayer::CPlayer(CGameContext *pGameServer, int ClientID, int Team)
 	m_BotSubType = -1;
 	mem_zero(m_aInventory, sizeof(CCellData)*NUM_CELLS_LINE*3);
 	mem_zero(m_aCraft, sizeof(CCellData)*(NUM_CELLS_LINE+1));
+	mem_zero(m_aCraftRecipe, sizeof(CCellData)*(NUM_CELLS_LINE));
 	//
 }
 
