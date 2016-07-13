@@ -174,7 +174,8 @@ public:
 	virtual void SaveAccount(int ClientID) = 0;
 	virtual CPet* SpawnPet(CPlayer *pOwner, vec2 Pos) = 0;
 	virtual IBoss* SpawnBoss(vec2 Pos, int Type) = 0;
-	virtual void OnClientMoveCell(int ClientID, int From, int To) = 0;
+	virtual void OnClientMoveCell(int ClientID, int From, int To, unsigned char Qty) = 0;
+	virtual void OnClientRelease(int ClientID) = 0;
 	//
 };
 

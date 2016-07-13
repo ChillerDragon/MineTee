@@ -31,7 +31,8 @@ CPlayer::CPlayer(CGameContext *pGameServer, int ClientID, int Team)
 	m_IsFirstJoin = true;
 	m_BotType = -1;
 	m_BotSubType = -1;
-	mem_zero(m_Inventory, sizeof(CCellData)*NUM_CELLS_LINE*3);
+	mem_zero(m_aInventory, sizeof(CCellData)*NUM_CELLS_LINE*3);
+	mem_zero(m_aCraft, sizeof(CCellData)*(NUM_CELLS_LINE+1));
 	//
 }
 
@@ -184,7 +185,7 @@ void CPlayer::OnDisconnect(const char *pReason)
 		GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "game", aBuf);
 	}
 
-	mem_zero(m_Inventory, sizeof(CCellData)*NUM_CELLS_LINE*3); // MineTee
+	mem_zero(m_aInventory, sizeof(CCellData)*NUM_CELLS_LINE*3); // MineTee
 }
 
 void CPlayer::OnPredictedInput(CNetObj_PlayerInput *NewInput)
@@ -340,18 +341,29 @@ void CPlayer::TryRespawn()
 	GameServer()->CreatePlayerSpawn(SpawnPos);
 }
 
+int CPlayer::GetFirstEmptyInventoryIndex()
+{
+	for (int i=0; i<NUM_CELLS_LINE*3; i++)
+	{
+		if (m_aInventory[i].m_ItemId <= 0)
+			return i;
+	}
+
+	return -1;
+}
+
 
 void CPlayer::FillAccountData(void *pAccountInfo)
 {
 	IAccountSystem::ACCOUNT_INFO *pInfo = (IAccountSystem::ACCOUNT_INFO*)pAccountInfo;
 	pInfo->m_Level = m_Level;
 	str_copy(pInfo->m_aSkinName, m_TeeInfos.m_SkinName, sizeof(pInfo->m_aSkinName));
-	mem_copy(&pInfo->m_Inventory, &m_Inventory, sizeof(CCellData)*NUM_CELLS_LINE*3);
+	mem_copy(&pInfo->m_Inventory, &m_aInventory, sizeof(CCellData)*NUM_CELLS_LINE*3);
 }
 void CPlayer::UseAccountData(void *pAccountInfo)
 {
 	IAccountSystem::ACCOUNT_INFO *pInfo = (IAccountSystem::ACCOUNT_INFO*)pAccountInfo;
 	m_Level = pInfo->m_Level;
 	str_copy(m_TeeInfos.m_SkinName, pInfo->m_aSkinName, sizeof(pInfo->m_aSkinName));
-	mem_copy(&m_Inventory, &pInfo->m_Inventory, sizeof(CCellData)*NUM_CELLS_LINE*3);
+	mem_copy(&m_aInventory, &pInfo->m_Inventory, sizeof(CCellData)*NUM_CELLS_LINE*3);
 }

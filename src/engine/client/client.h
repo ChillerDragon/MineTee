@@ -307,6 +307,7 @@ public:
 	void ServerBrowserUpdate();
 
 	// MineTee
-	void SendMoveCell(int From, int To);
+	void SendMoveCell(int From, int To, int Qty);
+	void SendRelease();
 };
 #endif

@@ -139,7 +139,8 @@ public:
 
 	virtual int GetDebugFont() = 0;
 
-	virtual void SendMoveCell(int From, int To) = 0;
+	virtual void SendMoveCell(int From, int To, int Qty) = 0;
+	virtual void SendRelease() = 0;
 };
 
 class IGameClient : public IInterface

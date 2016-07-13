@@ -79,6 +79,7 @@ enum
 
 	// Client
 	NETMSG_CELL_MOVE,		// request for move a chest item
+	NETMSG_RELEASE,	// says to server that user release an activated block
 };
 
 // this should be revised

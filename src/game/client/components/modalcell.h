@@ -16,15 +16,19 @@ class CModalCell : public CComponent
 
 	vec2 m_SelectorMouse;
 	bool m_MousePressed;
+	int m_MousePressedKey;
 	int m_SelectedCell;
 
 	bool m_EscapePressed;
 	int64 m_LastInput;
 
-	void MoveItem(int From, int To);
+	void MoveItem(int From, int To, int Qty);
 
 	void RenderChest(CUIRect MainView);
 	void RenderInventory(CUIRect MainView);
+
+	void OnClose();
+	void OnOpen();
 
 public:
 	CModalCell();

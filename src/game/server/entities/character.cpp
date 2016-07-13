@@ -173,7 +173,6 @@ void CCharacter::HandleInventoryItemSwitch()
 			WantedInventoryItem = min(WantedInventoryItem+1, NUM_CELLS_LINE-1);
 			while (WantedInventoryItem < NUM_CELLS_LINE && m_FastInventory[WantedInventoryItem].m_ItemId == 0)
 				++WantedInventoryItem;
-			m_ActiveInventoryItem = WantedInventoryItem;
 			Next--;
 		}
 	}
@@ -185,7 +184,6 @@ void CCharacter::HandleInventoryItemSwitch()
 			WantedInventoryItem = max(WantedInventoryItem-1, 0);
 			while (WantedInventoryItem > 0 && m_FastInventory[WantedInventoryItem].m_ItemId == 0)
 				--WantedInventoryItem;
-			m_ActiveInventoryItem = WantedInventoryItem;
 			Prev--;
 		}
 	}
@@ -196,10 +194,12 @@ void CCharacter::HandleInventoryItemSwitch()
 
 	// check for insane values
 	if(WantedInventoryItem != m_ActiveInventoryItem && m_FastInventory[WantedInventoryItem].m_ItemId != 0)
+	{
 		m_QueuedInventoryItem = WantedInventoryItem;
+		m_NeedSendInventory = true;
+	}
 
 	DoInventoryItemSwitch();
-	m_NeedSendInventory = true;
 }
 
 // MineTee
@@ -641,6 +641,9 @@ int CCharacter::GiveItem(int ItemID, int Amount)
     	m_NeedSendInventory = true;
     	return InvItem;
     }
+
+    if (m_NeedSendInventory && m_ActiveBlockId == -2)
+		GameServer()->m_pController->OnClientOpenInventory(m_pPlayer->GetCID());
 
     return -1;
 }
@@ -1183,6 +1186,8 @@ void CCharacter::UseAccountData(void *pAccountInfo)
 	// Check that can spawn in the place
 	if (GameServer()->Collision()->GetMineTeeTileIndexAt(m_Pos))
 		GameServer()->Collision()->ModifTile(ivec2(m_Pos.x/32, m_Pos.y/32), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeBGLayerIndex(), 0, 0, 0);
+
+	m_NeedSendInventory = true;
 }
 
 int CCharacter::InInventory(int ItemID)

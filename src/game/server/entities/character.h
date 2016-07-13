@@ -73,6 +73,7 @@ public:
 	class CPlayer *GetPlayer() { return m_pPlayer; }
 
     // MineTee
+	bool m_NeedSendInventory;
 	float m_TimeStuck;
 	CCharacterCore* GetCore() { return &m_Core; }
     void DropItem(int ItemID = -1);
@@ -150,7 +151,6 @@ private:
 	CCharacterCore m_ReckoningCore; // the dead reckoning core
 
 	// H-Client
-    bool m_NeedSendInventory;
 	float m_TimerFluidDamage;
 	bool m_InWater;
 	void Construct();

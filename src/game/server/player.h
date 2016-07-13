@@ -99,7 +99,9 @@ public:
 	} m_Latency;
 
 	// MineTee
-	CCellData m_Inventory[NUM_CELLS_LINE*3];
+	CCellData m_aInventory[NUM_CELLS_LINE*3];
+	CCellData m_aCraft[NUM_CELLS_LINE+1]; // +1 because the last item its the result of the craft
+	CCellData m_aCraftTake[NUM_CELLS_LINE]; // The recipe of the current craft
 	bool m_IsFirstJoin;
 	int m_Level;
 	bool IsBot() const { return m_Bot; }
@@ -118,6 +120,7 @@ public:
 	void UseAccountData(void *pAccountData);
 	void SetBotType(int BotType) { m_BotType = BotType; }
 	void SetBotSubType(int BotSubType) { m_BotSubType = BotSubType; }
+	int GetFirstEmptyInventoryIndex();
 
 private:
 	CCharacter *m_pCharacter;

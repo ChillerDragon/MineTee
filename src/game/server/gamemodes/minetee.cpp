@@ -634,10 +634,11 @@ void CGameControllerMineTee::OnClientOpenInventory(int ClientID)
 	if (!pChar)
 		return;
 
-	CCellData *pCellData = (CCellData*)mem_alloc(sizeof(CCellData)*NUM_CELLS_LINE*4, 1);
+	CCellData *pCellData = (CCellData*)mem_alloc(sizeof(CCellData)*(NUM_CELLS_LINE*5+1), 1);
 	mem_copy(pCellData, pChar->m_FastInventory, sizeof(CCellData)*NUM_CELLS_LINE);
-	mem_copy(pCellData+NUM_CELLS_LINE, pChar->GetPlayer()->m_Inventory, sizeof(CCellData)*NUM_CELLS_LINE*3);
-	GameServer()->SendCellData(ClientID, pCellData, NUM_CELLS_LINE*4, CELLS_INVENTORY);
+	mem_copy(pCellData+NUM_CELLS_LINE, pChar->GetPlayer()->m_aInventory, sizeof(CCellData)*NUM_CELLS_LINE*3);
+	mem_copy(pCellData+NUM_CELLS_LINE*4, pChar->GetPlayer()->m_aCraft, sizeof(CCellData)*(NUM_CELLS_LINE+1));
+	GameServer()->SendCellData(ClientID, pCellData, NUM_CELLS_LINE*5+1, CELLS_INVENTORY);
 	mem_free(pCellData);
 	pChar->m_ActiveBlockId = -2; // Inventory
 }
@@ -819,7 +820,6 @@ void CGameControllerMineTee::OnPlayerDestroyBlock(int ClientID, ivec2 TilePos)
 
 bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
 {
-    char aBuff[255];
 	char *ptr;
 
 	if (!(ptr = strtok((char*)msg, " \n\t")) || msg[0] != '/')
@@ -1008,181 +1008,6 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
 			} while ((ptr = strtok(NULL, " \n\t")) != NULL);
 		}
 	}
-	else if (str_comp_nocase(ptr,"/craft") == 0)
-    {
-		char aBuf[80]={0};
-        CCharacter *pChar = GameServer()->m_apPlayers[cid]->GetCharacter();
-        if (!pChar)
-        	return false;
-
-		if ((ptr=strtok(NULL, "\n\t")) == NULL)
-		{
-			GameServer()->SendChatTarget(cid,"** Need item! Please, write '/info craft' to see more information about crafting.");
-
-			return false;
-		}
-		else
-		{
-			bool BlockFounded = false;
-			for (int u=0; u<CBlockManager::MAX_BLOCKS; u++)
-			{
-				CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(u);
-				if (!pBlockInfo || str_comp_nocase(ptr, pBlockInfo->m_aName) != 0 || pBlockInfo->m_CraftNum == 0 || pBlockInfo->m_vCraft.size() <= 0)
-					continue;
-
-				BlockFounded = true;
-
-				int HasItem = -1;
-
-				bool CanCraft = true;
-				for (std::map<int, unsigned char>::iterator it = pBlockInfo->m_vCraft.begin(); it != pBlockInfo->m_vCraft.end(); it++)
-				{
-					HasItem = pChar->InInventory(it->first);
-					if (HasItem == -1 || pChar->m_FastInventory[HasItem].m_Amount <= 0)
-					{
-						CanCraft = false;
-						break;
-					}
-				}
-
-				if (!CanCraft)
-				{
-					GameServer()->SendChatTarget(cid, "--------------------------- --------- --------");
-					str_format(aBuf, sizeof(aBuf), "- CRAFT: %s   [%d Units]", pBlockInfo->m_aName, pBlockInfo->m_CraftNum);
-					GameServer()->SendChatTarget(cid, aBuf);
-					GameServer()->SendChatTarget(cid, "===============================");
-					GameServer()->SendChatTarget(cid, "You need the following items:");
-					GameServer()->SendChatTarget(cid, " ");
-					for (std::map<int, unsigned char>::iterator it = pBlockInfo->m_vCraft.begin(); it != pBlockInfo->m_vCraft.end(); it++)
-					{
-						CBlockManager::CBlockInfo *pCraftBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(it->first);
-						if (pCraftBlockInfo)
-						{
-							str_format(aBuf, sizeof(aBuf), "- %d x %s", it->second, pCraftBlockInfo->m_aName);
-							GameServer()->SendChatTarget(cid, aBuf);
-						}
-					}
-					GameServer()->SendChatTarget(cid, " ");
-					return false;
-				}
-
-				for (std::map<int, unsigned char>::iterator it = pBlockInfo->m_vCraft.begin(); it != pBlockInfo->m_vCraft.end(); it++)
-				{
-					HasItem = pChar->InInventory(it->first);
-					if (HasItem != -1)
-					{
-						pChar->m_FastInventory[HasItem].m_Amount = max(0, pChar->m_FastInventory[HasItem].m_Amount-it->second);
-					}
-				}
-
-				const int InvIndex = pChar->GiveItem(NUM_WEAPONS+u, pBlockInfo->m_CraftNum);
-				if (InvIndex != -1)
-					pChar->SetInventoryItem(InvIndex);
-
-				str_format(aBuf, sizeof(aBuf), "** You have been added a %s!", pBlockInfo->m_aName);
-				GameServer()->SendChatTarget(cid, aBuff);
-			}
-
-			/*if (!BlockFounded)
-			{
-				if (str_comp_nocase(ptr, "GLauncher") == 0)
-				{
-					CCharacter *pChar = GameServer()->m_apPlayers[cid]->GetCharacter();
-					if (pChar)
-					{
-						if (!pChar->m_aBlocks[CBlockManager::GUNPOWDER].m_Got || pChar->m_aBlocks[CBlockManager::GUNPOWDER].m_Amount < 12 || !pChar->m_aBlocks[CBlockManager::WOOD_BROWN].m_Got || pChar->m_aBlocks[CBlockManager::WOOD_BROWN].m_Amount < 7 || !pChar->m_aBlocks[CBlockManager::IRON_INGOT].m_Got || pChar->m_aBlocks[CBlockManager::IRON_INGOT].m_Amount < 4)
-						{
-							GameServer()->SendChatTarget(cid,"--------------------------- --------- --------");
-							GameServer()->SendChatTarget(cid, "- CRAFT: GLAUNCHER   [1 Unit]");
-							GameServer()->SendChatTarget(cid, "======================================");
-							GameServer()->SendChatTarget(cid, "You need the following items:");
-							GameServer()->SendChatTarget(cid, " ");
-							GameServer()->SendChatTarget(cid, " - 12 Powder");
-							GameServer()->SendChatTarget(cid, " - 7 Wood [Brown]");
-							GameServer()->SendChatTarget(cid, " - 4 Iron");
-							GameServer()->SendChatTarget(cid," ");
-						}
-						else
-						{
-							pChar->m_aBlocks[CBlockManager::GUNPOWDER].m_Amount-=12;
-							pChar->m_aBlocks[CBlockManager::WOOD_BROWN].m_Amount-=7;
-							pChar->m_aBlocks[CBlockManager::IRON_INGOT].m_Amount-=4;
-							pChar->GiveWeapon(WEAPON_GRENADE, 0);
-							pChar->SetWeapon(WEAPON_GRENADE);
-
-							GameServer()->SendChatTarget(cid,"** You have been added a Grenade Launcher!");
-						}
-					}
-
-					return false;
-				}
-				else if (str_comp_nocase(ptr, "Grenade") == 0)
-				{
-					CCharacter *pChar = GameServer()->m_apPlayers[cid]->GetCharacter();
-					if (pChar)
-					{
-						if (pChar->GetCurrentAmmo(WEAPON_GRENADE) <= 0 || !pChar->m_aBlocks[CBlockManager::GUNPOWDER].m_Got || pChar->m_aBlocks[CBlockManager::GUNPOWDER].m_Amount < 7 || !pChar->m_aBlocks[CBlockManager::IRON_INGOT].m_Got || pChar->m_aBlocks[CBlockManager::IRON_INGOT].m_Amount < 2)
-						{
-							GameServer()->SendChatTarget(cid,"--------------------------- --------- --------");
-							GameServer()->SendChatTarget(cid, "- CRAFT: GRENADE   [5 Units]");
-							GameServer()->SendChatTarget(cid, "======================================");
-							GameServer()->SendChatTarget(cid, "You need the following items:");
-							GameServer()->SendChatTarget(cid, " ");
-							GameServer()->SendChatTarget(cid, " - 1 GLauncher");
-							GameServer()->SendChatTarget(cid, " - 7 Powder");
-							GameServer()->SendChatTarget(cid, " - 2 Iron");
-							GameServer()->SendChatTarget(cid," ");
-						}
-						else
-						{
-							pChar->m_aBlocks[CBlockManager::GUNPOWDER].m_Amount-=7;
-							pChar->m_aBlocks[CBlockManager::IRON_INGOT].m_Amount-=2;
-
-							pChar->GiveWeapon(WEAPON_GRENADE, pChar->GetCurrentAmmo(WEAPON_GRENADE)+5);
-
-							GameServer()->SendChatTarget(cid,"** You have been added a Grenade!");
-						}
-					}
-
-					return false;
-				}
-				else if (str_comp_nocase(ptr, "Gun") == 0)
-				{
-					CCharacter *pChar = GameServer()->m_apPlayers[cid]->GetCharacter();
-					if (pChar)
-					{
-						if (!pChar->m_aBlocks[CBlockManager::IRON_INGOT].m_Got || pChar->m_aBlocks[CBlockManager::IRON_INGOT].m_Amount < 12 || !pChar->m_aBlocks[CBlockManager::WOOD_BROWN].m_Got || pChar->m_aBlocks[CBlockManager::WOOD_BROWN].m_Amount < 4)
-						{
-							GameServer()->SendChatTarget(cid,"--------------------------- --------- --------");
-							GameServer()->SendChatTarget(cid, "- CRAFT: GUN   [1 Unit]");
-							GameServer()->SendChatTarget(cid, "======================================");
-							GameServer()->SendChatTarget(cid, "You need the following items:");
-							GameServer()->SendChatTarget(cid, " ");
-							GameServer()->SendChatTarget(cid, " - 12 Iron");
-							GameServer()->SendChatTarget(cid, " - 4 Wood [Brown]");
-							GameServer()->SendChatTarget(cid," ");
-						}
-						else
-						{
-							pChar->m_aBlocks[CBlockManager::WOOD_BROWN].m_Amount-=4;
-							pChar->m_aBlocks[CBlockManager::IRON_INGOT].m_Amount-=12;
-							pChar->GiveWeapon(WEAPON_GUN, 0);
-							pChar->SetWeapon(WEAPON_GUN);
-
-							GameServer()->SendChatTarget(cid,"** You have been added a Gun!");
-						}
-					}
-
-					return false;
-				}
-				else
-				{
-					GameServer()->SendChatTarget(cid,"Oops!: Unknown item");
-					return false;
-				}
-			}*/
-		}
-    }
 	else
     {
 		GameServer()->SendChatTarget(cid,"Oops!: Unknown command");
@@ -1409,21 +1234,34 @@ bool CGameControllerMineTee::TakeBlockDamage(vec2 WorldPos, int WeaponItemID, in
 	return false;
 }
 
-void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To)
+void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, unsigned char Qty)
 {
 	CCharacter *pChar = GameServer()->GetPlayerChar(ClientID);
-	if (!pChar || pChar->m_ActiveBlockId == -1)
+	if (!pChar || pChar->m_ActiveBlockId == -1 || Qty == 0 || From == To)
 		return;
 
+	CPlayer *pPlayer = pChar->GetPlayer();
 	CCellData *pCellFrom = 0x0;
 	CCellData *pCellTo = 0x0;
+	bool IsFromCraftRes = false;
+	bool IsToCraftZone = false;
 
 	if (From < NUM_CELLS_LINE)
 		pCellFrom = &pChar->m_FastInventory[From];
 	else
 	{
 		if (pChar->m_ActiveBlockId == -2)
-			pCellFrom = &pChar->GetPlayer()->m_Inventory[From-NUM_CELLS_LINE];
+		{
+			if (From >= NUM_CELLS_LINE*4)
+			{
+				const int FromID = From-NUM_CELLS_LINE*4;
+				if (FromID == NUM_CELLS_LINE)
+					IsFromCraftRes = true;
+				pCellFrom = &pPlayer->m_aCraft[FromID];
+			}
+			else
+				pCellFrom = &pPlayer->m_aInventory[From-NUM_CELLS_LINE];
+		}
 		else
 		{
 			std::map<int, CChest*>::iterator it = m_lpChests.find(pChar->m_ActiveBlockId);
@@ -1439,7 +1277,18 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To)
 		else
 		{
 			if (pChar->m_ActiveBlockId == -2)
-				pCellTo = &pChar->GetPlayer()->m_Inventory[To-NUM_CELLS_LINE];
+			{
+				if (To >= NUM_CELLS_LINE*4)
+				{
+					IsToCraftZone = true;
+					const int ToID = To-NUM_CELLS_LINE*4;
+					if (ToID == NUM_CELLS_LINE)
+						return;
+					pCellTo = &pPlayer->m_aCraft[To-NUM_CELLS_LINE*4];
+				}
+				else
+					pCellTo = &pPlayer->m_aInventory[To-NUM_CELLS_LINE];
+			}
 			else
 			{
 				std::map<int, CChest*>::iterator it = m_lpChests.find(pChar->m_ActiveBlockId);
@@ -1449,13 +1298,70 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To)
 		}
 	}
 
+	if (IsFromCraftRes && IsToCraftZone)
+		return;
+
 	if (pCellFrom && pCellTo)
 	{
-		CCellData TempCell = *pCellTo;
-		*pCellTo = *pCellFrom;
-		*pCellFrom = TempCell;
+		if (pCellFrom->m_ItemId < NUM_WEAPONS)
+		{
+			CCellData TempCell = *pCellTo;
+			*pCellTo = *pCellFrom;
+			*pCellFrom = TempCell;
+		}
+		else
+		{
+			if (pCellTo->m_ItemId == pCellFrom->m_ItemId || pCellTo->m_ItemId == 0)
+			{
+				unsigned NewAmount = pCellTo->m_Amount+Qty;
+				if (NewAmount > 255)
+				{
+					CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_DROPITEM, pCellFrom->m_ItemId);
+					pPickup->m_Pos = pChar->m_Pos;
+					pPickup->m_Pos.y -= 18.0f;
+					pPickup->m_Vel = vec2((((rand()%2)==0)?1:-1)*(rand()%10), -5);
+					pPickup->m_Amount = NewAmount-255;
+					pPickup->m_Owner = ClientID;
+				}
+				pCellTo->m_ItemId = pCellFrom->m_ItemId;
+				pCellTo->m_Amount = min(255, pCellTo->m_Amount+Qty);
+				pCellFrom->m_Amount -= Qty;
+				if (pCellFrom->m_Amount == 0)
+				{
+					pCellFrom->m_ItemId = 0x0;
+					pCellFrom->m_Amount = 0;
+				}
+			}
+			else if (pCellFrom->m_Amount == Qty)
+			{
+				CCellData TempCell = *pCellTo;
+				*pCellTo = *pCellFrom;
+				*pCellFrom = TempCell;
+			}
+			else
+			{
+				// TODO: SEND MOVE FAIL
+				return;
+			}
+		}
+
+		if (IsFromCraftRes)
+		{
+			for (int i=0; i<NUM_CELLS_LINE; i++)
+			{
+				if (pPlayer->m_aCraftTake[i].m_ItemId == 0)
+					continue;
+
+				if (pPlayer->m_aCraftTake[i].m_ItemId == pPlayer->m_aCraft[i].m_ItemId)
+				{
+					pPlayer->m_aCraft[i].m_Amount = max(0, pPlayer->m_aCraft[i].m_Amount-pPlayer->m_aCraftTake[i].m_Amount);
+					if (pPlayer->m_aCraft[i].m_Amount == 0)
+						pPlayer->m_aCraft[i].m_ItemId = 0;
+				}
+			}
+		}
 	}
-	else if (pCellFrom && !pCellTo)
+	else if (pCellFrom && !pCellTo && !IsFromCraftRes)
 	{
 		CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_DROPITEM, pCellFrom->m_ItemId);
 		pPickup->m_Pos = pChar->m_Pos;
@@ -1467,43 +1373,147 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To)
 		pCellFrom->m_ItemId = 0x0;
 		pCellFrom->m_Amount = 0;
 	}
+
+	if (pChar->m_ActiveBlockId == -2)
+	{
+		CheckCraft(ClientID);
+		OnClientOpenInventory(ClientID);
+	}
+
+	pChar->m_NeedSendInventory = true;
+}
+
+void CGameControllerMineTee::CheckCraft(int ClientID)
+{
+	CCharacter *pChar = GameServer()->GetPlayerChar(ClientID);
+	if (!pChar)
+		return;
+
+	CPlayer *pPlayer = pChar->GetPlayer();
+
+	bool Crafted = false;
+	for (int q=0; q<CBlockManager::MAX_BLOCKS; q++)
+	{
+		mem_zero(pPlayer->m_aCraftTake, sizeof(CCellData)*NUM_CELLS_LINE);
+
+		CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(q);
+		if (!pBlockInfo)
+			continue;
+
+		Crafted = false;
+		bool NoCrafts = false;
+		for (int i=0; i<NUM_CELLS_LINE; i++)
+		{
+			if (pBlockInfo->m_vCraft[i].size() == 0)
+			{
+				NoCrafts = true;
+				break;
+			}
+
+			std::map<int, unsigned char>::iterator it = pBlockInfo->m_vCraft[i].begin();
+			while (it != pBlockInfo->m_vCraft[i].end())
+			{
+				if (it->first > 0 && pChar->GetPlayer()->m_aCraft[i].m_ItemId == 0)
+				{
+					pPlayer->m_aCraftTake[i].m_ItemId = it->first+NUM_WEAPONS;
+					pPlayer->m_aCraftTake[i].m_Amount = it->second;
+				}
+				else if (it->first+NUM_WEAPONS == pChar->GetPlayer()->m_aCraft[i].m_ItemId
+					&& it->second <= pChar->GetPlayer()->m_aCraft[i].m_Amount)
+				{
+					pPlayer->m_aCraftTake[i].m_ItemId = it->first+NUM_WEAPONS;
+					pPlayer->m_aCraftTake[i].m_Amount = it->second;
+					break;
+				}
+
+				++it;
+			}
+		}
+
+		if (NoCrafts)
+			continue;
+
+		Crafted = true;
+		for (int i=0; i<NUM_CELLS_LINE; i++)
+		{
+			if (pPlayer->m_aCraftTake[i].m_ItemId != pChar->GetPlayer()->m_aCraft[i].m_ItemId)
+			{
+				Crafted = false;
+				break;
+			}
+		}
+
+		if (Crafted && q != 0)
+		{
+			pChar->GetPlayer()->m_aCraft[NUM_CELLS_LINE].m_ItemId = q+NUM_WEAPONS;
+			pChar->GetPlayer()->m_aCraft[NUM_CELLS_LINE].m_Amount = pBlockInfo->m_CraftNum;
+			break;
+		}
+		else
+		{
+			mem_zero(pPlayer->m_aCraftTake, sizeof(CCellData)*NUM_CELLS_LINE);
+			pChar->GetPlayer()->m_aCraft[NUM_CELLS_LINE].m_ItemId = 0;
+			pChar->GetPlayer()->m_aCraft[NUM_CELLS_LINE].m_Amount = 0;
+
+			if (q == 0)
+				break;
+		}
+	}
 }
 
 void CGameControllerMineTee::LoadData()
 {
 	char aBuf[512];
-	unsigned NumChests=0, NumSigns=0;
+	unsigned NumRegs=0;
 
 	str_format(aBuf, sizeof(aBuf), "worlds/%s/minetee.dat", Server()->GetWorldName());
 	IOHANDLE File = GameServer()->Storage()->OpenFile(aBuf, IOFLAG_READ, IStorage::TYPE_SAVE);
 	if (!File)
 		return;
 
-	// Get Num of Regs
-	io_read(File, &NumChests, sizeof(unsigned));
-	io_read(File, &NumSigns, sizeof(unsigned));
+	// Get file version
+	short Version = 0;
+	io_read(File, &Version, sizeof(short));
+	if (Version != 1)
+		return;
 
-	// Load Chests
-	int ChestID;
-	for (unsigned i=0; i<NumChests; i++)
-	{
-		CChest *pStoredChest = (CChest*)mem_alloc(sizeof(CChest), 1);
-		io_read(File, &ChestID, sizeof(int)); // Get ID
-		io_read(File, pStoredChest, sizeof(CChest)); // Get base chest
-		pStoredChest->m_apItems = (CCellData*)mem_alloc(sizeof(CCellData)*pStoredChest->m_NumItems, 1);
-		mem_zero(pStoredChest->m_apItems, sizeof(pStoredChest->m_apItems));
-		io_read(File, pStoredChest->m_apItems, sizeof(CCellData)*pStoredChest->m_NumItems); // Get Items
-		m_lpChests.insert(std::make_pair(ChestID, pStoredChest));
-	}
+	unsigned ItemCount = 0;
+	io_read(File, &ItemCount, sizeof(unsigned));
 
-	// Load Signs
-	int SignID;
-	CSign StoredSign(0);
-	for (unsigned i=0; i<NumSigns; i++)
+	unsigned ItemType = 0;
+	for (unsigned q=0; q<ItemCount; q++)
 	{
-		io_read(File, &SignID, sizeof(int)); // Get ID
-		io_read(File, &StoredSign, sizeof(CSign)); // Get base sign
-		m_lpSigns.insert(std::make_pair(SignID, StoredSign));
+		io_read(File, &ItemType, sizeof(unsigned));
+		io_read(File, &NumRegs, sizeof(unsigned));
+
+		if (NumRegs == 0)
+			continue;
+
+		if (ItemType == TYPE_CHESTS)
+		{
+			int ChestID;
+			for (unsigned i=0; i<NumRegs; i++)
+			{
+				CChest *pStoredChest = (CChest*)mem_alloc(sizeof(CChest), 1);
+				io_read(File, &ChestID, sizeof(int)); // Get ID
+				io_read(File, pStoredChest, sizeof(CChest)); // Get base chest
+				pStoredChest->m_apItems = (CCellData*)mem_alloc(sizeof(CCellData)*pStoredChest->m_NumItems, 1);
+				mem_zero(pStoredChest->m_apItems, sizeof(pStoredChest->m_apItems));
+				io_read(File, pStoredChest->m_apItems, sizeof(CCellData)*pStoredChest->m_NumItems); // Get Items
+				m_lpChests.insert(std::make_pair(ChestID, pStoredChest));
+			}
+		}
+		else if (ItemType == TYPE_SIGNS)
+		{
+			int SignID;
+			CSign StoredSign(0);
+			for (unsigned i=0; i<NumRegs; i++)
+			{
+				io_read(File, &SignID, sizeof(int)); // Get ID
+				io_read(File, &StoredSign, sizeof(CSign)); // Get base sign
+				m_lpSigns.insert(std::make_pair(SignID, StoredSign));
+			}
+		}
 	}
 
 	io_close(File);
@@ -1513,19 +1523,26 @@ void CGameControllerMineTee::SaveData()
 {
 	char aBuf[512];
 	unsigned NumRegs = 0;
+	unsigned ItemType = 0;
 
 	str_format(aBuf, sizeof(aBuf), "worlds/%s/minetee.dat", Server()->GetWorldName());
 	IOHANDLE File = GameServer()->Storage()->OpenFile(aBuf, IOFLAG_WRITE, IStorage::TYPE_SAVE);
 	if (!File)
 		return;
 
-	// Save num of regs
-	NumRegs = m_lpChests.size();
-	io_write(File, &NumRegs, sizeof(unsigned));
-	NumRegs = m_lpSigns.size();
-	io_write(File, &NumRegs, sizeof(unsigned));
+	// Save file version
+	short Version = 1;
+	io_write(File, &Version, sizeof(short));
+
+	// Save item count
+	unsigned ItemCount = 2;
+	io_write(File, &ItemCount, sizeof(unsigned));
 
 	// Save Chests
+	ItemType = TYPE_CHESTS;
+	io_write(File, &ItemType, sizeof(unsigned));
+	NumRegs = m_lpChests.size();
+	io_write(File, &NumRegs, sizeof(unsigned));
 	std::map<int, CChest*>::iterator itChest = m_lpChests.begin();
 	while (itChest != m_lpChests.end())
 	{
@@ -1536,6 +1553,10 @@ void CGameControllerMineTee::SaveData()
 	}
 
 	// Save Signs
+	ItemType = TYPE_SIGNS;
+	io_write(File, &ItemType, sizeof(unsigned));
+	NumRegs = m_lpSigns.size();
+	io_write(File, &NumRegs, sizeof(unsigned));
 	std::map<int, CSign>::iterator itSign = m_lpSigns.begin();
 	while (itSign != m_lpSigns.end())
 	{
@@ -1543,5 +1564,7 @@ void CGameControllerMineTee::SaveData()
 		io_write(File, &itSign->second, sizeof(CSign)); // The base sign
 		++itSign;
 	}
+
+
 	io_close(File);
 }

@@ -1964,8 +1964,18 @@ void CGameContext::SaveMap(const char *path)
 
     CDataFileWriter fileWrite;
     char aMapFile[255];
-    str_format(aMapFile, sizeof(aMapFile), "maps/%s.map", path[0]==0?Server()->GetMapName():path);
-    fileWrite.SaveMap(Storage(), pMap->GetFileReader(), aMapFile);
+    str_format(aMapFile, sizeof(aMapFile), "maps/%s.map", Server()->GetMapName());
+    if (path[0] == 0)
+    {
+    	// FIXME: Do this for not write&read in the same file... and yeah, is ugly :/
+    	char aMapFileCopy[255];
+    	str_format(aMapFileCopy, sizeof(aMapFileCopy), "maps/%s__.map", Server()->GetMapName());
+    	fileWrite.SaveMap(Storage(), pMap->GetFileReader(), aMapFileCopy);
+    	Storage()->RemoveFile(aMapFile, IStorage::TYPE_SAVE);
+    	Storage()->RenameFile(aMapFileCopy, aMapFile, IStorage::TYPE_SAVE);
+    }
+    else
+    	fileWrite.SaveMap(Storage(), pMap->GetFileReader(), aMapFile);
 
     char aBuf[128];
     str_format(aBuf, sizeof(aBuf), "Map saved in '%s'!", aMapFile);
@@ -1990,10 +2000,23 @@ void CGameContext::GiveItem(int ClientID, int ItemID, int ammo)
 		CBlockManager::CBlockInfo *pBlockInfo = m_BlockManager.GetBlockInfo(ItemID-NUM_WEAPONS);
 		if (pBlockInfo)
 		{
-			pChar->GiveItem(ItemID, ammo);
 			char aBuf[128];
-			str_format(aBuf, sizeof(aBuf), "Admin give you a '%s'! revise your inventory :)", pBlockInfo->m_aName);
-			SendChatTarget(ClientID, aBuf);
+			int InvIndex = pChar->GetPlayer()->GetFirstEmptyInventoryIndex();
+			if (InvIndex == -1)
+			{
+				str_format(aBuf, sizeof(aBuf), "Admin try to give you a '%s'! but your inventory is full :(", pBlockInfo->m_aName);
+				SendChatTarget(ClientID, aBuf);
+			}
+			else
+			{
+				// TODO: Check ammo
+				pChar->GetPlayer()->m_aInventory[InvIndex].m_ItemId = ItemID;
+				pChar->GetPlayer()->m_aInventory[InvIndex].m_Amount = ammo;
+				str_format(aBuf, sizeof(aBuf), "Admin give you a '%s'! revise your inventory :)", pBlockInfo->m_aName);
+				SendChatTarget(ClientID, aBuf);
+				if (pChar->m_ActiveBlockId == -2)
+					m_pController->OnClientOpenInventory(ClientID);
+			}
 		}
 	}
 }
@@ -2082,7 +2105,16 @@ void CGameContext::SendCellData(int ClientID, CCellData *pData, int Num, int Cel
 	Server()->SendMsgEx(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH, ClientID, true);
 }
 
-void CGameContext::OnClientMoveCell(int ClientID, int From, int To)
+void CGameContext::OnClientMoveCell(int ClientID, int From, int To, unsigned char Qty)
 {
-	m_pController->OnClientMoveCell(ClientID, From, To);
+	m_pController->OnClientMoveCell(ClientID, From, To, Qty);
+}
+
+void CGameContext::OnClientRelease(int ClientID)
+{
+	CCharacter *pChar = GetPlayerChar(ClientID);
+	if (!pChar)
+		return;
+
+	pChar->m_ActiveBlockId = -1;
 }

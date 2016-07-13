@@ -128,14 +128,24 @@ bool CBlockManager::Init(char *pData, int DataSize)
 			}
 		}
 
-		items = (*pJsonObject)["craft"].u.object.length;
-		for (int i=0; i<items; i++)
+		items = (*pJsonObject)["craft"].u.array.length;
+		if (items == 9)
 		{
-			int CraftBlockID = -1;
-			int CraftBlockAmount = (*pJsonObject)["craft"].u.object.values[i].value->u.integer;
-			sscanf((const char *)(*pJsonObject)["craft"].u.object.values[i].name, "%d", &CraftBlockID);
+			int IntItems = 0;
+			const json_value &JsonArrayPlace = (*pJsonObject)["craft"];
+			for (int i=0; i<items; i++)
+			{
+				IntItems = JsonArrayPlace[i].u.object.length;
+				std::map<int, unsigned char> vCraft;
+				for (int q=0; q<IntItems; q++)
+				{
+					int CraftBlockID = -1;
+					int CraftBlockAmount = JsonArrayPlace[i].u.object.values[q].value->u.integer;
+					sscanf((const char *)JsonArrayPlace[i].u.object.values[q].name, "%d", &CraftBlockID);
 
-			pBlockInfo->m_vCraft.insert(std::pair<int, unsigned char>(CraftBlockID, CraftBlockAmount));
+					pBlockInfo->m_vCraft[i].insert(std::pair<int, unsigned char>(CraftBlockID, CraftBlockAmount));
+				}
+			}
 		}
 
 		items = (*pJsonObject)["onCook"].u.object.length;

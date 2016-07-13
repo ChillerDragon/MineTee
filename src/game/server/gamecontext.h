@@ -208,7 +208,8 @@ public:
 	virtual IBoss* SpawnBoss(vec2 Pos, int Type);
 	bool IsMineTeeSrv() const { return m_IsMineTeeSrv; }
 	void SendCellData(int ClientID, CCellData *pData, int Num, int CellsType);
-	void OnClientMoveCell(int ClientID, int From, int To);
+	void OnClientMoveCell(int ClientID, int From, int To, unsigned char Qty);
+	void OnClientRelease(int ClientID);
 	//
 };
 

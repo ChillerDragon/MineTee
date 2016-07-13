@@ -2439,10 +2439,16 @@ int main(int argc, const char **argv) // ignore_convention
 
 
 // MineTee
-void CClient::SendMoveCell(int From, int To)
+void CClient::SendMoveCell(int From, int To, int Qty)
 {
 	CMsgPacker Msg(NETMSG_CELL_MOVE);
 	Msg.AddInt(From);
 	Msg.AddInt(To);
+	Msg.AddInt(Qty);
+	SendMsgEx(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
+}
+void CClient::SendRelease()
+{
+	CMsgPacker Msg(NETMSG_RELEASE);
 	SendMsgEx(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 }

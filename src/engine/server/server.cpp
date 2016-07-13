@@ -1133,9 +1133,14 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 		{
 			int From = Unpacker.GetInt();
 			int To = Unpacker.GetInt();
+			int Qty = Unpacker.GetInt();
 
 			if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Unpacker.Error() == 0)
-				m_pGameServer->OnClientMoveCell(ClientID, From, To);
+				m_pGameServer->OnClientMoveCell(ClientID, From, To, Qty);
+		}
+		else if (Msg == NETMSG_RELEASE)
+		{
+			m_pGameServer->OnClientRelease(ClientID);
 		}
 		//
 		else

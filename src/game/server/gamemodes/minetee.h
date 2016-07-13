@@ -8,6 +8,12 @@
 #include <game/block_manager.h>
 #include <engine/shared/network.h>
 
+enum
+{
+	TYPE_CHESTS=1,
+	TYPE_SIGNS,
+};
+
 class CChest
 {
 public:
@@ -87,7 +93,7 @@ public:
 	void OnClientOpenInventory(int ClientID);
 	void OnPlayerPutBlock(int ClientID, ivec2 TilePos, int BlockID, int BlockFlags, int Reserved);
 	void OnPlayerDestroyBlock(int ClientID, ivec2 TilePos);
-	void OnClientMoveCell(int ClientID, int From, int To);
+	void OnClientMoveCell(int ClientID, int From, int To, unsigned char Qty);
 	bool TakeBlockDamage(vec2 WorldPos, int WeaponItemID, int Dmg, int Owner);
 
 	void LoadData();
@@ -108,6 +114,8 @@ private:
     void DestructionTick(CTile *pTempTiles, const int *pTileIndex, int x, int y, const CBlockManager::CBlockInfo *pBlockInfo);
     void WearTick(CTile *pTempTiles, const int *pTileIndex, int x, int y, const CBlockManager::CBlockInfo *pBlockInfo);
     void CookTick(CTile *pTempTiles, const int *pTileIndex, int x, int y, const CBlockManager::CBlockInfo *pBlockInfo);
+
+    void CheckCraft(int ClientID);
 
     void GenerateRandomSpawn(CSpawnEval *pEval, int Team);
 };
