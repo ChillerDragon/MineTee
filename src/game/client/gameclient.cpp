@@ -1291,3 +1291,11 @@ void CGameClient::SetLastestCellsData(CCellData *pData, int NumItems, int CellsT
 	m_NumCells = NumItems;
 	m_CellsType = CellsType;
 }
+
+void CGameClient::Release()
+{
+	mem_free(m_apLatestCells);
+	m_apLatestCells = 0x0;
+	m_NumCells = 0;
+	m_CellsType = -1;
+}

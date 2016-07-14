@@ -756,6 +756,20 @@ void CCharacter::Tick()
 	}
 	//
 
+	// AutoDisable if far from actived block
+	if (m_ActiveBlockId >= 0)
+	{
+		const int x = m_ActiveBlockId%GameServer()->Collision()->GetWidth();
+		const int y = m_ActiveBlockId/GameServer()->Collision()->GetWidth();
+		const vec2 BlockPos = vec2(x*32.0f+16.0f, y*32.0f+16.0f);
+		if (length(m_Pos-BlockPos) > 40.0f)
+		{
+			m_ActiveBlockId = -1;
+			GameServer()->SendRelease(m_pPlayer->GetCID());
+		}
+
+	}
+
 	// handle death-tiles and leaving gamelayer
 	if(GameServer()->Collision()->GetCollisionAt(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f)&CCollision::COLFLAG_DEATH ||
 		GameServer()->Collision()->GetCollisionAt(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y+m_ProximityRadius/3.f)&CCollision::COLFLAG_DEATH ||
@@ -771,7 +785,6 @@ void CCharacter::Tick()
 
 	// Previnput
 	m_PrevInput = m_Input;
-	return;
 }
 
 void CCharacter::TickDefered()

@@ -329,30 +329,7 @@ void CGameControllerMineTee::DestructionTick(CTile *pTempTiles, const int *pTile
 		}
 
 		if (!PlaceCheck)
-		{
 			ModifTile(ivec2(x, y), 0);
-
-			if (pBlockInfo->m_vOnBreak.size() > 0)
-			{
-				for (std::map<int, unsigned char>::const_iterator it = pBlockInfo->m_vOnBreak.begin(); it != pBlockInfo->m_vOnBreak.end(); it++)
-				{
-					if (it->first == 0)
-					{
-						++it;
-						continue;
-					}
-
-					CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, it->first);
-					pPickup->m_Pos = vec2((x<<5) + 8.0f, (y<<5) + 8.0f);
-					pPickup->m_Amount = it->second;
-				}
-			}
-			else
-			{
-				CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, pTileIndex[TILE_CENTER]);
-				pPickup->m_Pos = vec2((x<<5) + 8.0f, (y<<5) + 8.0f);
-			}
-		}
 	}
 
 	// Cut Fluids
@@ -676,10 +653,28 @@ void CGameControllerMineTee::OnClientActiveBlock(int ClientID)
 			return;
 		}
 
+		const int BlockID = ((int)FinishPos.y/32)*GameServer()->Collision()->GetWidth()+((int)FinishPos.x/32);
+
+		// Check if block are used by other player
+		for (int i=0; i<NUM_CLIENTS; i++)
+		{
+			CCharacter *pCompChar = GameServer()->GetPlayerChar(i);
+			if (!pCompChar)
+				continue;
+
+			if (pCompChar->m_ActiveBlockId == BlockID)
+			{
+				char aBuf[128];
+				str_format(aBuf, sizeof(aBuf), "'%s' is using this...", Server()->ClientName(pChar->GetPlayer()->GetCID()));
+				GameServer()->SendChatTarget(pChar->GetPlayer()->GetCID(), aBuf);
+				pChar->m_ActiveBlockId = -1;
+				return;
+			}
+		}
+
 		if (str_comp(pBlockInfo->m_Functionality.m_aType, "chest") == 0)
 		{
-			int ChestID = ((int)FinishPos.y/32)*GameServer()->Collision()->GetWidth()+((int)FinishPos.x/32);
-			std::map<int, CChest*>::iterator it = m_lpChests.find(ChestID);
+			std::map<int, CChest*>::iterator it = m_lpChests.find(BlockID);
 			if (it != m_lpChests.end())
 			{
 				CCellData *pCellsData = (CCellData*)mem_alloc(sizeof(CCellData)*(it->second->m_NumItems+NUM_CELLS_LINE), 1);
@@ -687,14 +682,13 @@ void CGameControllerMineTee::OnClientActiveBlock(int ClientID)
 				mem_copy(pCellsData+NUM_CELLS_LINE, it->second->m_apItems, sizeof(CCellData)*it->second->m_NumItems);
 				GameServer()->SendCellData(ClientID, pCellsData, it->second->m_NumItems+NUM_CELLS_LINE, CELLS_CHEST);
 				mem_free(pCellsData);
-				pChar->m_ActiveBlockId = ChestID;
+				pChar->m_ActiveBlockId = BlockID;
 				Actived = true;
 			}
 		}
 		else if (str_comp(pBlockInfo->m_Functionality.m_aType, "sign") == 0)
 		{
-			int SignID = ((int)FinishPos.y/32)*GameServer()->Collision()->GetWidth()+((int)FinishPos.x/32);
-			std::map<int, CSign>::iterator it = m_lpSigns.find(SignID);
+			std::map<int, CSign>::iterator it = m_lpSigns.find(BlockID);
 			if (it != m_lpSigns.end())
 				GameServer()->SendChatTarget(ClientID, (it->second.m_aText[0] != 0)?it->second.m_aText:"EMPTY!");;
 		}
@@ -1144,8 +1138,14 @@ void CGameControllerMineTee::ModifTile(ivec2 MapPos, int TileIndex, int Reserved
 		CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(TileIndex);
 		Reserved = pBlockInfo->m_Health;
 	}
-	GameServer()->SendTileModif(ALL_PLAYERS, MapPos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0, Reserved);
-    GameServer()->Collision()->ModifTile(MapPos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0, Reserved);
+
+	if (TileIndex == 0)
+		OnPlayerDestroyBlock(NUM_CLIENTS, MapPos); // FIXME: NUM_CLIENTS needs by something like 'WORLD_CLIENT'
+	else
+	{
+		GameServer()->SendTileModif(ALL_PLAYERS, MapPos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0, Reserved);
+		GameServer()->Collision()->ModifTile(MapPos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0, Reserved);
+	}
 }
 
 bool CGameControllerMineTee::GetPlayerArea(int ClientID, int *pStartX, int *pEndX, int *pStartY, int *pEndY)

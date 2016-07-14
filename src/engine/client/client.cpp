@@ -1428,7 +1428,11 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 			const int NumItems = Size/sizeof(CCellData);
 			CCellData *apCells = (CCellData*)mem_alloc(Size,1);
 			mem_copy(apCells, pData, Size);
-			m_pGameClient->SetLastestCellsData(apCells, NumItems, CellsType);
+			GameClient()->SetLastestCellsData(apCells, NumItems, CellsType);
+		}
+		else if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_RELEASE)
+		{
+			GameClient()->Release();
 		}
 	}
 	else

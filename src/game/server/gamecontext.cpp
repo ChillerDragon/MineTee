@@ -2105,6 +2105,12 @@ void CGameContext::SendCellData(int ClientID, CCellData *pData, int Num, int Cel
 	Server()->SendMsgEx(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH, ClientID, true);
 }
 
+void CGameContext::SendRelease(int ClientID)
+{
+	CMsgPacker Msg(NETMSG_RELEASE);
+	Server()->SendMsgEx(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH, ClientID, true);
+}
+
 void CGameContext::OnClientMoveCell(int ClientID, int From, int To, unsigned char Qty)
 {
 	m_pController->OnClientMoveCell(ClientID, From, To, Qty);

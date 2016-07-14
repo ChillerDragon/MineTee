@@ -280,6 +280,7 @@ public:
 	unsigned m_NumCells;
 	int m_CellsType;
 	virtual void SetLastestCellsData(CCellData *pData, int NumItems, int CellsType);
+	virtual void Release();
 };
 
 

@@ -210,6 +210,7 @@ public:
 	void SendCellData(int ClientID, CCellData *pData, int Num, int CellsType);
 	void OnClientMoveCell(int ClientID, int From, int To, unsigned char Qty);
 	void OnClientRelease(int ClientID);
+	void SendRelease(int ClientID);
 	//
 };
 

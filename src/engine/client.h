@@ -171,6 +171,7 @@ public:
 	// MineTee
 	virtual void GetServerTime(bool *pIsDay, int64 *pTime) = 0;
 	virtual void SetLastestCellsData(CCellData *pData, int NumItems, int CellsType) = 0;
+	virtual void Release() = 0;
 };
 
 extern IGameClient *CreateGameClient();

@@ -88,8 +88,7 @@ bool CModalCell::OnInput(IInput::CEvent e)
 
 void CModalCell::OnRender()
 {
-	if (m_pClient->m_apLatestCells)
-		m_Active = true;
+	m_Active = (m_pClient->m_apLatestCells)?true:false;
 
 	if(!m_Active || m_pClient->m_Snap.m_SpecInfo.m_Active)
 	{
