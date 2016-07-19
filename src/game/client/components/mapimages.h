@@ -11,7 +11,14 @@ class CMapImages : public CComponent
 public:
 	CMapImages();
 
-	int Get(int Index) const { return m_aTextures[Index]; }
+	int Get(int Index) const
+	{
+		// MineTee
+		if (Index < 0 || Index >= m_Count)
+			return -1;
+
+		return m_aTextures[Index];
+	}
 	int Num() const { return m_Count; }
 
 	virtual void OnMapLoad();

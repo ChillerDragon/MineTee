@@ -226,7 +226,7 @@ void CGameControllerMineTee::EnvirionmentTick(CTile *pTempTiles, const int *pTil
 					if (RemovedIt != m_lpChests.end() && StoredIt != m_lpChests.end() && RemovedIt->second != StoredIt->second)
 					{
 						CChest *pChest = RemovedIt->second;
-						mem_copy(StoredIt->second->m_apItems, RemovedIt->second->m_apItems, RemovedIt->second->m_NumItems*sizeof(CCellData));
+						mem_copy(StoredIt->second->m_apItems+NUM_CELLS_LINE*2, RemovedIt->second->m_apItems, NUM_CELLS_LINE*2*sizeof(CCellData));
 						mem_free(pChest->m_apItems);
 						mem_free(pChest);
 						RemovedIt->second = StoredIt->second;
@@ -280,6 +280,7 @@ void CGameControllerMineTee::EnvirionmentTick(CTile *pTempTiles, const int *pTil
 
 			ModifTile(ivec2(x, y), CBlockManager::OVEN_ON);
 			ModifTile(TilePos, 0);
+			OnPlayerDestroyBlock(NUM_CLIENTS, TilePos); // FIXME: NUM_CLIENTS needs by something like 'WORLD_CLIENT'
 		}
 	}
 
@@ -329,7 +330,10 @@ void CGameControllerMineTee::DestructionTick(CTile *pTempTiles, const int *pTile
 		}
 
 		if (!PlaceCheck)
+		{
 			ModifTile(ivec2(x, y), 0);
+			OnPlayerDestroyBlock(NUM_CLIENTS, ivec2(x, y)); // FIXME: NUM_CLIENTS needs by something like 'WORLD_CLIENT'
+		}
 	}
 
 	// Cut Fluids
@@ -588,7 +592,7 @@ bool CGameControllerMineTee::CanJoinTeam(int Team, int NotThisID)
     return CGameController::CanJoinTeam(Team, NotThisID);
 }
 
-bool CGameControllerMineTee::CanSpawn(int Team, vec2 *pOutPos, int BotType)
+bool CGameControllerMineTee::CanSpawn(int Team, vec2 *pOutPos, int BotType, int BotSubType)
 {
 	CSpawnEval Eval;
 
@@ -601,11 +605,16 @@ bool CGameControllerMineTee::CanSpawn(int Team, vec2 *pOutPos, int BotType)
 		return false;
 
 	GenerateRandomSpawn(&Eval, BotType);
+
+	// TODO: Improve this
+	if (BotType == BOT_MONSTER && BotSubType == BOT_MONSTER_EYE && Eval.m_Pos.y < 150.0f)
+		Eval.m_Got = false;
+
 	*pOutPos = Eval.m_Pos;
 	return Eval.m_Got;
 }
 
-void CGameControllerMineTee::OnClientOpenInventory(int ClientID)
+void CGameControllerMineTee::SendInventory(int ClientID, bool IsCraftTable)
 {
 	CCharacter *pChar = GameServer()->GetPlayerChar(ClientID);
 	if (!pChar)
@@ -615,9 +624,10 @@ void CGameControllerMineTee::OnClientOpenInventory(int ClientID)
 	mem_copy(pCellData, pChar->m_FastInventory, sizeof(CCellData)*NUM_CELLS_LINE);
 	mem_copy(pCellData+NUM_CELLS_LINE, pChar->GetPlayer()->m_aInventory, sizeof(CCellData)*NUM_CELLS_LINE*3);
 	mem_copy(pCellData+NUM_CELLS_LINE*4, pChar->GetPlayer()->m_aCraft, sizeof(CCellData)*(NUM_CELLS_LINE+1));
-	GameServer()->SendCellData(ClientID, pCellData, NUM_CELLS_LINE*5+1, CELLS_INVENTORY);
+	GameServer()->SendCellData(ClientID, pCellData, NUM_CELLS_LINE*5+1, IsCraftTable?CELLS_CRAFT_TABLE:CELLS_INVENTORY);
 	mem_free(pCellData);
-	pChar->m_ActiveBlockId = -2; // Inventory
+	if (!IsCraftTable)
+		pChar->m_ActiveBlockId = -2; // Inventory
 }
 
 void CGameControllerMineTee::OnClientActiveBlock(int ClientID)
@@ -690,7 +700,13 @@ void CGameControllerMineTee::OnClientActiveBlock(int ClientID)
 		{
 			std::map<int, CSign>::iterator it = m_lpSigns.find(BlockID);
 			if (it != m_lpSigns.end())
-				GameServer()->SendChatTarget(ClientID, (it->second.m_aText[0] != 0)?it->second.m_aText:"EMPTY!");;
+				GameServer()->SendChatTarget(ClientID, (it->second.m_aText[0] != 0)?it->second.m_aText:"EMPTY!");
+		}
+		else if (str_comp(pBlockInfo->m_Functionality.m_aType, "craft-table") == 0)
+		{
+			pChar->m_ActiveBlockId = BlockID;
+			SendInventory(ClientID, true);
+			Actived = true;
 		}
 	}
 
@@ -819,7 +835,7 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
 	if (!(ptr = strtok((char*)msg, " \n\t")) || msg[0] != '/')
 		return true;
 
-	if (str_comp_nocase(ptr,"/pet") == 0)
+	/*if (str_comp_nocase(ptr,"/pet") == 0)
 	{
 		if ((ptr=strtok(NULL, " \n\t")) == NULL)
 		{
@@ -879,8 +895,8 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
 				}
 			} while ((ptr = strtok(NULL, " \n\t")) != NULL);
 		}
-	}
-	else if (str_comp_nocase(ptr,"/text") == 0 )
+	}*/
+	if (str_comp_nocase(ptr,"/text") == 0 )
 	{
 		CCharacter *pChar = GameServer()->GetPlayerChar(cid);
 		if (!pChar)
@@ -944,7 +960,6 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
 		GameServer()->SendChatTarget(cid," - /info          > View general info of this mod.");
 		GameServer()->SendChatTarget(cid," - /info about    > About of this mod.");
 		GameServer()->SendChatTarget(cid," - /info <cmd>    > Info about selected command.");
-		GameServer()->SendChatTarget(cid," - /craft         > Craft items!");
         GameServer()->SendChatTarget(cid," ");
 
 		return false;
@@ -971,25 +986,13 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
 				if (str_comp_nocase(ptr,"about") == 0)
 				{
 					char aBuf[128];
-					GameServer()->SendChatTarget(cid,"--------------------------- --------- --------");
+					GameServer()->SendChatTarget(cid, "--------------------------- --------- --------");
+					GameServer()->SendChatTarget(cid, "Author: unsigned char* & contributors");
+					GameServer()->SendChatTarget(cid, "Github Repo: https://github.com/CytraL/MineTee");
         			str_format(aBuf, sizeof(aBuf), "MineTee v%s **", MINETEE_VERSION);
         			GameServer()->SendChatTarget(cid, aBuf);
-					GameServer()->SendChatTarget(cid, "Author: unsigned char*");
         			str_format(aBuf, sizeof(aBuf), "Teeworlds Version: %s", GAME_VERSION);
         			GameServer()->SendChatTarget(cid, aBuf);
-                    GameServer()->SendChatTarget(cid," ");
-
-					return false;
-				}
-                if (str_comp_nocase(ptr,"craft") == 0)
-				{
-                	GameServer()->SendChatTarget(cid,"--------------------------- --------- --------");
-                    GameServer()->SendChatTarget(cid,"- CRAFTING");
-					GameServer()->SendChatTarget(cid, "======================================");
-					GameServer()->SendChatTarget(cid, "Syntaxis: /craft <item>");
-					GameServer()->SendChatTarget(cid, "Items: Horn, Torch, Bed, Chest, GLauncher, Grenade, Gun, Grille, Gold_Block, Iron_Fence, Iron_Window, Iron_Block, Wood_Window, Wood_Fence, Dust_A");
-					GameServer()->SendChatTarget(cid, " ");
-					GameServer()->SendChatTarget(cid, "Usage Example: /craft torch");
                     GameServer()->SendChatTarget(cid," ");
 
 					return false;
@@ -1139,13 +1142,8 @@ void CGameControllerMineTee::ModifTile(ivec2 MapPos, int TileIndex, int Reserved
 		Reserved = pBlockInfo->m_Health;
 	}
 
-	if (TileIndex == 0)
-		OnPlayerDestroyBlock(NUM_CLIENTS, MapPos); // FIXME: NUM_CLIENTS needs by something like 'WORLD_CLIENT'
-	else
-	{
-		GameServer()->SendTileModif(ALL_PLAYERS, MapPos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0, Reserved);
-		GameServer()->Collision()->ModifTile(MapPos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0, Reserved);
-	}
+	GameServer()->SendTileModif(ALL_PLAYERS, MapPos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0, Reserved);
+	GameServer()->Collision()->ModifTile(MapPos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), TileIndex, 0, Reserved);
 }
 
 bool CGameControllerMineTee::GetPlayerArea(int ClientID, int *pStartX, int *pEndX, int *pStartY, int *pEndY)
@@ -1240,6 +1238,18 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 	if (!pChar || pChar->m_ActiveBlockId == -1 || Qty == 0 || From == To)
 		return;
 
+	const int x = pChar->m_ActiveBlockId%GameServer()->Collision()->GetWidth();
+	const int y = pChar->m_ActiveBlockId/GameServer()->Collision()->GetWidth();
+	const vec2 BlockPos = vec2(x*32.0f+16.0f, y*32.0f+16.0f);
+
+	int MTTIndex = GameServer()->Collision()->GetMineTeeTileIndexAt(BlockPos);
+	CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(MTTIndex);
+	if (!pBlockInfo)
+	{
+		SendInventory(ClientID, (str_comp(pBlockInfo->m_Functionality.m_aType, "craft-table") == 0));
+		return;
+	}
+
 	CPlayer *pPlayer = pChar->GetPlayer();
 	CCellData *pCellFrom = 0x0;
 	CCellData *pCellTo = 0x0;
@@ -1250,7 +1260,7 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 		pCellFrom = &pChar->m_FastInventory[From];
 	else
 	{
-		if (pChar->m_ActiveBlockId == -2)
+		if (pChar->m_ActiveBlockId == -2 || str_comp(pBlockInfo->m_Functionality.m_aType, "craft-table") == 0)
 		{
 			if (From >= NUM_CELLS_LINE*4)
 			{
@@ -1276,14 +1286,17 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 			pCellTo = &pChar->m_FastInventory[To];
 		else
 		{
-			if (pChar->m_ActiveBlockId == -2)
+			if (pChar->m_ActiveBlockId == -2 || str_comp(pBlockInfo->m_Functionality.m_aType, "craft-table") == 0)
 			{
 				if (To >= NUM_CELLS_LINE*4)
 				{
 					IsToCraftZone = true;
 					const int ToID = To-NUM_CELLS_LINE*4;
 					if (ToID == NUM_CELLS_LINE)
+					{
+						SendInventory(ClientID, (str_comp(pBlockInfo->m_Functionality.m_aType, "craft-table") == 0));
 						return;
+					}
 					pCellTo = &pPlayer->m_aCraft[To-NUM_CELLS_LINE*4];
 				}
 				else
@@ -1299,7 +1312,10 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 	}
 
 	if (IsFromCraftRes && IsToCraftZone)
+	{
+		SendInventory(ClientID, (str_comp(pBlockInfo->m_Functionality.m_aType, "craft-table") == 0));
 		return;
+	}
 
 	if (pCellFrom && pCellTo)
 	{
@@ -1341,6 +1357,7 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 			else
 			{
 				// TODO: SEND MOVE FAIL
+				SendInventory(ClientID, (str_comp(pBlockInfo->m_Functionality.m_aType, "craft-table") == 0));
 				return;
 			}
 		}
@@ -1361,7 +1378,7 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 			}
 		}
 	}
-	else if (pCellFrom && !pCellTo && !IsFromCraftRes)
+	else if (pCellFrom && !pCellTo && !IsFromCraftRes && pCellFrom->m_ItemId != 0)
 	{
 		CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_DROPITEM, pCellFrom->m_ItemId);
 		pPickup->m_Pos = pChar->m_Pos;
@@ -1374,13 +1391,13 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 		pCellFrom->m_Amount = 0;
 	}
 
-	if (pChar->m_ActiveBlockId == -2)
+	if (pChar->m_ActiveBlockId == -2 || str_comp(pBlockInfo->m_Functionality.m_aType, "craft-table") == 0)
 	{
 		CheckCraft(ClientID);
-		OnClientOpenInventory(ClientID);
+		SendInventory(ClientID, (str_comp(pBlockInfo->m_Functionality.m_aType, "craft-table") == 0));
 	}
 
-	pChar->m_NeedSendInventory = true;
+	pChar->m_NeedSendFastInventory = true;
 }
 
 void CGameControllerMineTee::CheckCraft(int ClientID)

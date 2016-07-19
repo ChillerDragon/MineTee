@@ -317,7 +317,7 @@ void CPlayer::TryRespawn()
     }
     //
 
-	if(!GameServer()->m_pController->CanSpawn(m_Team, &SpawnPos, m_BotType))
+	if(!GameServer()->m_pController->CanSpawn(m_Team, &SpawnPos, m_BotType, m_BotSubType))
 		return;
 
 	// MineTee

@@ -49,7 +49,7 @@ CCharacter::CCharacter(CGameWorld *pWorld)
 	m_Armor = 0;
 
 	// MineTee
-    m_NeedSendInventory = true;
+    m_NeedSendFastInventory = true;
 	m_TimerFluidDamage = Server()->Tick();
 	m_InWater = false;
 	m_TimeStuck = Server()->Tick();
@@ -108,6 +108,7 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
         	}
         }
 
+        m_NeedSendFastInventory = true;
 		m_pPlayer->m_IsFirstJoin = false;
 	}
 
@@ -131,7 +132,7 @@ void CCharacter::SetInventoryItem(int Index)
 		m_QueuedInventoryItem = -1;
 		m_ActiveInventoryItem = Index;
 		GameServer()->CreateSound(m_Pos, SOUND_WEAPON_SWITCH);
-		m_NeedSendInventory = true;
+		m_NeedSendFastInventory = true;
 		return;
 	}
 }
@@ -196,7 +197,7 @@ void CCharacter::HandleInventoryItemSwitch()
 	if(WantedInventoryItem != m_ActiveInventoryItem && m_FastInventory[WantedInventoryItem].m_ItemId != 0)
 	{
 		m_QueuedInventoryItem = WantedInventoryItem;
-		m_NeedSendInventory = true;
+		m_NeedSendFastInventory = true;
 	}
 
 	DoInventoryItemSwitch();
@@ -350,7 +351,7 @@ void CCharacter::UseInventoryItem(int Index)
 			pCellData->m_ItemId = 0;
 			pCellData->m_Amount = 0;
 		}
-		m_NeedSendInventory = true;
+		m_NeedSendFastInventory = true;
 	}
 }
 //
@@ -615,7 +616,7 @@ int CCharacter::GiveItem(int ItemID, int Amount)
 			pCellData->m_Amount = min(g_pData->m_Weapons.m_aId[ItemID].m_Maxammo, pCellData->m_Amount+Amount);
 			pCellData->m_ItemId = ItemID;
 
-			m_NeedSendInventory = true;
+			m_NeedSendFastInventory = true;
 			return InvItem;
 		}
     }
@@ -638,12 +639,12 @@ int CCharacter::GiveItem(int ItemID, int Amount)
     	if (!HasItem)
     		pCellData->m_ItemId = ItemID;
 
-    	m_NeedSendInventory = true;
+    	m_NeedSendFastInventory = true;
     	return InvItem;
     }
 
-    if (m_NeedSendInventory && m_ActiveBlockId == -2)
-		GameServer()->m_pController->OnClientOpenInventory(m_pPlayer->GetCID());
+    if (m_NeedSendFastInventory && m_ActiveBlockId != -1)
+		GameServer()->m_pController->SendInventory(m_pPlayer->GetCID(), false);
 
     return -1;
 }
@@ -1117,7 +1118,7 @@ void CCharacter::Snap(int SnappingClient)
 				pCharacter->m_Emote = EMOTE_PAIN;
 		}
 
-		if(m_pPlayer->GetCID() == SnappingClient && m_NeedSendInventory)
+		if(m_pPlayer->GetCID() == SnappingClient && m_NeedSendFastInventory)
 		{
 			CNetObj_Inventory *pClientInventory = static_cast<CNetObj_Inventory *>(Server()->SnapNewItem(NETOBJTYPE_INVENTORY, m_pPlayer->GetCID(), sizeof(CNetObj_Inventory)));
 			if(!pClientInventory)
@@ -1131,7 +1132,7 @@ void CCharacter::Snap(int SnappingClient)
 			mem_copy(&pClientInventory->m_Ammo1, Amounts, sizeof(int)*NUM_CELLS_LINE);
 			pClientInventory->m_Selected = m_ActiveInventoryItem;
 
-			m_NeedSendInventory = false;
+			m_NeedSendFastInventory = false;
 		}
 	}
 }
@@ -1175,7 +1176,7 @@ void CCharacter::DropItem(int Index)
 			}
 		}
 
-		m_NeedSendInventory = true;
+		m_NeedSendFastInventory = true;
     }
 }
 
@@ -1199,8 +1200,6 @@ void CCharacter::UseAccountData(void *pAccountInfo)
 	// Check that can spawn in the place
 	if (GameServer()->Collision()->GetMineTeeTileIndexAt(m_Pos))
 		GameServer()->Collision()->ModifTile(ivec2(m_Pos.x/32, m_Pos.y/32), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeBGLayerIndex(), 0, 0, 0);
-
-	m_NeedSendInventory = true;
 }
 
 int CCharacter::InInventory(int ItemID)

@@ -26,6 +26,7 @@ class CModalCell : public CComponent
 
 	void RenderChest(CUIRect MainView);
 	void RenderInventory(CUIRect MainView);
+	void RenderCraftTable(CUIRect MainView);
 
 	void OnClose();
 	void OnOpen();

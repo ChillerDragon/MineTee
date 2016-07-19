@@ -599,7 +599,6 @@ void CGameContext::OnClientEnter(int ClientID)
         SendChatTarget(ClientID, aBuf);
         SendChatTarget(ClientID, "=================================");
         SendChatTarget(ClientID, " Say '/help' or '/cmdlist' to view available commands.");
-        SendChatTarget(ClientID, " Say '/info craft' to view info about crafting");
         SendChatTarget(ClientID, " ");
         m_apPlayers[ClientID]->m_IsFirstJoin = true;
         m_apPlayers[ClientID]->UseAccountData(GetAccount(ClientID));
@@ -1005,7 +1004,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 	        	if (pMsg->m_ActiveBlock)
 	        		m_pController->OnClientActiveBlock(ClientID);
 	        	if (pMsg->m_OpenInventory)
-	        		m_pController->OnClientOpenInventory(ClientID);
+	        		m_pController->SendInventory(ClientID, false);
 	        }
 	    }
 	}
@@ -1658,7 +1657,6 @@ void CGameContext::OnShutdown()
 		m_apPlayers[i] = 0x0;
 	}
 
-	m_pController->SaveData();
 	delete m_pController;
 	m_pController = 0;
 	Clear();
@@ -1977,6 +1975,8 @@ void CGameContext::SaveMap(const char *path)
     else
     	fileWrite.SaveMap(Storage(), pMap->GetFileReader(), aMapFile);
 
+    m_pController->SaveData();
+
     char aBuf[128];
     str_format(aBuf, sizeof(aBuf), "Map saved in '%s'!", aMapFile);
     SendChat(-1, CGameContext::CHAT_ALL, aBuf);
@@ -2015,7 +2015,7 @@ void CGameContext::GiveItem(int ClientID, int ItemID, int ammo)
 				str_format(aBuf, sizeof(aBuf), "Admin give you a '%s'! revise your inventory :)", pBlockInfo->m_aName);
 				SendChatTarget(ClientID, aBuf);
 				if (pChar->m_ActiveBlockId == -2)
-					m_pController->OnClientOpenInventory(ClientID);
+					m_pController->SendInventory(ClientID, false);
 			}
 		}
 	}

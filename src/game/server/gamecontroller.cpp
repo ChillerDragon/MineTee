@@ -96,7 +96,7 @@ void CGameController::EvaluateSpawnType(CSpawnEval *pEval, int Type)
 	}
 }
 
-bool CGameController::CanSpawn(int Team, vec2 *pOutPos, int BotType)
+bool CGameController::CanSpawn(int Team, vec2 *pOutPos, int BotType, int BotSubType)
 {
 	CSpawnEval Eval;
 

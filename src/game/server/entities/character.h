@@ -73,7 +73,7 @@ public:
 	class CPlayer *GetPlayer() { return m_pPlayer; }
 
     // MineTee
-	bool m_NeedSendInventory;
+	bool m_NeedSendFastInventory;
 	float m_TimeStuck;
 	CCharacterCore* GetCore() { return &m_Core; }
     void DropItem(int ItemID = -1);

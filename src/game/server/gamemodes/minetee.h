@@ -87,14 +87,14 @@ public:
 	virtual void OnCharacterSpawn(class CCharacter *pChr);
 	virtual int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon);
 	virtual bool OnChat(int cid, int team, const char *msg);
-	virtual bool CanSpawn(int Team, vec2 *pPos, int BotType);
+	virtual bool CanSpawn(int Team, vec2 *pPos, int BotType, int BotSubType);
 	bool CanJoinTeam(int Team, int NotThisID);
 	void OnClientActiveBlock(int ClientID);
-	void OnClientOpenInventory(int ClientID);
 	void OnPlayerPutBlock(int ClientID, ivec2 TilePos, int BlockID, int BlockFlags, int Reserved);
 	void OnPlayerDestroyBlock(int ClientID, ivec2 TilePos);
 	void OnClientMoveCell(int ClientID, int From, int To, unsigned char Qty);
 	bool TakeBlockDamage(vec2 WorldPos, int WeaponItemID, int Dmg, int Owner);
+	void SendInventory(int ClientID, bool IsCraftTable);
 
 	void LoadData();
 	void SaveData();
