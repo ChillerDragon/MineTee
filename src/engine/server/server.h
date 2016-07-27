@@ -249,6 +249,7 @@ public:
 	static void ConMapSave(IConsole::IResult *pResult, void *pUser);
 	static void ConTeleport(IConsole::IResult *pResult, void *pUser);
 	static void ConAdvanceTime(IConsole::IResult *pResult, void *pUser);
+	static void ConBlockInfo(IConsole::IResult *pResult, void *pUser);
 
 	virtual char *GetMapName();
 	virtual char *GetBlocksData() { return m_pCurrentBlocksData; }

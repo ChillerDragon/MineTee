@@ -1,17 +1,17 @@
 [
     {
         "name": "AIR",
-        "onPut": -1,     
+        "onPut": -1 
     },
     {
         "name": "STONE",
-        "health": 20,
+        "health": 20
     },
     {
         "name": "DIRT",
         "health": 8,
         "onSun": 3,
-        "randomActions": 20,
+        "randomActions": 20
     },
     {
         "name": "GRASS",
@@ -31,7 +31,7 @@
             [29,-2,-2,-2,-2,-2,-2,-2], [-1,-1,-1,-1,-1,-1,-1,-1,-1],
 
             [66,-2,-2,-2,-2,-2,-2,-2], [68,-1,-1,-1,-1,-1,-1,-1,-1],
-            [-1,-2,-2,-2,-2,-2,-2,-2], [2,-1,-1,-1,-1,-1,-1,-1,-1],
+            [-1,-2,-2,-2,-2,-2,-2,-2], [2,-1,-1,-1,-1,-1,-1,-1,-1]
         ]
     },
     {
@@ -42,7 +42,7 @@
         	{"0":0},{"0":0},{"0":0},
         	{"0":0},{"20":1},{"0":0},
         	{"0":0},{"0":0},{"0":0}
-       	],
+       	]
     },
     {
         "name": "STONE CLEAN II",
@@ -52,11 +52,11 @@
         	{"6":1},{"0":0},{"0":0},
         	{"6":1},{"0":0},{"0":0},
         	{"0":0},{"0":0},{"0":0}
-       	],
+       	]
     },
     {
         "name": "STONE CLEAN",
-        "health": 40,
+        "health": 40
     },
     {
         "name": "BRICK",
@@ -66,7 +66,7 @@
         	{"6":1},{"6":1},{"6":1},
         	{"6":1},{"20":1},{"6":1},
         	{"6":1},{"6":1},{"6":1}
-       	],
+       	]
     },
     {
         "name": "TNT",
@@ -76,17 +76,17 @@
         	{"31":1},{"176":1},{"31":1},
         	{"176":1},{"31":1},{"176":1},
         	{"31":1},{"176":1},{"31":1}
-       	],
+       	]
     },
     {
-        "name": "NOT USED 09",
+        "name": "NOT USED 09"
     },
     {
-        "name": "NOT USED 10",
+        "name": "NOT USED 10"
     },
     {
         "name": "SPIDER WEB",
-        "playerCollide": false,
+        "playerCollide": false
     },
     {
         "name": "ROSE",
@@ -99,11 +99,11 @@
         "place": [[-2],[-2],[-2],[-2],[3],[-2],[-2],[-2]]
     },
     {
-        "name": "NOT USED 14",
+        "name": "NOT USED 14"
     },
     {
         "name": "BROWN TREE SAPLING",
-        "health": 2,
+        "health": 2
     },
 
 
@@ -115,21 +115,21 @@
         	{"5":1},{"5":1},{"0":0},
         	{"5":1},{"5":1},{"0":0},
         	{"0":0},{"0":0},{"0":0}
-       	],
+       	]
     },
     {
-        "name": "NOT USED 17",
+        "name": "NOT USED 17"
     },
     {
-        "name": "NOT USED 18",
+        "name": "NOT USED 18"
     },
     {
         "name": "BEDROCK",
-        "health": 0,
+        "health": 0
     },
     {
         "name": "WOOD BROWN",
-        "health": 13,
+        "health": 13
     },
     {
         "name": "WOOD FRAME",
@@ -137,9 +137,9 @@
         "craftNum": 1,
         "craft": [
         	{"20":1},{"20":1},{"0":0},
-        	{"20":1},{"20":1},{"0":0},
+        	{"0":0},{"0":0},{"0":0},
         	{"0":0},{"0":0},{"0":0}
-       	],
+       	]
     },
     {
         "name": "IRON BLOCK",
@@ -149,7 +149,7 @@
         	{"211":1},{"211":1},{"211":1},
         	{"211":1},{"211":1},{"211":1},
         	{"211":1},{"211":1},{"211":1}
-       	],
+       	]
     },
     {
         "name": "GOLDEN BLOCK",
@@ -159,7 +159,7 @@
         	{"212":1},{"212":1},{"212":1},
         	{"212":1},{"212":1},{"212":1},
         	{"212":1},{"212":1},{"212":1}
-       	],
+       	]
     },
     {
         "name": "DIAMOND BLOCK",
@@ -169,13 +169,13 @@
         	{"213":1},{"213":1},{"213":1},
         	{"213":1},{"213":1},{"213":1},
         	{"213":1},{"213":1},{"213":1}
-       	],
+       	]
     },
     {
-        "name": "NOT USED 25",
+        "name": "NOT USED 25"
     },
     {
-        "name": "NOT USED 26",
+        "name": "NOT USED 26"
     },
     {
         "name": "CHEST",
@@ -194,7 +194,7 @@
         	"type": "chest",
         	"normalItems": 18,
         	"mutatedItems": 36
-        },
+        }
     },
     {
         "name": "MUSHROOM RED",
@@ -209,27 +209,27 @@
     {
         "name": "COAL",
         "gravity": true,
-        "onPut": -1,
+        "onPut": -1
     },
     {
-        "name": "GUNPOWDER",
+        "name": "GUNPOWDER"
     },
 
 
     {
         "name": "GOLD ORE",
         "health": 40,
-        "onCook": { "212":1 },
+        "onCook": { "212":1 }
     },
     {
         "name": "IRON ORE",
         "health": 60,
-        "onCook": { "211":1 },
+        "onCook": { "211":1 }
     },
     {
         "name": "COAL ORE",
         "health": 30,
-        "onBreak": { "30":1 },
+        "onBreak": { "30":1 }
     },
     {
         "name": "BOOKSHELF",
@@ -239,15 +239,15 @@
         	{"4":1},{"4":1},{"4":1},
         	{"173":1},{"173":1},{"173":1},
         	{"4":1},{"4":1},{"4":1}
-       	],
+       	]
     },
     {
         "name": "GREEN ORE",
-        "health": 50,
+        "health": 50
     },
     {
         "name": "VIOLET BLOCK",
-        "health": 15,
+        "health": 15
     },
     {
         "name": "MIDDLE STONE",
@@ -258,8 +258,7 @@
         	{"0":0},{"0":0},{"0":0},
         	{"0":0},{"0":0},{"0":0},
         	{"6":1},{"6":1},{"6":1}
-       	],
-        
+       	]
     },
     {
         "name": "SIGN",
@@ -274,7 +273,7 @@
         	{"4":1},{"4":1},{"4":1},
         	{"4":1},{"4":1},{"4":1},
         	{"0":0},{"40":1},{"0":0}
-       	],
+       	]
     },
     {
         "name": "STICK",
@@ -285,7 +284,7 @@
         	{"0":0},{"4":1},{"0":0},
         	{"0":0},{"4":1},{"0":0},
         	{"0":0},{"0":0},{"0":0}
-       	],
+       	]
     },
     {
         "name": "LARGE CHEST LEFT",
@@ -295,7 +294,7 @@
         "functionality":
         {
         	"type": "chest"
-        },
+        }
     },
     {
         "name": "LARGE CHEST RIGHT",
@@ -305,7 +304,7 @@
         "functionality":
         {
         	"type": "chest"
-        },
+        }
     },
     {
         "name": "CRAFTING TABLE",
@@ -319,7 +318,7 @@
         	{"4":1},{"4":1},{"0":0},
         	{"4":1},{"4":1},{"0":0},
         	{"0":0},{"0":0},{"0":0}
-       	],
+       	]
     },
     {
         "name": "OVEN (OFF)",
@@ -337,30 +336,30 @@
         	"fuel":
         	{
         		"blockId": 22,
-        		"duration": 30,
-        	}        	
+        		"duration": 30
+        	}       	
         }
     },
     {
-        "name": "NOT USED 45",
+        "name": "NOT USED 45"
     },
     {
-        "name": "NOT USED 46",
+        "name": "NOT USED 46"
     },
     {
         "name": "WHEAT",
         "health": 4,
-        "onPut": -1,
+        "onPut": -1
     },
 
 
     {
-        "name": "NOT USED 48",
+        "name": "NOT USED 48"
     },
     {
         "name": "GLASS",
         "health": 5,
-        "onBreak": { "0":0 },
+        "onBreak": { "0":0 }
     },
     {
         "name": "DIAMOND ORE",
@@ -369,13 +368,13 @@
     },
     {
         "name": "REDSTONE ORE",
-        "health": 30,
+        "health": 30
     },
     {
-        "name": "NOT USED 52",
+        "name": "NOT USED 52"
     },
     {
-        "name": "NOT USED 53",
+        "name": "NOT USED 53"
     },
     {
         "name": "STONE BRICK",
@@ -387,25 +386,25 @@
         	{"19":1},{"19":1},{"0":0},
         	{"19":1},{"19":1},{"0":0},
         	{"0":0},{"0":0},{"0":0}
-       	],
+       	]
     },
     {
-        "name": "NOT USED 55",
+        "name": "NOT USED 55"
     },
     {
-        "name": "NOT USED 56",
+        "name": "NOT USED 56"
     },
     {
-        "name": "NOT USED 57",
+        "name": "NOT USED 57"
     },
     {
-        "name": "NOT USED 58",
+        "name": "NOT USED 58"
     },
     {
-        "name": "NOT USED 59",
+        "name": "NOT USED 59"
     },
     {
-        "name": "NOT USED 60",
+        "name": "NOT USED 60"
     },
     {
         "name": "OVEN (ON)",
@@ -416,19 +415,19 @@
         "onBreak": {"44":1}
     },
     {
-        "name": "NOT USED 62",
+        "name": "NOT USED 62"
     },
     {
-        "name": "NOT USED 63",
+        "name": "NOT USED 63"
     },
 
 
     {
-        "name": "WHITE WOOL",
+        "name": "WHITE WOOL"
     },
     {
         "name": "MONSTER SPAWNER",
-        "health": 160,
+        "health": 160
     },
     {
         "name": "SNOW",
@@ -436,7 +435,7 @@
     },
     {
         "name": "GLASS BLUE",
-        "health": 5,
+        "health": 5
     },
     {
         "name": "DIRT SNOW",
@@ -446,7 +445,7 @@
         "name": "LEAFS",
         "effects":
         {
-        	"sway": true,
+        	"sway": true
         }
     },
     {
@@ -456,10 +455,10 @@
         "place": [[-2],[-2],[-2],[-2],[70,176],[-2],[-2],[-2]]
     },
     {
-        "name": "NOT USED 71",
+        "name": "NOT USED 71"
     },
     {
-        "name": "NOT USED 72",
+        "name": "NOT USED 72"
     },
     {
         "name": "SUGAR CANE",
@@ -467,13 +466,13 @@
         "place": [[-2],[-2],[-2],[-2],[73,86],[-2],[-2],[-2]]
     },
     {
-        "name": "NOT USED 74",
+        "name": "NOT USED 74"
     },
     {
-        "name": "NOT USED 75",
+        "name": "NOT USED 75"
     },
     {
-        "name": "NOT USED 76",
+        "name": "NOT USED 76"
     },
     {
         "name": "DIRT STONE",
@@ -482,11 +481,11 @@
     },
     {
         "name": "DIRT STONE BLOCK",
-        "health": 20,
+        "health": 20
     },
     {
         "name": "BIRCH TREE SAPLING",
-        "health": 3,
+        "health": 3
     },
 
 
@@ -510,7 +509,7 @@
         	{"40":1},{"0":0},{"40":1},
         	{"21":1},{"21":1},{"21":1}
        	],
-        "craftNum": 4,
+        "craftNum": 4
     },
     {
         "name": "IRON WINDOW",
@@ -520,7 +519,7 @@
         	{"40":1},{"211":2},{"40":1},
         	{"4":1},{"4":1},{"4":1}
        	],
-        "craftNum": 4,
+        "craftNum": 4
     },
     {
         "name": "WOODEN FENCE",
@@ -530,7 +529,7 @@
         	{"40":1},{"40":1},{"40":1},
         	{"40":1},{"40":1},{"40":1}
        	],
-        "craftNum": 2,
+        "craftNum": 2
     },
     {
         "name": "WOODEN WINDOW I",
@@ -619,17 +618,17 @@
 
 
     {
-        "name": "NOT USED 96",
+        "name": "NOT USED 96"
     },
     {
         "name": "BROWN TABLE VERTICAL",
-        "health": 15,
+        "health": 15
     },
     {
-        "name": "NOT USED 98",
+        "name": "NOT USED 98"
     },
     {
-        "name": "NOT USED 99",
+        "name": "NOT USED 99"
     },
     {
         "name": "STONE BRICK WITH IVY",
@@ -644,22 +643,22 @@
         "randomActions": 100
     },
     {
-        "name": "NOT USED 102",
+        "name": "NOT USED 102"
     },
     {
-        "name": "NOT USED 103",
+        "name": "NOT USED 103"
     },
     {
-        "name": "NOT USED 104",
+        "name": "NOT USED 104"
     },
     {
-        "name": "NOT USED 105",
+        "name": "NOT USED 105"
     },
     {
-        "name": "NOT USED 106",
+        "name": "NOT USED 106"
     },
     {
-        "name": "NOT USED 107",
+        "name": "NOT USED 107"
     },
     {
         "name": "STONE WITH SMALL TABLE",
@@ -672,10 +671,10 @@
         "craftNum": 4
     },
     {
-        "name": "NOT USED 109",
+        "name": "NOT USED 109"
     },
     {
-        "name": "NOT USED 110",
+        "name": "NOT USED 110"
     },
     {
         "name": "STONE STICK",
@@ -690,36 +689,36 @@
 
 
     {
-        "name": "NOT USED 112",
+        "name": "NOT USED 112"
     },
     {
-        "name": "DARK WOOL",
+        "name": "DARK WOOL"
     },
     {
-        "name": "GRAY WOOL",
+        "name": "GRAY WOOL"
     },
     {
-        "name": "NOT USED 115",
+        "name": "NOT USED 115"
     },
     {
-        "name": "NOT USED 116",
+        "name": "NOT USED 116"
     },
     {
-        "name": "WOOD BIRCH",
+        "name": "WOOD BIRCH"
     },
     {
-        "name": "PUMPKIN",
+        "name": "PUMPKIN"
     },
     {
-        "name": "PUMPKIN OFF",
+        "name": "PUMPKIN OFF"
     },
     {
         "name": "PUMPKIN ON",
         "onBreak": { "120":1 },
-        "lightSize": 10,
+        "lightSize": 10
     },
     {
-        "name": "NOT USED 121",
+        "name": "NOT USED 121"
     },
     {
         "name": "CAKE",
@@ -732,66 +731,66 @@
         "halfTile": true
     },
     {
-        "name": "NOT USED 124",
+        "name": "NOT USED 124"
     },
     {
-        "name": "NOT USED 125",
+        "name": "NOT USED 125"
     },
     {
-        "name": "NOT USED 126",
+        "name": "NOT USED 126"
     },
     {
-        "name": "NOT USED 127",
+        "name": "NOT USED 127"
     },
 
 
     {
-        "name": "NOT USED 128",
+        "name": "NOT USED 128"
     },
     {
-        "name": "RED WOOL",
+        "name": "RED WOOL"
     },
     {
-        "name": "PINK WOOL",
+        "name": "PINK WOOL"
     },
     {
-        "name": "NOT USED 131",
+        "name": "NOT USED 131"
     },
     {
         "name": "STONE WINDOW",
-        "health": 30,
+        "health": 30
     },
     {
         "name": "STONE WINDOW CLOSED",
-        "health": 30,
+        "health": 30
     },
     {
-        "name": "RED BLOCK",
+        "name": "RED BLOCK"
     },
     {
-        "name": "NOT USED 135",
+        "name": "NOT USED 135"
     },
     {
         "name": "MELON",
-        "health": 4,
+        "health": 4
     },
     {
-        "name": "MELON FRAME",
+        "name": "MELON FRAME"
     },
     {
-        "name": "EMPTY INDICATOR",
+        "name": "EMPTY INDICATOR"
     },
     {
-        "name": "DARK GRAY BLOCK",
+        "name": "DARK GRAY BLOCK"
     },
     {
-        "name": "NOT USED 140",
+        "name": "NOT USED 140"
     },
     {
-        "name": "NOT USED 141",
+        "name": "NOT USED 141"
     },
     {
-        "name": "NOT USED 142",
+        "name": "NOT USED 142"
     },
     {
         "name": "IRON BARS",
@@ -807,20 +806,20 @@
 
     {
         "name": "LAPISLAZULIS",
-        "health": 40,
+        "health": 40
     },
     {
-        "name": "DARK GREEN WOOL",
+        "name": "DARK GREEN WOOL"
     },
     {
-        "name": "GREEN WOOL",
+        "name": "GREEN WOOL"
     },
     {
-        "name": "NOT USED 147",
+        "name": "NOT USED 147"
     },
     {
         "name": "LASER STICK",
-        "health": 80,
+        "health": 80
     },
     {
         "name": "CHAIR",
@@ -856,70 +855,70 @@
         ]
     },
     {
-        "name": "NOT USED 153",
+        "name": "NOT USED 153"
     },
     {
         "name": "SHADOW I",
-        "onPut": -1,
+        "onPut": -1
     },
     {
-        "name": "NOT USED 155",
+        "name": "NOT USED 155"
     },
     {
-        "name": "NOT USED 156",
+        "name": "NOT USED 156"
     },
     {
-        "name": "BREWING STAND",
+        "name": "BREWING STAND"
     },
     {
-        "name": "END PORTAL FRAME",
+        "name": "END PORTAL FRAME"
     },
     {
-        "name": "END PORTAL STONE",
+        "name": "END PORTAL STONE"
     },
 
 
     {
         "name": "LAPISLAZULIS ORE",
-        "health": 60,
+        "health": 60
     },
     {
-        "name": "BROWN WOOL",
+        "name": "BROWN WOOL"
     },
     {
-        "name": "YELLOW WOOL",
+        "name": "YELLOW WOOL"
     },
     {
-        "name": "NOT USED 163",
+        "name": "NOT USED 163"
     },
     {
-        "name": "NOT USED 164",
+        "name": "NOT USED 164"
     },
     {
         "name": "IRON STICK HORIZONTAL",
-        "health": 60,
+        "health": 60
     },
     {
         "name": "ENCHANTING BLOCK",
-        "health": 30,
+        "health": 30
     },
     {
         "name": "OBSIDIAN II",
-        "health": 200,
+        "health": 200
     },
     {
         "name": "BONE",
-        "onPut": -1,
+        "onPut": -1
     },
     {
-        "name": "NOT USED 169",
+        "name": "NOT USED 169"
     },
     {
         "name": "SHADOW II",
-        "onPut": -1,
+        "onPut": -1
     },
     {
-        "name": "CAULDRON",
+        "name": "CAULDRON"
     },
     {
         "name": "PAPER",
@@ -929,7 +928,7 @@
         	{"0":0},{"0":0},{"0":0},
         	{"0":0},{"0":0},{"0":0},
         	{"73":1},{"73":1},{"73":1}
-       	],
+       	]
     },
     {
         "name": "BOOK",
@@ -938,16 +937,16 @@
         	{"0":0},{"172":1},{"0":0},
         	{"0":0},{"172":1},{"0":0},
         	{"0":0},{"172":1},{"187":1}
-       	],
+       	]
     },
     {
         "name": "SPOT LIGHT",
         "health": 10,
-        "lightSize": 40,
+        "lightSize": 40
     },
     {
         "name": "END STONE",
-        "health": 30,
+        "health": 30
     },
 
 
@@ -957,54 +956,54 @@
         "gravity": true
     },
     {
-        "name": "DARK BLUE WOOL",
+        "name": "DARK BLUE WOOL"
     },
     {
-        "name": "BLUE WOOL",
+        "name": "BLUE WOOL"
     },
     {
-        "name": "NOT USED 179",
+        "name": "NOT USED 179"
     },
     {
-        "name": "NOT USED 180",
+        "name": "NOT USED 180"
     },
     {
-        "name": "NOT USED 181",
+        "name": "NOT USED 181"
     },
     {
         "name": "ENCHANTING TABLE",
         "health": 30,
-        "halfTile": true,
+        "halfTile": true
     },
     {
         "name": "OBSIDIAN I",
-        "health": 200,
+        "health": 200
     },
     {
         "name": "SEED",
         "onPut": 88
     },
     {
-        "name": "NOT USED 185",
+        "name": "NOT USED 185"
     },
     {
         "name": "SHADOW III",
-        "onPut": -1,
+        "onPut": -1
     },
     {
-        "name": "COW LEATHER",
+        "name": "COW LEATHER"
     },
     {
-        "name": "NOT USED 188",
+        "name": "NOT USED 188"
     },
     {
-        "name": "NOT USED 189",
+        "name": "NOT USED 189"
     },
     {
-        "name": "NOT USED 190",
+        "name": "NOT USED 190"
     },
     {
-        "name": "NOT USED 191",
+        "name": "NOT USED 191"
     },
 
 
@@ -1014,217 +1013,217 @@
         "onBreak": { "176":2 }
     },
     {
-        "name": "DARK MAGENTA WOOL",
+        "name": "DARK MAGENTA WOOL"
     },
     {
-        "name": "MAGENTA WOOL",
+        "name": "MAGENTA WOOL"
     },
     {
-        "name": "NOT USED 195",
+        "name": "NOT USED 195"
     },
     {
-        "name": "NOT USED 196",
+        "name": "NOT USED 196"
     },
     {
-        "name": "NOT USED 197",
+        "name": "NOT USED 197"
     },
     {
-        "name": "NOT USED 198",
+        "name": "NOT USED 198"
     },
     {
-        "name": "NOT USED 199",
+        "name": "NOT USED 199"
     },
     {
-        "name": "NOT USED 200",
+        "name": "NOT USED 200"
     },
     {
-        "name": "NOT USED 201",
+        "name": "NOT USED 201"
     },
     {
         "name": "SADHOW IV",
-        "onPut": -1,
+        "onPut": -1
     },
     {
-        "name": "NOT USED 203",
+        "name": "NOT USED 203"
     },
     {
         "name": "WATER IV",
-        "onPut": -1,
+        "onPut": -1
     },
     {
         "name": "WATER III",
-        "onPut": -1,
+        "onPut": -1
     },
     {
         "name": "WATER II",
-        "onPut": -1,
+        "onPut": -1
     },
     {
         "name": "WATER I",
-        "onPut": -1,
+        "onPut": -1
     },
 
 
     {
-        "name": "NOT USED 208",
+        "name": "NOT USED 208"
     },
     {
-        "name": "CYAN WOOL",
+        "name": "CYAN WOOL"
     },
     {
-        "name": "ORANGE WOOL",
+        "name": "ORANGE WOOL"
     },
     {
         "name": "IRON INGOT",
         "health": 20,
-        "onPut": -1,
+        "onPut": -1
     },
     {
         "name": "GOLD INGOT",
         "health": 15,
-        "onPut": -1,
+        "onPut": -1
     },
     {
         "name": "DIAMOND",
         "health": 30,
-        "onPut": -1,
+        "onPut": -1
     },
     {
-        "name": "NOT USED 214",
+        "name": "NOT USED 214"
     },
     {
-        "name": "NOT USED 215",
+        "name": "NOT USED 215"
     },
     {
-        "name": "NOT USED 216",
+        "name": "NOT USED 216"
     },
     {
-        "name": "NOT USED 217",
+        "name": "NOT USED 217"
     },
     {
-        "name": "NOT USED 218",
+        "name": "NOT USED 218"
     },
     {
-        "name": "NOT USED 219",
+        "name": "NOT USED 219"
     },
     {
-        "name": "NOT USED 220",
+        "name": "NOT USED 220"
     },
     {
-        "name": "NOT USED 221",
+        "name": "NOT USED 221"
     },
     {
-        "name": "NOT USED 222",
+        "name": "NOT USED 222"
     },
     {
-        "name": "NOT USED 223",
+        "name": "NOT USED 223"
     },
 
 
     {
-        "name": "DARK BRICK",
+        "name": "DARK BRICK"
     },
     {
-        "name": "GRAY WOOL",
+        "name": "GRAY WOOL"
     },
     {
-        "name": "RED MUSHROOM I",
+        "name": "RED MUSHROOM I"
     },
     {
-        "name": "RED MUSHROOM II",
+        "name": "RED MUSHROOM II"
     },
     {
-        "name": "RED MUSHROOM III",
+        "name": "RED MUSHROOM III"
     },
     {
-        "name": "NOT USED 229",
+        "name": "NOT USED 229"
     },
     {
-        "name": "NOT USED 230",
+        "name": "NOT USED 230"
     },
     {
-        "name": "NOT USED 231",
+        "name": "NOT USED 231"
     },
     {
-        "name": "NOT USED 232",
+        "name": "NOT USED 232"
     },
     {
-        "name": "NOT USED 233",
+        "name": "NOT USED 233"
     },
     {
-        "name": "NOT USED 234",
+        "name": "NOT USED 234"
     },
     {
-        "name": "NOT USED 235",
+        "name": "NOT USED 235"
     },
     {
         "name": "LAVA IV",
         "lightSize": 5,
-        "onPut": -1,
+        "onPut": -1
     },
     {
         "name": "LAVA III",
         "lightSize": 5,
-        "onPut": -1,
+        "onPut": -1
     },
     {
         "name": "LAVA II",
         "lightSize": 5,
-        "onPut": -1,
+        "onPut": -1
     },
     {
         "name": "LAVA I",
         "lightSize": 5,
-        "onPut": -1,
+        "onPut": -1
     },
 
 
     {
-        "name": "NOT USED 240",
+        "name": "NOT USED 240"
     },
     {
-        "name": "NOT USED 241",
+        "name": "NOT USED 241"
     },
     {
-        "name": "NOT USED 242",
+        "name": "NOT USED 242"
     },
     {
-        "name": "NOT USED 243",
+        "name": "NOT USED 243"
     },
     {
-        "name": "NOT USED 244",
+        "name": "NOT USED 244"
     },
     {
-        "name": "NOT USED 245",
+        "name": "NOT USED 245"
     },
     {
-        "name": "NOT USED 246",
+        "name": "NOT USED 246"
     },
     {
-        "name": "NOT USED 247",
+        "name": "NOT USED 247"
     },
     {
-        "name": "NOT USED 248",
+        "name": "NOT USED 248"
     },
     {
-        "name": "NOT USED 249",
+        "name": "NOT USED 249"
     },
     {
-        "name": "NOT USED 250",
+        "name": "NOT USED 250"
     },
     {
-        "name": "NOT USED 251",
+        "name": "NOT USED 251"
     },
     {
-        "name": "NOT USED 252",
+        "name": "NOT USED 252"
     },
     {
-        "name": "NOT USED 253",
+        "name": "NOT USED 253"
     },
     {
-        "name": "NOT USED 254",
+        "name": "NOT USED 254"
     },
     {
-        "name": "NOT USED 255",
-    },
+        "name": "NOT USED 255"
+    }
 ]

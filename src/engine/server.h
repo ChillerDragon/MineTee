@@ -169,6 +169,7 @@ public:
 	virtual void Teleport(int ClientID, int ToID) = 0;
 	virtual int IntersectCharacter(vec2 HookPos, vec2 NewPos, vec2 *pNewPos2, int ownID) = 0;
 	virtual void AdvanceTime(int amount) = 0;
+	virtual void BlockInfo(int BlockID) = 0;
 
 	virtual IAccountSystem::ACCOUNT_INFO* GetAccount(int ClientID) = 0;
 	virtual void SaveAccount(int ClientID) = 0;

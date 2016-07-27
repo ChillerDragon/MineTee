@@ -201,6 +201,7 @@ public:
 	virtual int IntersectCharacter(vec2 HookPos, vec2 NewPos, vec2 *pNewPos2=0x0, int ownID=-1);
 	void GetServerTime(bool *pIsDay, int64 *pTime);
 	virtual void AdvanceTime(int amount);
+	virtual void BlockInfo(int BlockID);
 
 	virtual IAccountSystem::ACCOUNT_INFO* GetAccount(int ClientID);
 	virtual void SaveAccount(int ClientID);

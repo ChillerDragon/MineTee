@@ -64,6 +64,8 @@ class CMapGen
 	void GenerateBossZones();
 	void GenerateBiomes(int FillBlock);
 
+	void GenerateChests();
+
 	void DoFallSteps();
 	void DoWaterSteps();
 

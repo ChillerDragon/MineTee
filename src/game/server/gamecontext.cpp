@@ -2041,6 +2041,22 @@ void CGameContext::AdvanceTime(int amount)
 	m_pController->AdvanceRoundStartTick(amount);
 }
 
+void CGameContext::BlockInfo(int BlockID)
+{
+	if (BlockID < 0 || BlockID >= CBlockManager::MAX_BLOCKS)
+	{
+		Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", "Invalid Block ID");
+		return;
+	}
+
+	CBlockManager::CBlockInfo *pInfoBlock = m_BlockManager.GetBlockInfo(BlockID);
+	char aBuf[128];
+	str_format(aBuf, sizeof(aBuf), "Name: %s", pInfoBlock->m_aName);
+	Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", aBuf);
+	str_format(aBuf, sizeof(aBuf), "Health: %d", pInfoBlock->m_Health);
+	Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", aBuf);
+}
+
 void CGameContext::GetServerTime(bool *pIsDay, int64 *pTime)
 {
     *pTime = (Server()->Tick()-m_pController->GetRoundStartTick()) / (float)Server()->TickSpeed();

@@ -1815,6 +1815,7 @@ void CServer::RegisterCommands()
 	Console()->Register("save_map", "?s", CFGFLAG_SERVER, ConMapSave, this, "Save the map");
 	Console()->Register("tp", "ii", CFGFLAG_SERVER, ConTeleport, this, "Teleport a player to other player");
 	Console()->Register("adv_time", "i", CFGFLAG_SERVER, ConAdvanceTime, this, "Advance time");
+	Console()->Register("block_info", "i", CFGFLAG_SERVER, ConBlockInfo, this, "Block Info");
 	//
 
 	Console()->Chain("sv_name", ConchainSpecialInfoupdate, this);
@@ -1980,6 +1981,11 @@ void CServer::ConAdvanceTime(IConsole::IResult *pResult, void *pUser)
 {
 	if (pResult->NumArguments() == 1)
 		((CServer *)pUser)->m_pGameServer->AdvanceTime(pResult->GetInteger(0));
+}
+void CServer::ConBlockInfo(IConsole::IResult *pResult, void *pUser)
+{
+	if (pResult->NumArguments() == 1)
+		((CServer *)pUser)->m_pGameServer->BlockInfo(pResult->GetInteger(0));
 }
 
 // MineTee

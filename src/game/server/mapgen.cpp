@@ -108,7 +108,15 @@ void CMapGen::FillMap(int Seed)
 	dbg_msg("mapgen", "vegetation generated in %.5fs", (float)(time_get()-ProcessTime)/time_freq());
 
 	// Spawn Bosses
+	ProcessTime = time_get();
 	GenerateBossZones();
+	dbg_msg("mapgen", "Bosses spawned in %.5fs", (float)(time_get()-ProcessTime)/time_freq());
+
+	// Chests
+	ProcessTime = time_get();
+	GenerateChests();
+	dbg_msg("mapgen", "Chests generated in %.5fs", (float)(time_get()-ProcessTime)/time_freq());
+
 
 	// misc
 	dbg_msg("mapgen", "creating boarders...");
@@ -458,6 +466,11 @@ void CMapGen::GenerateBossZones()
 
 		ModifTile(SpawnPos, m_pLayers->GetGameLayerIndex(), ENTITY_OFFSET+ENTITY_SPAWN_BOSS_DUNE+i);
 	}
+}
+
+void CMapGen::GenerateChests()
+{
+	// TODO
 }
 
 void CMapGen::CreateStructure(int StructureID, ivec2 Pos)
