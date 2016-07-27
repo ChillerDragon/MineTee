@@ -1573,11 +1573,6 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 
 	m_Collision.Init(&m_Layers, &m_BlockManager);
 	m_MapGen.Init(&m_Layers, &m_Collision, &m_BlockManager); // MineTee
-	if (g_Config.m_SvMapGeneration && m_pServer->m_MapGenerated) // generate a random world if wanted
-	{
-		m_MapGen.FillMap(g_Config.m_SvMapGenerationSeed);
-		SaveMap("");
-	}
 
 	// reset everything here
 	//world = new GAMEWORLD;
@@ -1586,6 +1581,12 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 	// select gametype
 	// MineTee: Removed other gamemodes!
 	m_pController = new CGameControllerMineTee(this);
+
+	if (g_Config.m_SvMapGeneration && m_pServer->m_MapGenerated) // generate a random world if wanted
+	{
+		m_MapGen.FillMap(g_Config.m_SvMapGenerationSeed);
+		SaveMap("");
+	}
 
 	// setup core world
 	//for(int i = 0; i < MAX_CLIENTS; i++)
