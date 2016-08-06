@@ -1632,6 +1632,20 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 		}
 	}
 
+	// MineTee
+	CMapItemLayerTilemap *pMTTileMap = m_Layers.MineTeeLayer();
+	CTile *pMTTiles = static_cast<CTile *>(m_Layers.Map()->GetData(pMTTileMap->m_Data));
+	for(int y = 0; y < pMTTileMap->m_Height; y++)
+	{
+		for(int x = 0; x < pMTTileMap->m_Width; x++)
+		{
+			int Index = pMTTiles[y*pMTTileMap->m_Width+x].m_Index;
+			CBlockManager::CBlockInfo *pBlockInfo = m_BlockManager.GetBlockInfo(Index);
+			if(pBlockInfo && pBlockInfo->m_Functionality.m_aType[0] != 0)
+				m_pController->OnFunctionalBlock(Index, ivec2(x, y));
+		}
+	}
+
 	//game.world.insert_entity(game.Controller);
 
 #ifdef CONF_DEBUG
@@ -1747,6 +1761,8 @@ void CGameContext::UpdateBotInfo(int ClientID)
 			str_copy(NameSkin, "x_animal_teecow", sizeof(NameSkin));
 		else if (BotSubType == BOT_ANIMAL_PIG)
 			str_copy(NameSkin, "x_animal_teepig", sizeof(NameSkin));
+		else if (BotSubType == BOT_ANIMAL_SHEEP)
+			str_copy(NameSkin, "x_animal_teesheep", sizeof(NameSkin));
 	}
 	else if (BotType == BOT_MONSTER)
 	{

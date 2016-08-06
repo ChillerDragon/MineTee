@@ -54,10 +54,14 @@ bool CAnimal::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 void CAnimal::TickBotAI()
 {
     //Sounds
-    if (Server()->Tick() - m_BotTimeLastSound > Server()->TickSpeed()*5.0f)
+    if (Server()->Tick() - m_BotTimeLastSound > Server()->TickSpeed()*5.0f && !(rand()%50))
     {
         if (m_pPlayer->GetBotSubType() == BOT_ANIMAL_COW)
             GameServer()->CreateSound(m_Pos, SOUND_ANIMAL_TEECOW);
+        if (m_pPlayer->GetBotSubType() == BOT_ANIMAL_SHEEP)
+        	GameServer()->CreateSound(m_Pos, SOUND_ANIMAL_TEESHEEP);
+        if (m_pPlayer->GetBotSubType() == BOT_ANIMAL_PIG)
+            GameServer()->CreateSound(m_Pos, SOUND_ANIMAL_TEEPIG);
         m_BotTimeLastSound = Server()->Tick();
     }
 

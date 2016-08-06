@@ -241,10 +241,13 @@ container.sounds.Add(SoundSet("ctf_capture", ["audio/sfx_ctf_cap_pl.wv"]))
 container.sounds.Add(SoundSet("menu", ["audio/music_menu.wv"]))
 
 # MineTee
-container.sounds.Add(SoundSet("destroy_block", FileList("audio/sfx_destroy_block-%02d.wv", 1)))
-container.sounds.Add(SoundSet("pickup_block", FileList("audio/foley_dbljump-%02d.wv", 3)))
-container.sounds.Add(SoundSet("animal_teecow", FileList("audio/sfx_teecow-%02d.wv", 1)))
-container.sounds.Add(SoundSet("enemy_zombitee", FileList("audio/sfx_zombitee-%02d.wv", 1)))
+container.sounds.Add(SoundSet("destroy_block", FileList("audio/minetee/env/sfx_destroy_block-%02d.wv", 1)))
+container.sounds.Add(SoundSet("pickup_block", FileList("audio/minetee/dig/sfx_stone-%02d.wv", 4)))
+container.sounds.Add(SoundSet("animal_teecow", FileList("audio/minetee/teecow/sfx_teecow-%02d.wv", 4)))
+container.sounds.Add(SoundSet("animal_teesheep", FileList("audio/minetee/teesheep/sfx_teesheep-%02d.wv", 3)))
+container.sounds.Add(SoundSet("animal_teepig", FileList("audio/minetee/teepig/sfx_teepig-%02d.wv", 3)))
+container.sounds.Add(SoundSet("enemy_zombitee", FileList("audio/minetee/zombitee/sfx_zombitee-%02d.wv", 3)))
+container.sounds.Add(SoundSet("enemy_skeletee", FileList("audio/minetee/skeletee/sfx_skeletee-%02d.wv", 3)))
 
 image_null = Image("null", "")
 image_particles = Image("particles", "particles.png")

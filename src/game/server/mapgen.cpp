@@ -293,7 +293,7 @@ void CMapGen::GenerateFlowers()
 			{
 				int y = 0;
 				while(m_pCollision->GetMineTeeTileIndexAt(vec2(f*32, (y+1)*32)) != CBlockManager::GRASS && y < m_pLayers->MineTeeLayer()->m_Height-1)
-					y++;
+					++y;
 
 				if(m_pCollision->GetMineTeeTileIndexAt(vec2(f*32, y*32)) != CBlockManager::AIR)
 					continue;
@@ -320,7 +320,7 @@ void CMapGen::GenerateMushrooms()
 						&& m_pCollision->GetMineTeeTileIndexAt(vec2(f*32, y*32)) != CBlockManager::AIR
 						&& y < m_pLayers->MineTeeLayer()->m_Height)
 				{
-					y++;
+					++y;
 				}
 
 				if(y >= m_pLayers->MineTeeLayer()->m_Height)
@@ -340,28 +340,29 @@ void CMapGen::GenerateMushrooms()
 void CMapGen::GenerateTrees()
 {
 	int LastTreeX = 0;
+	const int TreesLevelMin = PercOf(VEGETATION_LEVEL_MIN, m_pLayers->MineTeeLayer()->m_Height);
+	const int TreesLevelMax = PercOf(VEGETATION_LEVEL_MAX, m_pLayers->MineTeeLayer()->m_Height);
 
 	for(int x = 10; x < m_pLayers->MineTeeLayer()->m_Width-10; x++)
 	{
 		// trees like to spawn in groups
 		if((abs(LastTreeX - x) >= 8) || (abs(LastTreeX - x) <= 8 && abs(LastTreeX - x) >= 3 && !m_pNoise->Perlin()->GetURandom(0,8)))
 		{
-			int TempTileY = 0;
-			while((m_pCollision->GetMineTeeTileIndexAt(vec2(x*32, (TempTileY+1)*32)) != CBlockManager::GRASS
-					|| m_pCollision->GetMineTeeTileIndexAt(vec2(x*32, (TempTileY+1)*32)) != CBlockManager::SAND)
-					&& m_pCollision->GetMineTeeTileIndexAt(vec2(x*32, TempTileY*32)) != CBlockManager::AIR
-					&& TempTileY < m_pLayers->MineTeeLayer()->m_Height)
+			int TempTileY = TreesLevelMin;
+			while(m_pCollision->GetMineTeeTileIndexAt(vec2(x*32, (TempTileY+1)*32)) != CBlockManager::GRASS
+					&& m_pCollision->GetMineTeeTileIndexAt(vec2(x*32, (TempTileY+1)*32)) != CBlockManager::SAND
+					&& TempTileY < TreesLevelMax)
 			{
-				TempTileY++;
+				++TempTileY;
 			}
 
-			if(TempTileY >= m_pLayers->MineTeeLayer()->m_Height)
+			if(TempTileY >= TreesLevelMax || m_pCollision->GetMineTeeTileIndexAt(vec2(x*32, TempTileY*32)) != CBlockManager::AIR)
 				continue;
 
-			const int TileBase = m_pCollision->GetMineTeeTileIndexAt(vec2(x*32, TempTileY*32));
+			const int TileBase = m_pCollision->GetMineTeeTileIndexAt(vec2(x*32, (TempTileY+1)*32));
 			if (TileBase == CBlockManager::GRASS)
 				GenerateTree(ivec2(x, TempTileY));
-			else if (TileBase == CBlockManager::SAND)
+			else if (TempTileY > 4 && TileBase == CBlockManager::SAND)
 			{
 				for (int i=0; i>-4; i--)
 					ModifTile(ivec2(x, TempTileY+i), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::CACTUS);
@@ -470,7 +471,24 @@ void CMapGen::GenerateBossZones()
 
 void CMapGen::GenerateChests()
 {
-	// TODO
+	const int ChestLevel = PercOf(CHESTS_LEVEL, m_pLayers->MineTeeLayer()->m_Height);
+
+	for(int x = 0; x < m_pLayers->MineTeeLayer()->m_Width; x++)
+	{
+		for(int y = ChestLevel; y < m_pLayers->MineTeeLayer()->m_Height; y++)
+		{
+			if (!m_pNoise->Perlin()->GetURandom(0, 100)
+					&& m_pCollision->CheckPoint(x*32, (y+1)*32)
+					&& m_pCollision->GetMineTeeTileIndexAt(vec2(x*32, y*32)) == CBlockManager::AIR
+					&& m_pCollision->GetMineTeeTileIndexAt(vec2((x-1)*32, y*32)) != CBlockManager::CHEST
+					&& m_pCollision->GetMineTeeTileIndexAt(vec2((x+1)*32, y*32)) != CBlockManager::CHEST
+					&& m_pCollision->GetMineTeeTileIndexAt(vec2(x*32, (y-1)*32)) != CBlockManager::CHEST
+					&& m_pCollision->GetMineTeeTileIndexAt(vec2(x*32, (y+1)*32)) != CBlockManager::CHEST)
+			{
+				ModifTile(ivec2(x, y), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::CHEST);
+			}
+		}
+	}
 }
 
 void CMapGen::CreateStructure(int StructureID, ivec2 Pos)

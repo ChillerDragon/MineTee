@@ -15,7 +15,6 @@ MineTee its a mod for the game Teeworlds created and maintained by unsigned char
 	```
 	*** More details here: http://stackoverflow.com/a/29489843
 
-
 	
 	
 + TEEWORLDS README

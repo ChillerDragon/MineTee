@@ -88,6 +88,7 @@ public:
 	virtual int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon);
 	virtual bool OnChat(int cid, int team, const char *msg);
 	virtual bool CanSpawn(int Team, vec2 *pPos, int BotType, int BotSubType);
+	virtual bool OnFunctionalBlock(int BlockID, ivec2 TilePos);
 	bool CanJoinTeam(int Team, int NotThisID);
 	void OnClientActiveBlock(int ClientID);
 	void OnPlayerPutBlock(int ClientID, ivec2 TilePos, int BlockID, int BlockFlags, int Reserved);
@@ -95,6 +96,8 @@ public:
 	void OnClientMoveCell(int ClientID, int From, int To, unsigned char Qty);
 	bool TakeBlockDamage(vec2 WorldPos, int WeaponItemID, int Dmg, int Owner);
 	void SendInventory(int ClientID, bool IsCraftTable);
+
+	void CreateChestSingle(int ClientID, ivec2 TilePos, int NumTiles = 0, CCellData *pCellData = 0x0);
 
 	void LoadData();
 	void SaveData();

@@ -382,88 +382,98 @@ void CGameControllerMineTee::CookTick(CTile *pTempTiles, const int *pTileIndex, 
 void CGameControllerMineTee::VegetationTick(CTile *pTempTiles, const int *pTileIndex, int x, int y, const CBlockManager::CBlockInfo *pBlockInfo)
 {
 	CMapItemLayerTilemap *pTmap = (CMapItemLayerTilemap *)GameServer()->Layers()->MineTeeLayer();
+	int64 Time = -1;
+	bool IsDay = false;
+	GameServer()->GetServerTime(&IsDay, &Time);
 
-	/** Growing **/
-	if (pTileIndex[TILE_CENTER] == CBlockManager::SUGAR_CANE &&
-		(pTileIndex[TILE_BOTTOM] == CBlockManager::SUGAR_CANE || pTileIndex[TILE_BOTTOM] == CBlockManager::GROUND_CULTIVATION_WET) &&
-		pTileIndex[TILE_TOP] == 0)
+	if (IsDay)
 	{
-		int tam=0;
-		bool canC = false;
-		for(int u=1; u<=5; u++)
+		/** Growing **/
+		if (pTileIndex[TILE_CENTER] == CBlockManager::SUGAR_CANE &&
+			(pTileIndex[TILE_BOTTOM] == CBlockManager::SUGAR_CANE || pTileIndex[TILE_BOTTOM] == CBlockManager::GROUND_CULTIVATION_WET) &&
+			pTileIndex[TILE_TOP] == 0)
 		{
-			int TileIndexTemp = (y+u)*pTmap->m_Width+x;
-			if (pTempTiles[TileIndexTemp].m_Index == CBlockManager::SUGAR_CANE)
-				tam++;
-			else
+			int tam=0;
+			bool canC = false;
+			for(int u=1; u<=5; u++)
 			{
-				if (pTempTiles[TileIndexTemp].m_Index == CBlockManager::GROUND_CULTIVATION_WET)
-					canC = true;
-				break;
+				int TileIndexTemp = (y+u)*pTmap->m_Width+x;
+				if (pTempTiles[TileIndexTemp].m_Index == CBlockManager::SUGAR_CANE)
+					tam++;
+				else
+				{
+					if (pTempTiles[TileIndexTemp].m_Index == CBlockManager::GROUND_CULTIVATION_WET)
+						canC = true;
+					break;
+				}
+			}
+
+			if (!(rand()%10) && canC && tam < 5)
+			{
+				ModifTile(ivec2(x, y-1), CBlockManager::SUGAR_CANE);
 			}
 		}
 
-		if (!(rand()%10) && canC && tam < 5)
+		if (pTileIndex[TILE_CENTER] == CBlockManager::CACTUS &&
+			(pTileIndex[TILE_BOTTOM] == CBlockManager::CACTUS || pTileIndex[TILE_BOTTOM] == CBlockManager::SAND) &&
+			pTileIndex[TILE_TOP] == 0)
 		{
-			ModifTile(ivec2(x, y-1), CBlockManager::SUGAR_CANE);
-		}
-	}
-
-	if (pTileIndex[TILE_CENTER] == CBlockManager::CACTUS &&
-		(pTileIndex[TILE_BOTTOM] == CBlockManager::CACTUS || pTileIndex[TILE_BOTTOM] == CBlockManager::SAND) &&
-		pTileIndex[TILE_TOP] == 0)
-	{
-		int tam=0;
-		bool canC = false;
-		for(int u=1; u<=5; u++)
-		{
-			int TileIndexTemp = (y+u)*pTmap->m_Width+x;
-			if (pTempTiles[TileIndexTemp].m_Index == CBlockManager::CACTUS)
-				tam++;
-			else
+			int tam=0;
+			bool canC = false;
+			for(int u=1; u<=5; u++)
 			{
-				if (pTempTiles[TileIndexTemp].m_Index == CBlockManager::SAND)
-					canC = true;
-				break;
+				int TileIndexTemp = (y+u)*pTmap->m_Width+x;
+				if (pTempTiles[TileIndexTemp].m_Index == CBlockManager::CACTUS)
+					tam++;
+				else
+				{
+					if (pTempTiles[TileIndexTemp].m_Index == CBlockManager::SAND)
+						canC = true;
+					break;
+				}
+			}
+
+			if (!(rand()%10) && canC && tam < 8)
+			{
+				ModifTile(ivec2(x, y-1), CBlockManager::CACTUS);
 			}
 		}
-
-		if (!(rand()%10) && canC && tam < 8)
+		else if (pTileIndex[TILE_CENTER] >= CBlockManager::GRASS_A && pTileIndex[TILE_CENTER] < CBlockManager::GRASS_G && !(rand()%1))
 		{
-			ModifTile(ivec2(x, y-1), CBlockManager::CACTUS);
+			int nindex = pTileIndex[TILE_CENTER]+1;
+			if (pTileIndex[TILE_BOTTOM] != CBlockManager::GROUND_CULTIVATION_WET && nindex > CBlockManager::GRASS_D)
+				nindex = CBlockManager::GRASS_D;
+
+			ModifTile(ivec2(x, y), nindex);
 		}
-	}
-	else if (pTileIndex[TILE_CENTER] >= CBlockManager::GRASS_A && pTileIndex[TILE_CENTER] < CBlockManager::GRASS_G && !(rand()%1))
-	{
-		int nindex = pTileIndex[TILE_CENTER]+1;
-		if (pTileIndex[TILE_BOTTOM] != CBlockManager::GROUND_CULTIVATION_WET && nindex > CBlockManager::GRASS_D)
-			nindex = CBlockManager::GRASS_D;
 
-		ModifTile(ivec2(x, y), nindex);
-	}
-
-	/** Creation **/
-	if (!(rand()%100) && (pTileIndex[TILE_CENTER] == CBlockManager::SAND) && pTileIndex[TILE_TOP] == 0)
-	{
-		bool found = false;
-
-		for (int i=-4; i<5; i++)
+		/** Creation **/
+		if (!(rand()%100) && (pTileIndex[TILE_CENTER] == CBlockManager::SAND) && pTileIndex[TILE_TOP] == 0)
 		{
-			int TileIndexTemp = (y-1)*pTmap->m_Width+(x+i);
-			if (pTempTiles[TileIndexTemp].m_Index == CBlockManager::CACTUS)
+			bool found = false;
+
+			for (int i=-4; i<5; i++)
 			{
-				found = true;
-				break;
+				int TileIndexTemp = (y-1)*pTmap->m_Width+(x+i);
+				if (pTempTiles[TileIndexTemp].m_Index == CBlockManager::CACTUS)
+				{
+					found = true;
+					break;
+				}
 			}
-		}
 
-		if (!found)
-			ModifTile(ivec2(x, y-1), CBlockManager::CACTUS);
-	}
-	else if ((rand()%100)==3 && pTileIndex[TILE_CENTER] == CBlockManager::GRASS_D &&
-			pTileIndex[TILE_RIGHT] == 0 && pTileIndex[TILE_RIGHT_BOTTOM] == CBlockManager::GRASS)
-	{
-		ModifTile(ivec2(x+1, y), CBlockManager::GRASS_A);
+			if (!found)
+				ModifTile(ivec2(x, y-1), CBlockManager::CACTUS);
+		}
+		else if ((rand()%100)==3 && pTileIndex[TILE_CENTER] == CBlockManager::GRASS_D &&
+				pTileIndex[TILE_RIGHT] == 0 && pTileIndex[TILE_RIGHT_BOTTOM] == CBlockManager::GRASS)
+		{
+			ModifTile(ivec2(x+1, y), CBlockManager::GRASS_A);
+		}
+		else if (rand()%100 == 34 && pTileIndex[TILE_CENTER] == CBlockManager::BROWN_TREE_SAPLING && pTileIndex[TILE_RIGHT_BOTTOM] == CBlockManager::GRASS)
+		{
+			GameServer()->MapGen()->GenerateTree(ivec2(x, y));
+		}
 	}
 
 	/** Dead **/
@@ -630,6 +640,66 @@ void CGameControllerMineTee::SendInventory(int ClientID, bool IsCraftTable)
 		pChar->m_ActiveBlockId = -2; // Inventory
 }
 
+void CGameControllerMineTee::CreateChestSingle(int ClientID, ivec2 TilePos, int NumTiles, CCellData *pCellData)
+{
+	const int ChestID = TilePos.y*GameServer()->Collision()->GetWidth()+TilePos.x;
+	CChest *pChest = (CChest*)mem_alloc(sizeof(CChest), 1);
+	if (ClientID != -1)
+		mem_copy(pChest->m_aOwnerKey, Server()->ClientKey(ClientID), sizeof(pChest->m_aOwnerKey));
+	pChest->m_NumItems = NumTiles;
+	pChest->m_apItems = (CCellData*)mem_alloc(sizeof(CCellData)*pChest->m_NumItems, 1);
+	mem_zero(pChest->m_apItems, sizeof(CCellData)*pChest->m_NumItems);
+	if (pCellData)
+		mem_copy(pChest->m_apItems, pCellData, sizeof(CCellData)*pChest->m_NumItems);
+	m_lpChests.insert(std::make_pair(ChestID, pChest));
+}
+
+bool CGameControllerMineTee::OnFunctionalBlock(int BlockID, ivec2 TilePos)
+{
+	if (CGameController::OnFunctionalBlock(BlockID, TilePos))
+		return false;
+
+	if (BlockID == CBlockManager::CHEST)
+	{
+		const int ChestID = TilePos.y*GameServer()->Collision()->GetWidth()+TilePos.x;
+		if (m_lpChests.find(ChestID) == m_lpChests.end())
+		{
+			CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(BlockID);
+			if (pBlockInfo)
+			{
+				const int NumItems = pBlockInfo->m_Functionality.m_NormalItems;
+				CCellData *pCellData = (CCellData*)mem_alloc(sizeof(CCellData)*NumItems, 1);
+				CBlockManager::CBlockInfo *pNBlockInfo = 0x0;
+				for (int i=0; i<NumItems; i++)
+				{
+					pCellData[i].m_Amount = 0;
+					pCellData[i].m_ItemId = 0;
+
+					if (rand()%10)
+						continue;
+
+					pCellData[i].m_Amount = rand()%125;
+					if (pCellData[i].m_Amount)
+					{
+						int ItemID = 0;
+						do
+						{
+							ItemID = rand()%(CBlockManager::MAX_BLOCKS+NUM_WEAPONS);
+							pCellData[i].m_ItemId = ItemID;
+							pNBlockInfo = (ItemID >= NUM_WEAPONS)?GameServer()->m_BlockManager.GetBlockInfo(ItemID-NUM_WEAPONS):0x0;
+						} while (ItemID >= NUM_WEAPONS && pNBlockInfo && str_find(pNBlockInfo->m_aName, "NOT USED"));
+					}
+				}
+				CreateChestSingle(-1, TilePos, NumItems, pCellData);
+				mem_free(pCellData);
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 void CGameControllerMineTee::OnClientActiveBlock(int ClientID)
 {
 	CCharacter *pChar = GameServer()->GetPlayerChar(ClientID);
@@ -723,13 +793,7 @@ void CGameControllerMineTee::OnPlayerPutBlock(int ClientID, ivec2 TilePos, int B
 	// Create empty chest, but can be replaced in "mutation" process!
 	if (pBlockInfo && str_comp(pBlockInfo->m_Functionality.m_aType, "chest") == 0)
 	{
-		int ChestID = TilePos.y*GameServer()->Collision()->GetWidth()+TilePos.x;
-		CChest *pChest = (CChest*)mem_alloc(sizeof(CChest), 1);
-		mem_copy(pChest->m_aOwnerKey, Server()->ClientKey(ClientID), sizeof(pChest->m_aOwnerKey));
-		pChest->m_NumItems = pBlockInfo->m_Functionality.m_NormalItems;
-		pChest->m_apItems = (CCellData*)mem_alloc(sizeof(CCellData)*pChest->m_NumItems, 1);
-		mem_zero(pChest->m_apItems, sizeof(CCellData)*pChest->m_NumItems);
-		m_lpChests.insert(std::make_pair(ChestID, pChest));
+		CreateChestSingle(ClientID, TilePos, pBlockInfo->m_Functionality.m_NormalItems);
 	}
 	if (pBlockInfo && str_comp(pBlockInfo->m_Functionality.m_aType, "sign") == 0)
 	{
@@ -989,6 +1053,7 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
 					GameServer()->SendChatTarget(cid, "--------------------------- --------- --------");
 					GameServer()->SendChatTarget(cid, "Author: unsigned char* & contributors");
 					GameServer()->SendChatTarget(cid, "Github Repo: https://github.com/CytraL/MineTee");
+					GameServer()->SendChatTarget(cid, "Special thanks to: xush, android272, H-M-H");
         			str_format(aBuf, sizeof(aBuf), "MineTee v%s **", MINETEE_VERSION);
         			GameServer()->SendChatTarget(cid, aBuf);
         			str_format(aBuf, sizeof(aBuf), "Teeworlds Version: %s", GAME_VERSION);
@@ -1077,7 +1142,7 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 			{
 				// Other bots near?
 				CCharacter *aEnts[MAX_BOTS];
-				int Num = GameServer()->m_World.FindEntities(P, 1250.0f, (CEntity**)aEnts, MAX_BOTS, CGameWorld::ENTTYPE_CHARACTER);
+				int Num = GameServer()->m_World.FindEntities(P, 3200, (CEntity**)aEnts, MAX_BOTS, CGameWorld::ENTTYPE_CHARACTER);
 				for (int i=0; i<Num; i++)
 				{
 					if (aEnts[i]->GetPlayer()->IsBot())

@@ -360,7 +360,7 @@ void CClient::SendInfo()
 	// MineTee
 	{
 		Msg.AddString("MineTee", 12);
-		Msg.AddString("0.2.0", 8);
+		Msg.AddString(MINETEE_VERSION, 8);
 		Msg.AddRaw(m_KeyStore.Get(g_Config.m_UiServerAddress), 32);
 	}
 

@@ -155,6 +155,7 @@ public:
 	// MineTee
 	int GetRoundStartTick() const { return m_RoundStartTick; }
 	void AdvanceRoundStartTick(int amount) { m_RoundStartTick = max(m_RoundStartTick+amount, 0); }
+	virtual bool OnFunctionalBlock(int BlockID, ivec2 TilePos) { return false; }
 	virtual bool OnChat(int cid, int team, const char *msg) { return true; };
 	virtual void OnClientActiveBlock(int ClientID) {}
 	virtual void SendInventory(int ClientID, bool IsCraftTable) {}

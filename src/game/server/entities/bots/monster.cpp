@@ -58,6 +58,9 @@ void CMonster::PlaySound()
 		case BOT_MONSTER_ZOMBITEE:
 			GameServer()->CreateSound(m_Pos, SOUND_ENEMY_ZOMBITEE);
 			break;
+		case BOT_MONSTER_SKELETEE:
+			GameServer()->CreateSound(m_Pos, SOUND_ENEMY_SKELETEE);
+			break;
 	}
 }
 
@@ -140,7 +143,7 @@ void CMonster::RunAction()
 void CMonster::TickBotAI()
 {
     //Sounds
-    if (Server()->Tick() - m_BotTimeLastSound > Server()->TickSpeed()*5.0f)
+    if (Server()->Tick() - m_BotTimeLastSound > Server()->TickSpeed()*5.0f && !(rand()%50))
     {
         PlaySound();
         m_BotTimeLastSound = Server()->Tick();

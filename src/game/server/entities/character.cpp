@@ -1197,9 +1197,9 @@ void CCharacter::UseAccountData(void *pAccountInfo)
 	m_ActiveInventoryItem = pInfo->m_ActiveInventoryItem;
 	mem_copy(&m_FastInventory, &pInfo->m_FastInventory, sizeof(CCellData)*NUM_CELLS_LINE);
 
-	// Check that can spawn in the place
-	if (GameServer()->Collision()->GetMineTeeTileIndexAt(m_Pos))
-		GameServer()->Collision()->ModifTile(ivec2(m_Pos.x/32, m_Pos.y/32), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeBGLayerIndex(), 0, 0, 0);
+	// Check that can spawn in that place
+	if (GameServer()->Collision()->CheckPoint(m_Pos))
+		GameServer()->Collision()->ModifTile(ivec2(m_Pos.x/32, m_Pos.y/32), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0, 0);
 }
 
 int CCharacter::InInventory(int ItemID)
