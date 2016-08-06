@@ -3,6 +3,7 @@
 .pydevproject
 .save
 .autotools
+.settings/
 bam
 .bam
 config.lua
