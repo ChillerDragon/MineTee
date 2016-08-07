@@ -2417,7 +2417,7 @@ int main(int argc, const char **argv) // ignore_convention
 	pClient->InitInterfaces();
 
 	// execute config file
-	pConsole->ExecuteFile("settings.cfg");
+	pConsole->ExecuteFile("settings_minetee.cfg"); // MineTee
 
 	// execute autoexec file
 	pConsole->ExecuteFile("autoexec.cfg");

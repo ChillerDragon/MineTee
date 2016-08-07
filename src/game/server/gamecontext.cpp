@@ -2005,36 +2005,30 @@ void CGameContext::GiveItem(int ClientID, int ItemID, int ammo)
 	if (!pChar || ItemID <= 0)
 		return;
 
+	char aItemName[64];
+	mem_zero(aItemName, sizeof(aItemName));
 	if (ItemID < NUM_WEAPONS)
-	{
-		pChar->GiveItem(ItemID, ammo);
-		char aBuf[128];
-		str_format(aBuf, sizeof(aBuf), "Admin give you a '%s'! revise your inventory :)", gs_aWeaponNames[ItemID]);
-		SendChatTarget(ClientID, aBuf);
-	}
+		str_copy(aItemName, gs_aWeaponNames[ItemID], sizeof(aItemName));
 	else
 	{
 		CBlockManager::CBlockInfo *pBlockInfo = m_BlockManager.GetBlockInfo(ItemID-NUM_WEAPONS);
 		if (pBlockInfo)
-		{
-			char aBuf[128];
-			int InvIndex = pChar->GetPlayer()->GetFirstEmptyInventoryIndex();
-			if (InvIndex == -1)
-			{
-				str_format(aBuf, sizeof(aBuf), "Admin try to give you a '%s'! but your inventory is full :(", pBlockInfo->m_aName);
-				SendChatTarget(ClientID, aBuf);
-			}
-			else
-			{
-				// TODO: Check ammo
-				pChar->GetPlayer()->m_aInventory[InvIndex].m_ItemId = ItemID;
-				pChar->GetPlayer()->m_aInventory[InvIndex].m_Amount = ammo;
-				str_format(aBuf, sizeof(aBuf), "Admin give you a '%s'! revise your inventory :)", pBlockInfo->m_aName);
-				SendChatTarget(ClientID, aBuf);
-				if (pChar->m_ActiveBlockId == -2)
-					m_pController->SendInventory(ClientID, false);
-			}
-		}
+			str_copy(aItemName, pBlockInfo->m_aName, sizeof(aItemName));
+	}
+
+
+	char aBuf[128];
+	if (pChar->GiveItem(ItemID, ammo))
+	{
+		str_format(aBuf, sizeof(aBuf), "Admin try to give you a '%s'! but your inventory is full :(", aItemName);
+		SendChatTarget(ClientID, aBuf);
+	}
+	else
+	{
+		str_format(aBuf, sizeof(aBuf), "Admin give you a '%s'! revise your inventory :)", aItemName);
+		SendChatTarget(ClientID, aBuf);
+		if (pChar->m_ActiveBlockId == -2)
+			m_pController->SendInventory(ClientID, false);
 	}
 }
 

@@ -250,7 +250,7 @@ int CSound::Init()
 int CSound::Update()
 {
 	// update volume
-	int WantedVolume = g_Config.m_SndVolume;
+	int WantedVolume = g_Config.m_SndVolumeEffects;
 
 	if(!m_pGraphics->WindowActive() && g_Config.m_SndNonactiveMute)
 		WantedVolume = 0;

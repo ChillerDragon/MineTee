@@ -78,6 +78,7 @@ class CGameControllerMineTee : public CGameController
 	void ModifTile(ivec2 MapPos, int TileIndex, int Reserved = -1);
 	bool GetPlayerArea(int ClientID, int *pStartX, int *pEndX, int *pStartY, int *pEndY);
 	void GetPlayerArea(vec2 Pos, int *pStartX, int *pEndX, int *pStartY, int *pEndY);
+	void GenerateTree(ivec2 Pos);
 
 public:
 	CGameControllerMineTee(class CGameContext *pGameServer);

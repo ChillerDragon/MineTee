@@ -330,10 +330,7 @@ void CGameControllerMineTee::DestructionTick(CTile *pTempTiles, const int *pTile
 		}
 
 		if (!PlaceCheck)
-		{
-			ModifTile(ivec2(x, y), 0);
 			OnPlayerDestroyBlock(NUM_CLIENTS, ivec2(x, y)); // FIXME: NUM_CLIENTS needs by something like 'WORLD_CLIENT'
-		}
 	}
 
 	// Cut Fluids
@@ -472,7 +469,7 @@ void CGameControllerMineTee::VegetationTick(CTile *pTempTiles, const int *pTileI
 		}
 		else if (rand()%100 == 34 && pTileIndex[TILE_CENTER] == CBlockManager::BROWN_TREE_SAPLING && pTileIndex[TILE_RIGHT_BOTTOM] == CBlockManager::GRASS)
 		{
-			GameServer()->MapGen()->GenerateTree(ivec2(x, y));
+			GenerateTree(ivec2(x, y));
 		}
 	}
 
@@ -498,21 +495,23 @@ void CGameControllerMineTee::OnCharacterSpawn(class CCharacter *pChr)
 			{
 				case BOT_MONSTER_TEEPER:
 					pChr->IncreaseHealth(10);
-					pChr->SetInventoryItem(pChr->GiveItem(NUM_WEAPONS+CBlockManager::TNT, 1));
+					pChr->GiveItem(NUM_WEAPONS+CBlockManager::TNT, 1);
 					break;
 
 				case BOT_MONSTER_ZOMBITEE:
 				//case CPlayer::BOT_MONSTER_SPIDERTEE:
 				case BOT_MONSTER_EYE:
 					pChr->IncreaseHealth(15);
-					pChr->SetInventoryItem(pChr->GiveItem(WEAPON_HAMMER, -1));
+					pChr->GiveItem(WEAPON_HAMMER, -1);
 					break;
 
 				case BOT_MONSTER_SKELETEE:
 					pChr->IncreaseHealth(20);
-					pChr->SetInventoryItem(pChr->GiveItem(WEAPON_GRENADE, -1));
+					pChr->GiveItem(WEAPON_GRENADE, -1);
 					break;
 			}
+
+			pChr->SetInventoryItem(0);
 		}
 		else
 			pChr->IncreaseHealth(5);
@@ -522,7 +521,8 @@ void CGameControllerMineTee::OnCharacterSpawn(class CCharacter *pChr)
 		pChr->IncreaseHealth(10);
 		pChr->GiveItem(WEAPON_HAMMER, -1);
 		pChr->GiveItem(WEAPON_HAMMER_STONE, -1);
-		pChr->SetInventoryItem(pChr->GiveItem(NUM_WEAPONS+CBlockManager::TORCH, 1));
+		pChr->GiveItem(NUM_WEAPONS+CBlockManager::TORCH, 1);
+		pChr->SetInventoryItem(2);
 	}
 }
 
@@ -834,9 +834,13 @@ void CGameControllerMineTee::OnPlayerDestroyBlock(int ClientID, ivec2 TilePos)
 					continue;
 				}
 
-				CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, it->first);
-				pPickup->m_Pos = WorldTilePos + vec2(8.0f, 8.0f);
-				pPickup->m_Amount = it->second;
+				std::map<int, unsigned int>::iterator itProb = pBlockInfo->m_vProbabilityOnBreak.find(it->first);
+				if (itProb != pBlockInfo->m_vProbabilityOnBreak.end() && !(rand()%itProb->second))
+				{
+					CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, it->first);
+					pPickup->m_Pos = WorldTilePos + vec2(8.0f, 8.0f);
+					pPickup->m_Amount = it->second;
+				}
 			}
 		}
 		else
@@ -1011,7 +1015,7 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
 		}
 		else
 		{
-			GameServer()->SendChatTarget(cid,"Not block near to change text on it :/");
+			GameServer()->SendChatTarget(cid,"Any block near to change text on it :/");
 			return false;
 		}
 	}
@@ -1021,6 +1025,7 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
         GameServer()->SendChatTarget(cid,"COMMANDS LIST");
         GameServer()->SendChatTarget(cid,"======================================");
 		GameServer()->SendChatTarget(cid," ");
+		GameServer()->SendChatTarget(cid," - /text <text>   > Change the text of the nearest sign.");
 		GameServer()->SendChatTarget(cid," - /info          > View general info of this mod.");
 		GameServer()->SendChatTarget(cid," - /info about    > About of this mod.");
 		GameServer()->SendChatTarget(cid," - /info <cmd>    > Info about selected command.");
@@ -1059,6 +1064,16 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
         			str_format(aBuf, sizeof(aBuf), "Teeworlds Version: %s", GAME_VERSION);
         			GameServer()->SendChatTarget(cid, aBuf);
                     GameServer()->SendChatTarget(cid," ");
+
+					return false;
+				}
+				if (str_comp_nocase(ptr,"text") == 0)
+				{
+					GameServer()->SendChatTarget(cid, "--------------------------- --------- --------");
+					GameServer()->SendChatTarget(cid, "/text <text>");
+					GameServer()->SendChatTarget(cid, "--------------------------- --------- --------");
+					GameServer()->SendChatTarget(cid, "Change the text of the near sign.");
+					GameServer()->SendChatTarget(cid, "For use this command you need be near of a sign.");
 
 					return false;
 				}
@@ -1198,6 +1213,34 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 		}
 	}
 }
+
+// FIXME: Duplicated from MapGen
+void CGameControllerMineTee::GenerateTree(ivec2 Pos)
+{
+	// plant the tree \o/
+	int TreeHeight = GameServer()->MapGen()->GetNoise()->Perlin()->GetURandom(4,5);
+	for(int h = 0; h <= TreeHeight; h++)
+		ModifTile(ivec2(Pos.x, Pos.y-h), GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::WOOD_BROWN);
+
+	// add the leafs
+	for(int l = 0; l <= TreeHeight/2.5f; l++)
+		ModifTile(ivec2(Pos.x, Pos.y - TreeHeight - l), GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::LEAFS);
+
+	int TreeWidth = TreeHeight/1.2f;
+	if(!(TreeWidth%2)) // odd numbers please
+		TreeWidth++;
+	for(int h = 0; h <= TreeHeight/2; h++)
+	{
+		for(int w = 0; w < TreeWidth; w++)
+		{
+			if(GameServer()->Collision()->GetMineTeeTileIndexAt(vec2((Pos.x-(w-(TreeWidth/2)))*32, (Pos.y-(TreeHeight-(TreeHeight/2.5f)+h))*32)) != CBlockManager::AIR)
+				continue;
+
+			ModifTile(ivec2(Pos.x-(w-(TreeWidth/2)), Pos.y-(TreeHeight-(TreeHeight/2.5f)+h)), GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::LEAFS);
+		}
+	}
+}
+//
 
 void CGameControllerMineTee::ModifTile(ivec2 MapPos, int TileIndex, int Reserved)
 {

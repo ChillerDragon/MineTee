@@ -190,6 +190,7 @@ public:
     		for (int i=0; i<9; i++)
     			m_vCraft[i].clear();
     		m_Explode = false;
+    		m_PlayerVel = 1.0f;
 
     		mem_zero(m_Functionality.m_aType, sizeof(m_Functionality.m_aType));
     		m_Functionality.m_NormalItems = 0;
@@ -205,6 +206,8 @@ public:
     		m_vPlace.clear();
     		for (int i=0; i<m_vMutations.size(); m_vMutations[i++].clear());
     		m_vMutations.clear();
+
+    		m_vProbabilityOnBreak.clear();
     	}
 
 		char m_aName[24];
@@ -222,7 +225,9 @@ public:
 		int m_OnPut;
 		int m_OnWear;
 		int m_OnSun;
+		float m_PlayerVel;
 		std::map<int, unsigned char> m_vOnBreak;
+		std::map<int, unsigned int> m_vProbabilityOnBreak;
 		std::map<int, unsigned char> m_vOnCook;
 		std::map<int, unsigned char> m_vCraft[9];
 		array<array<int> > m_vPlace;

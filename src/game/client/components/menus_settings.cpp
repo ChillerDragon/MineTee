@@ -843,17 +843,29 @@ void CMenus::RenderSettingsSound(CUIRect MainView)
 		m_NeedRestartSound = !s_SndEnable || s_SndRate != g_Config.m_SndRate;
 	}
 
-	// volume slider
+	// volume effect slider
 	{
 		CUIRect Button, Label;
 		MainView.HSplitTop(5.0f, &Button, &MainView);
 		MainView.HSplitTop(20.0f, &Button, &MainView);
 		Button.VSplitLeft(190.0f, &Label, &Button);
 		Button.HMargin(2.0f, &Button);
-		UI()->DoLabelScaled(&Label, Localize("Sound volume"), 14.0f, -1);
-		g_Config.m_SndVolume = (int)(DoScrollbarH(&g_Config.m_SndVolume, &Button, g_Config.m_SndVolume/100.0f)*100.0f);
+		UI()->DoLabelScaled(&Label, Localize("Sound effects volume"), 14.0f, -1);
+		g_Config.m_SndVolumeEffects = (int)(DoScrollbarH(&g_Config.m_SndVolumeEffects, &Button, g_Config.m_SndVolumeEffects/100.0f)*100.0f);
 		MainView.HSplitTop(20.0f, 0, &MainView);
 	}
+
+	// volume music slider
+	/*{
+		CUIRect Button, Label;
+		MainView.HSplitTop(5.0f, &Button, &MainView);
+		MainView.HSplitTop(20.0f, &Button, &MainView);
+		Button.VSplitLeft(190.0f, &Label, &Button);
+		Button.HMargin(2.0f, &Button);
+		UI()->DoLabelScaled(&Label, Localize("Sound music volume"), 14.0f, -1);
+		g_Config.m_SndVolumeMusic = (int)(DoScrollbarH(&g_Config.m_SndVolumeMusic, &Button, g_Config.m_SndVolumeMusic/100.0f)*100.0f);
+		MainView.HSplitTop(20.0f, 0, &MainView);
+	}*/
 }
 
 class CLanguage

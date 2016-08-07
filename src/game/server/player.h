@@ -15,6 +15,13 @@ class CPlayer
 	MACRO_ALLOC_POOL_ID()
 
 public:
+	enum
+	{
+		NUM_INVENTORY_CELLS = NUM_CELLS_LINE*3,
+		NUM_CRAFT_CELLS = NUM_CELLS_LINE+1, // +1 because the last item its the result of the craft
+		NUM_RECIPE_CELLS = NUM_CELLS_LINE, // The recipe of the current craft
+	};
+
 	CPlayer(CGameContext *pGameServer, int ClientID, int Team);
 	~CPlayer();
 
@@ -99,9 +106,9 @@ public:
 	} m_Latency;
 
 	// MineTee
-	CCellData m_aInventory[NUM_CELLS_LINE*3];
-	CCellData m_aCraft[NUM_CELLS_LINE+1]; // +1 because the last item its the result of the craft
-	CCellData m_aCraftRecipe[NUM_CELLS_LINE]; // The recipe of the current craft
+	CCellData m_aInventory[NUM_INVENTORY_CELLS];
+	CCellData m_aCraft[NUM_CRAFT_CELLS];
+	CCellData m_aCraftRecipe[NUM_RECIPE_CELLS];
 	bool m_IsFirstJoin;
 	int m_Level;
 	bool IsBot() const { return m_Bot; }

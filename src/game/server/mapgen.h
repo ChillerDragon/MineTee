@@ -13,16 +13,18 @@ enum
 	LAVA_LEVEL = 70,
 	TUNNEL_LEVEL = 30,
 
+	ENV_DECO_SPIDER_WEB_LEVEL = 75,
+
 	CHESTS_LEVEL = 70,
 
 	BIOME_LEVEL = 10,
 
 	WATER_LEVEL = 25,
 
-	COAL_LEVEL = 60,
-	IRON_LEVEL = 70,
-	GOLD_LEVEL = 80,
-	DIAMOND_LEVEL = 90,
+	COAL_LEVEL = 50,
+	IRON_LEVEL = 60,
+	GOLD_LEVEL = 55,
+	DIAMOND_LEVEL = 70,
 
 	VEGETATION_LEVEL_MIN = 10,
 	VEGETATION_LEVEL_MAX = 40,
@@ -57,7 +59,7 @@ class CMapGen
 	class CPerlinOctave *m_pNoise;
 
 	void GenerateBasicTerrain();
-	void GenerateOre(int Type, float F, int Level, int Radius, int ClusterSize);
+	void GenerateOre(int Type, float F, int RawLevel, int Radius, int ClusterSize);
 	void GenerateCaves(int FillBlock);
 	void GenerateWater();
 	void GenerateFlowers();
@@ -68,6 +70,7 @@ class CMapGen
 	void GenerateSkip();
 	void GenerateBossZones();
 	void GenerateBiomes(int FillBlock);
+	void GenerateEnvDecorations(int FillBlock, float F, int RawLevel);
 
 	void GenerateChests();
 
@@ -85,6 +88,7 @@ public:
 
 	void FillMap(int Seed);
 	void Init(CLayers *pLayers, CCollision *pCollision, CBlockManager *pBlockManager);
+	class CPerlinOctave *GetNoise() { return m_pNoise; }
 };
 
 inline int PercOf(int Prc, int Total) { return Prc*Total*0.01f; }

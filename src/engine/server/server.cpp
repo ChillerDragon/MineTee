@@ -1318,8 +1318,8 @@ int CServer::LoadMap(const char *pMapSize, const char *pMapName, bool GenerateMa
 			}
 			else if (str_comp_nocase(pMapSize,"nomemory") == 0)
 			{
-				w=60000;
-				h=8000;
+				w=10000;
+				h=800;
 			}
 
 			CImageInfoFile ImgInfo;

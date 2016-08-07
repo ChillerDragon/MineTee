@@ -66,12 +66,13 @@ void CBossDune::TickBotAI()
     {
 		char aBuff[255];
 		CCharacter *aEnts[MAX_BOTS], *aEntsPlayers[MAX_BOTS];
-		static const char *pPhrases[5] = {
-			"[DUNE BOSS] Hi %s, you use Gamer Client?\0",
+		static const char *pPhrases[6] = {
+			"[DUNE BOSS] Hi %s, you use Gamer Client? no??? DIEEE!!\0",
 			"[DUNE BOSS] What %s?! Why you are playing this mod? This is not Teeworlds!\0",
-			"[DUNE BOSS] Ei %s tell to everybody that Gamer Client is the best client!\0",
+			"[DUNE BOSS] I can see you... ¬¬\0",
 			"[DUNE BOSS] Knock %s! Fight with me if you like die... muahahahaha\0",
 			"[DUNE BOSS] Please %s, i'm a boss... run and safe your life!\0",
+			"[DUNE BOSS] ... ... ...\0",
 		};
 		int Num = GameServer()->m_World.FindEntities(m_Pos, 800.0f, (CEntity**)aEnts, MAX_BOTS, CGameWorld::ENTTYPE_CHARACTER);
 		int NumPlayers = 0;
@@ -84,7 +85,7 @@ void CBossDune::TickBotAI()
 		if (NumPlayers > 0)
 		{
 			int SelPlayerID = aEntsPlayers[rand()%NumPlayers]->GetPlayer()->GetCID();
-			str_format(aBuff, sizeof(aBuff), pPhrases[rand()%5], Server()->ClientName(SelPlayerID));
+			str_format(aBuff, sizeof(aBuff), pPhrases[rand()%6], Server()->ClientName(SelPlayerID));
 			GameServer()->SendChatTarget(SelPlayerID, aBuff);
 		}
 		m_BotTimeLastChat = Server()->Tick();

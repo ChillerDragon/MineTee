@@ -400,22 +400,23 @@ void CCharacterCore::Move()
 
 	// MineTee
     int BlockIndex = m_pCollision->GetMineTeeTileIndexAt(m_Pos);
-    int FluidType = -1;
-	if (m_pCollision->GetBlockManager()->IsFluid(BlockIndex, &FluidType))
-	{
-		if (FluidType == CCollision::FLUID_WATER)
+    CBlockManager::CBlockInfo *pBlockInfo = m_pCollision->BlockManager()->GetBlockInfo(BlockIndex);
+    if (BlockIndex != -1 && pBlockInfo)
+    {
+		int FluidType = -1;
+		if (m_pCollision->GetBlockManager()->IsFluid(BlockIndex, &FluidType))
 		{
-			m_Vel.y -= 0.1f;
-			m_Vel *= 0.85f;
-		}
-		else if (FluidType == CCollision::FLUID_LAVA)
-		{
-			m_Vel.y -= 0.35f;
-			m_Vel *= 0.65f;
+			if (FluidType == CCollision::FLUID_WATER)
+				m_Vel.y -= 0.1f;
+			else if (FluidType == CCollision::FLUID_LAVA)
+				m_Vel.y -= 0.35f;
+
+			m_Jumped &= ~2;
 		}
 
-        m_Jumped &= ~2;
-	}
+		m_Vel *= pBlockInfo->m_PlayerVel;
+    }
+
 	//
 
 	m_Pos = NewPos;

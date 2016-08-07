@@ -112,7 +112,7 @@ void CPickup::Tick()
 		{
 			// MineTee
 			case POWERUP_DROPITEM:
-				if (pChr->GiveItem(m_Subtype, m_Amount) != -1)
+				if (pChr->GiveItem(m_Subtype, m_Amount))
 				{
 					GameServer()->CreateSound(m_Pos, SOUND_PICKUP_BLOCK);
 					GameWorld()->DestroyEntity(this);
@@ -120,7 +120,7 @@ void CPickup::Tick()
 				}
 				break;
 			case POWERUP_BLOCK:
-				if (pChr->GiveItem(NUM_WEAPONS+m_Subtype, 1) != -1)
+				if (pChr->GiveItem(NUM_WEAPONS+m_Subtype, 1))
 				{
 					GameServer()->CreateSound(m_Pos, SOUND_PICKUP_BLOCK);
 					GameWorld()->DestroyEntity(this);

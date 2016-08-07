@@ -423,6 +423,25 @@ void CCollision::RegenerateSkip(CTile *pTiles, int Width, int Height, ivec2 Pos,
 	}
 }
 
+bool CCollision::IsBlockNear(int BlockID, ivec2 MapPos, int Radius)
+{
+	CMapItemLayerTilemap *pTilemap = m_pLayers->MineTeeLayer();
+	CTile *pTiles = static_cast<CTile *>(m_pLayers->Map()->GetData(pTilemap->m_Data));
+
+	ivec2 InitPos = MapPos-ivec2(Radius, Radius);
+	const int Diam = Radius*2;
+	for (int x=InitPos.x; x<InitPos.x+Diam; x++)
+	{
+		for (int y=InitPos.y; y<InitPos.y+Diam; y++)
+		{
+			const int Index = y*m_pLayers->MineTeeLayer()->m_Width+x;
+			if (pTiles[Index].m_Index == BlockID)
+				return true;
+		}
+	}
+	return false;
+}
+
 // FIXME: 6-phase seems very ugly and slow... :(
 void CCollision::UpdateLayerLights(float ScreenX0, float ScreenY0, float ScreenX1, float ScreenY1, int DarknessLevel)
 {

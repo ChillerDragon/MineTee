@@ -171,9 +171,16 @@ void CCharacter::HandleInventoryItemSwitch()
 	{
 		while(Next) // Next Weapon selection
 		{
-			WantedInventoryItem = min(WantedInventoryItem+1, NUM_CELLS_LINE-1);
-			while (WantedInventoryItem < NUM_CELLS_LINE && m_FastInventory[WantedInventoryItem].m_ItemId == 0)
+			for (int i=0; i<NUM_CELLS_LINE; i++)
+			{
 				++WantedInventoryItem;
+				if (WantedInventoryItem > NUM_CELLS_LINE-1)
+					WantedInventoryItem = 0;
+
+				if (m_FastInventory[WantedInventoryItem].m_ItemId)
+					break;
+			}
+
 			Next--;
 		}
 	}
@@ -182,9 +189,16 @@ void CCharacter::HandleInventoryItemSwitch()
 	{
 		while(Prev) // Prev Weapon selection
 		{
-			WantedInventoryItem = max(WantedInventoryItem-1, 0);
-			while (WantedInventoryItem > 0 && m_FastInventory[WantedInventoryItem].m_ItemId == 0)
+			for (int i=0; i<NUM_CELLS_LINE; i++)
+			{
 				--WantedInventoryItem;
+				if (WantedInventoryItem < 0)
+					WantedInventoryItem = NUM_CELLS_LINE-1;
+
+				if (m_FastInventory[WantedInventoryItem].m_ItemId)
+					break;
+			}
+
 			Prev--;
 		}
 	}
@@ -577,6 +591,8 @@ void CCharacter::FireWeapon()
 	if (m_FastInventory[m_ActiveInventoryItem].m_Amount == 0)
 		m_FastInventory[m_ActiveInventoryItem].m_ItemId = 0;
 
+	m_NeedSendFastInventory = true;
+
 	if(!m_ReloadTimer)
 	{
 		// MineTee
@@ -600,53 +616,49 @@ void CCharacter::HandleInventoryItems()
 	return;
 }
 
-int CCharacter::GiveItem(int ItemID, int Amount)
+CCellData* CCharacter::GiveItem(int ItemID, int Amount)
 {
 	const bool IsWeapon = (ItemID < NUM_WEAPONS);
     if (IsWeapon)
     {
-    	int InvItem = GetFirstEmptyInventoryIndex();
-        if (IsInventoryFull() || InvItem == -1)
-            return -1;
+    	CCellData *pInvItem = GetFirstEmptyInventoryIndex();
+        if (IsInventoryFull() || !pInvItem)
+            return 0x0;
 
-        CCellData *pCellData = &m_FastInventory[InvItem];
-
-		if(pCellData->m_Amount < g_pData->m_Weapons.m_aId[ItemID].m_Maxammo || InvItem == -1)
+		if(pInvItem->m_Amount < g_pData->m_Weapons.m_aId[ItemID].m_Maxammo)
 		{
-			pCellData->m_Amount = min(g_pData->m_Weapons.m_aId[ItemID].m_Maxammo, pCellData->m_Amount+Amount);
-			pCellData->m_ItemId = ItemID;
+			pInvItem->m_Amount = min(g_pData->m_Weapons.m_aId[ItemID].m_Maxammo, pInvItem->m_Amount+Amount);
+			pInvItem->m_ItemId = ItemID;
 
 			m_NeedSendFastInventory = true;
-			return InvItem;
+			return pInvItem;
 		}
     }
     else
     {
     	bool HasItem = true;
-    	int InvItem = InInventory(ItemID);
-    	if (InvItem == -1)
+    	CCellData *pInvItem = InInventory(ItemID);
+    	if (!pInvItem)
     	{
-    		InvItem = GetFirstEmptyInventoryIndex();
+    		pInvItem = GetFirstEmptyInventoryIndex();
     		HasItem = false;
     	}
 
-        if ((!HasItem && IsInventoryFull()) || InvItem == -1)
-            return -1;
+        if ((!HasItem && IsInventoryFull()) || !pInvItem)
+            return 0x0;
 
-        CCellData *pCellData = &m_FastInventory[InvItem];
-
-    	pCellData->m_Amount = min(255, pCellData->m_Amount+Amount);
+        pInvItem->m_Amount = min(255, pInvItem->m_Amount+Amount);
     	if (!HasItem)
-    		pCellData->m_ItemId = ItemID;
+    		pInvItem->m_ItemId = ItemID;
 
     	m_NeedSendFastInventory = true;
-    	return InvItem;
+    	return pInvItem;
     }
 
     if (m_NeedSendFastInventory && m_ActiveBlockId != -1)
 		GameServer()->m_pController->SendInventory(m_pPlayer->GetCID(), false);
 
-    return -1;
+    return 0x0;
 }
 
 void CCharacter::SetEmote(int Emote, int Tick)
@@ -1200,26 +1212,42 @@ void CCharacter::UseAccountData(void *pAccountInfo)
 	// Check that can spawn in that place
 	if (GameServer()->Collision()->CheckPoint(m_Pos))
 		GameServer()->Collision()->ModifTile(ivec2(m_Pos.x/32, m_Pos.y/32), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0, 0);
+
+	m_NeedSendFastInventory = true;
 }
 
-int CCharacter::InInventory(int ItemID)
+CCellData* CCharacter::InInventory(int ItemID)
 {
 	for (int i=0; i<NUM_CELLS_LINE; i++)
 	{
 		if (m_FastInventory[i].m_ItemId == ItemID)
-			return i;
+			return &m_FastInventory[i];
 	}
 
-	return -1;
+	CPlayer *pPlayer = GetPlayer();
+	for (int i=0; i<CPlayer::NUM_INVENTORY_CELLS; i++)
+	{
+		if (pPlayer->m_aInventory[i].m_ItemId == ItemID)
+			return &pPlayer->m_aInventory[i];
+	}
+
+	return 0x0;
 }
 
-int CCharacter::GetFirstEmptyInventoryIndex()
+CCellData* CCharacter::GetFirstEmptyInventoryIndex()
 {
 	for (int i=0; i<NUM_CELLS_LINE; i++)
 	{
 		if (m_FastInventory[i].m_ItemId <= 0)
-			return i;
+			return &m_FastInventory[i];
 	}
 
-	return -1;
+	CPlayer *pPlayer = GetPlayer();
+	for (int i=0; i<CPlayer::NUM_INVENTORY_CELLS; i++)
+	{
+		if (pPlayer->m_aInventory[i].m_ItemId <= 0)
+			return &pPlayer->m_aInventory[i];
+	}
+
+	return 0x0;
 }

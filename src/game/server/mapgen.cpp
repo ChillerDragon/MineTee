@@ -79,7 +79,7 @@ void CMapGen::FillMap(int Seed)
 	GenerateOre(CBlockManager::COAL_ORE, 200.0f, COAL_LEVEL, 50, 4);
 	GenerateOre(CBlockManager::IRON_ORE, 320.0f, IRON_LEVEL, 30, 2);
 	GenerateOre(CBlockManager::GOLD_ORE, 350.0f, GOLD_LEVEL, 15, 2);
-	GenerateOre(CBlockManager::DIAMOND_ORE, 680.0f, DIAMOND_LEVEL, 15, 1);
+	GenerateOre(CBlockManager::DIAMOND_ORE, 400.0f, DIAMOND_LEVEL, 5, 1);
 	dbg_msg("mapgen", "ores generated in %.5fs", (float)(time_get()-ProcessTime)/time_freq());
 
 	// caves
@@ -106,6 +106,9 @@ void CMapGen::FillMap(int Seed)
 	GenerateMushrooms();
 	GenerateTrees();
 	dbg_msg("mapgen", "vegetation generated in %.5fs", (float)(time_get()-ProcessTime)/time_freq());
+
+	// Envirionment Decorations
+	GenerateEnvDecorations(CBlockManager::SPIDER_WEB, 200.0f, ENV_DECO_SPIDER_WEB_LEVEL);
 
 	// Spawn Bosses
 	ProcessTime = time_get();
@@ -182,11 +185,13 @@ void CMapGen::GenerateBasicTerrain()
 	}
 }
 
-void CMapGen::GenerateOre(int Type, float F, int Level, int Radius, int ClusterSize)
+void CMapGen::GenerateOre(int Type, float F, int RawLevel, int Radius, int ClusterSize)
 {
+	const int Level = PercOf(RawLevel, m_pLayers->MineTeeLayer()->m_Height);
+	const int MaxOreLevel = Level+Radius;
 	for(int x = 0; x < m_pLayers->MineTeeLayer()->m_Width; x++)
 	{
-		for(int y = Level; y < Level + Radius; y++)
+		for(int y = Level; y < MaxOreLevel; y++)
 		{
 			float frequency = F / (float)m_pLayers->MineTeeLayer()->m_Width;
 			float noise = m_pNoise->Noise((float)x * frequency, (float)y * frequency);
@@ -360,12 +365,24 @@ void CMapGen::GenerateTrees()
 				continue;
 
 			const int TileBase = m_pCollision->GetMineTeeTileIndexAt(vec2(x*32, (TempTileY+1)*32));
+			const ivec2 TileMapPos = {x, TempTileY};
 			if (TileBase == CBlockManager::GRASS)
-				GenerateTree(ivec2(x, TempTileY));
+				GenerateTree(TileMapPos);
 			else if (TempTileY > 4 && TileBase == CBlockManager::SAND)
 			{
-				for (int i=0; i>-4; i--)
-					ModifTile(ivec2(x, TempTileY+i), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::CACTUS);
+				if (m_pCollision->IsBlockNear(CBlockManager::WATER_A, TileMapPos, 3)
+						|| m_pCollision->IsBlockNear(CBlockManager::WATER_B, TileMapPos, 3)
+						|| m_pCollision->IsBlockNear(CBlockManager::WATER_C, TileMapPos, 3)
+						|| m_pCollision->IsBlockNear(CBlockManager::WATER_D, TileMapPos, 3))
+				{
+					for (int i=0; i>-4; i--)
+						ModifTile(ivec2(x, TempTileY+i), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::SUGAR_CANE);
+				}
+				else
+				{
+					for (int i=0; i>-4; i--)
+						ModifTile(ivec2(x, TempTileY+i), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::CACTUS);
+				}
 			}
 			LastTreeX = x;
 		}
@@ -486,6 +503,41 @@ void CMapGen::GenerateChests()
 					&& m_pCollision->GetMineTeeTileIndexAt(vec2(x*32, (y+1)*32)) != CBlockManager::CHEST)
 			{
 				ModifTile(ivec2(x, y), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::CHEST);
+			}
+		}
+	}
+}
+
+void CMapGen::GenerateEnvDecorations(int FillBlock, float F, int RawLevel)
+{
+	const int Level = PercOf(RawLevel, m_pLayers->MineTeeLayer()->m_Height);
+
+	for(int x = 0; x < m_pLayers->MineTeeLayer()->m_Width; x++)
+	{
+		for(int y = Level; y < m_pLayers->MineTeeLayer()->m_Height; y++)
+		{
+			if (m_pCollision->GetMineTeeTileIndexAt(vec2(x*32.0f, y*32.0f)) != CBlockManager::AIR)
+				continue;
+
+			float frequency = F / (float)m_pLayers->MineTeeLayer()->m_Width;
+			float noise = m_pNoise->Noise((float)x * frequency, (float)y * frequency);
+
+			if(noise > 0.65f)
+			{
+				// place the "entry point"-tile
+				ModifTile(ivec2(x, y), m_pLayers->GetMineTeeLayerIndex(), FillBlock);
+
+				// generate a cluster
+				int CS = 5 + m_pNoise->Perlin()->GetURandom(0,4);
+
+				for(int cx = x-CS/2; cx < x+CS/2; cx++)
+				{
+					for(int cy = y-CS/2; cy < y+CS/2; cy++)
+					{
+						if(!m_pNoise->Perlin()->GetURandom(0,3) && m_pCollision->GetMineTeeTileIndexAt(vec2(cx*32.0f, cy*32.0f)) == CBlockManager::AIR)
+							ModifTile(ivec2(cx, cy), m_pLayers->GetMineTeeLayerIndex(), FillBlock);
+					}
+				}
 			}
 		}
 	}

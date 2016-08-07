@@ -64,7 +64,7 @@ public:
 	bool IncreaseHealth(int Amount);
 	bool IncreaseArmor(int Amount);
 
-	int GiveItem(int ItemID, int Amount);
+	CCellData* GiveItem(int ItemID, int Amount);
 	void GiveNinja();
 
 	void SetEmote(int Emote, int Tick);
@@ -85,8 +85,8 @@ public:
 	CCellData m_FastInventory[NUM_CELLS_LINE];
 
 	bool IsInventoryFull();
-	int InInventory(int ItemID);
-	int GetFirstEmptyInventoryIndex();
+	CCellData* InInventory(int ItemID);
+	CCellData* GetFirstEmptyInventoryIndex();
 
     int GetCurrentAmmo(int wid);
     void FillAccountData(void *pAccountInfo);

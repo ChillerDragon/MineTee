@@ -1,6 +1,7 @@
 /* (c) Alexandre Díaz. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <base/system.h>
+#include <base/math.h>
 #include <game/block_manager.h>
 #include <engine/external/json-parser/json.h>
 #include <cstdio>
@@ -41,6 +42,7 @@ bool CBlockManager::Init(char *pData, int DataSize)
 		pBlockInfo->m_OnWear = ((*pJsonObject)["onWear"].type == json_none)?-1:(*pJsonObject)["onWear"].u.integer;
 		pBlockInfo->m_OnSun = ((*pJsonObject)["onSun"].type == json_none)?-1:(*pJsonObject)["onSun"].u.integer;
 		pBlockInfo->m_Explode = ((*pJsonObject)["explode"].type == json_none)?false:(*pJsonObject)["explode"].u.boolean;
+		pBlockInfo->m_PlayerVel = ((*pJsonObject)["playerVel"].type == json_none)?1.0f:(*pJsonObject)["playerVel"].u.dbl;
 
 		if ((*pJsonObject)["effects"].type != json_none)
 		{
@@ -159,13 +161,22 @@ bool CBlockManager::Init(char *pData, int DataSize)
 		}
 
 		items = (*pJsonObject)["onBreak"].u.object.length;
+		int itemsProbability = (*pJsonObject)["probabilityOnBreak"].u.object.length;
 		for (int i=0; i<items; i++)
 		{
 			int BreakBlockID = -1;
 			int BreakBlockAmount = (*pJsonObject)["onBreak"].u.object.values[i].value->u.integer;
 			sscanf((const char *)(*pJsonObject)["onBreak"].u.object.values[i].name, "%d", &BreakBlockID);
-
 			pBlockInfo->m_vOnBreak.insert(std::pair<int, unsigned char>(BreakBlockID, BreakBlockAmount));
+
+			unsigned int BreakBlockProbability = 1;
+			if (i < itemsProbability)
+			{
+				BreakBlockProbability = (*pJsonObject)["probabilityOnBreak"].u.object.values[i].value->u.integer;
+				sscanf((const char *)(*pJsonObject)["probabilityOnBreak"].u.object.values[i].name, "%d", &BreakBlockID);
+			}
+			BreakBlockProbability = max((unsigned int)1, BreakBlockProbability);
+			pBlockInfo->m_vProbabilityOnBreak.insert(std::pair<int, unsigned int>(BreakBlockID, BreakBlockProbability));
 		}
 
 		if (pBlockInfo->m_LightSize < 0)
@@ -175,6 +186,8 @@ bool CBlockManager::Init(char *pData, int DataSize)
 	}
 
 	json_value_free(pJsonData);
+
+	dbg_msg("blockmanager", "Memory Usage: %u", sizeof(m_aBlocks));
 
     return true;
 }

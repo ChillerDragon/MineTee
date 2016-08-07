@@ -13,7 +13,9 @@ public:
 	{
 		FLAG_LOOP=1,
 		FLAG_POS=2,
-		FLAG_ALL=3
+		FLAG_ALL=3,
+
+		FLAG_MUSIC=4,
 	};
 
 	virtual bool IsSoundEnabled() = 0;
