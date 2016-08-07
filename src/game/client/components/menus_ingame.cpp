@@ -147,13 +147,13 @@ void CMenus::RenderPlayers(CUIRect MainView)
 
 	// options
 	static int s_aPlayerIDs[MAX_CLIENTS-MAX_BOTS][2] = {{0}};
-	for(int i = 0, Count = 0; i < MAX_CLIENTS-MAX_BOTS; ++i)
+	for(int i = 0, Count = 0; i < g_Config.m_SvMaxClients; ++i)
 	{
 		if(!m_pClient->m_Snap.m_paInfoByTeam[i])
 			continue;
 
 		int Index = m_pClient->m_Snap.m_paInfoByTeam[i]->m_ClientID;
-		if(Index == m_pClient->m_Snap.m_LocalClientID || Index >= MAX_CLIENTS-MAX_BOTS)
+		if(Index == m_pClient->m_Snap.m_LocalClientID || Index >= g_Config.m_SvMaxClients)
 			continue;
 
 		Options.HSplitTop(28.0f, &ButtonBar, &Options);

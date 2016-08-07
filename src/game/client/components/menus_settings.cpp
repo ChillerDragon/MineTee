@@ -429,6 +429,7 @@ static CKeyInfo gs_aKeys[] =
 	{ "Jump", "+jump", 0 },
 	{ "Fire", "+fire", 0 },
 	{ "Hook", "+hook", 0 },
+	{ "Drop", "drop", 0 },
 	{ "Hammer", "+weapon1", 0 },
 	{ "Pistol", "+weapon2", 0 },
 	{ "Shotgun", "+weapon3", 0 },
@@ -450,6 +451,11 @@ static CKeyInfo gs_aKeys[] =
 	{ "Screenshot", "screenshot", 0 },
 	{ "Scoreboard", "+scoreboard", 0 },
 	{ "Respawn", "kill", 0 },
+	{ "Inventory", "open_inventory", 0 },
+	{ "Active Block", "active_block", 0 },
+	{ "Background Paint", "bgpaint", 0 },
+	{ "Foreground Paint", "fgpaint", 0 },
+	{ "Mouse Slow Mode", "+slow_mouse", 0 },
 };
 
 /*	This is for scripts/update_localization.py to work, don't remove!
@@ -507,32 +513,34 @@ void CMenus::RenderSettingsControls(CUIRect MainView)
 			}
 	}
 
-	CUIRect MovementSettings, WeaponSettings, VotingSettings, ChatSettings, MiscSettings, ResetButton;
-	MainView.VSplitMid(&MovementSettings, &VotingSettings);
+	CUIRect MovementSettingsA, MovementSettingsB, WeaponSettings, VotingSettings, ChatSettings, MiscSettingsA, MiscSettingsB, ResetButton; // MineTee
+	MainView.VSplitMid(&MovementSettingsA, &VotingSettings);
 
 	// movement settings
 	{
-		MovementSettings.VMargin(5.0f, &MovementSettings);
-		MovementSettings.HSplitTop(MainView.h/3+60.0f, &MovementSettings, &WeaponSettings);
-		RenderTools()->DrawUIRect(&MovementSettings, vec4(1,1,1,0.25f), CUI::CORNER_ALL, 10.0f);
-		MovementSettings.Margin(10.0f, &MovementSettings);
+		MovementSettingsA.VMargin(5.0f, &MovementSettingsA);
+		MovementSettingsA.HSplitTop(MainView.h/3+60.0f, &MovementSettingsA, &WeaponSettings);
+		RenderTools()->DrawUIRect(&MovementSettingsA, vec4(1,1,1,0.25f), CUI::CORNER_ALL, 10.0f);
+		MovementSettingsA.Margin(10.0f, &MovementSettingsA);
 
-		TextRender()->Text(0, MovementSettings.x, MovementSettings.y, 14.0f*UI()->Scale(), Localize("Movement"), -1);
+		TextRender()->Text(0, MovementSettingsA.x, MovementSettingsA.y, 14.0f*UI()->Scale(), Localize("Movement"), -1);
 
-		MovementSettings.HSplitTop(14.0f+5.0f+10.0f, 0, &MovementSettings);
+		MovementSettingsA.HSplitTop(14.0f+5.0f+10.0f, 0, &MovementSettingsA);
 
 		{
 			CUIRect Button, Label;
-			MovementSettings.HSplitTop(20.0f, &Button, &MovementSettings);
+			MovementSettingsA.HSplitTop(20.0f, &Button, &MovementSettingsA);
 			Button.VSplitLeft(135.0f, &Label, &Button);
 			UI()->DoLabel(&Label, Localize("Mouse sens."), 14.0f*UI()->Scale(), -1);
 			Button.HMargin(2.0f, &Button);
 			g_Config.m_InpMousesens = (int)(DoScrollbarH(&g_Config.m_InpMousesens, &Button, (g_Config.m_InpMousesens-5)/500.0f)*500.0f)+5;
 			//*key.key = ui_do_key_reader(key.key, &Button, *key.key);
-			MovementSettings.HSplitTop(20.0f, 0, &MovementSettings);
+			MovementSettingsA.HSplitTop(20.0f, 0, &MovementSettingsA);
 		}
 
-		UiDoGetButtons(0, 5, MovementSettings);
+		MovementSettingsA.VSplitMid(&MovementSettingsA, &MovementSettingsB);
+		UiDoGetButtons(0, 6, MovementSettingsA);
+		UiDoGetButtons(31, 32, MovementSettingsB);
 
 	}
 
@@ -546,7 +554,7 @@ void CMenus::RenderSettingsControls(CUIRect MainView)
 		TextRender()->Text(0, WeaponSettings.x, WeaponSettings.y, 14.0f*UI()->Scale(), Localize("Weapon"), -1);
 
 		WeaponSettings.HSplitTop(14.0f+5.0f+10.0f, 0, &WeaponSettings);
-		UiDoGetButtons(5, 12, WeaponSettings);
+		UiDoGetButtons(6, 13, WeaponSettings);
 	}
 
 	// defaults
@@ -571,32 +579,34 @@ void CMenus::RenderSettingsControls(CUIRect MainView)
 		TextRender()->Text(0, VotingSettings.x, VotingSettings.y, 14.0f*UI()->Scale(), Localize("Voting"), -1);
 
 		VotingSettings.HSplitTop(14.0f+5.0f+10.0f, 0, &VotingSettings);
-		UiDoGetButtons(12, 14, VotingSettings);
+		UiDoGetButtons(13, 15, VotingSettings);
 	}
 
 	// chat settings
 	{
 		ChatSettings.HSplitTop(10.0f, 0, &ChatSettings);
-		ChatSettings.HSplitTop(MainView.h/3-45.0f, &ChatSettings, &MiscSettings);
+		ChatSettings.HSplitTop(MainView.h/3-45.0f, &ChatSettings, &MiscSettingsA);
 		RenderTools()->DrawUIRect(&ChatSettings, vec4(1,1,1,0.25f), CUI::CORNER_ALL, 10.0f);
 		ChatSettings.Margin(10.0f, &ChatSettings);
 
 		TextRender()->Text(0, ChatSettings.x, ChatSettings.y, 14.0f*UI()->Scale(), Localize("Chat"), -1);
 
 		ChatSettings.HSplitTop(14.0f+5.0f+10.0f, 0, &ChatSettings);
-		UiDoGetButtons(14, 17, ChatSettings);
+		UiDoGetButtons(15, 18, ChatSettings);
 	}
 
 	// misc settings
 	{
-		MiscSettings.HSplitTop(10.0f, 0, &MiscSettings);
-		RenderTools()->DrawUIRect(&MiscSettings, vec4(1,1,1,0.25f), CUI::CORNER_ALL, 10.0f);
-		MiscSettings.Margin(10.0f, &MiscSettings);
+		MiscSettingsA.HSplitTop(10.0f, 0, &MiscSettingsA);
+		RenderTools()->DrawUIRect(&MiscSettingsA, vec4(1,1,1,0.25f), CUI::CORNER_ALL, 10.0f);
+		MiscSettingsA.Margin(10.0f, &MiscSettingsA);
 
-		TextRender()->Text(0, MiscSettings.x, MiscSettings.y, 14.0f*UI()->Scale(), Localize("Miscellaneous"), -1);
+		TextRender()->Text(0, MiscSettingsA.x, MiscSettingsA.y, 14.0f*UI()->Scale(), Localize("Miscellaneous"), -1);
 
-		MiscSettings.HSplitTop(14.0f+5.0f+10.0f, 0, &MiscSettings);
-		UiDoGetButtons(17, 26, MiscSettings);
+		MiscSettingsA.HSplitTop(14.0f+5.0f+10.0f, 0, &MiscSettingsA);
+		MiscSettingsA.VSplitMid(&MiscSettingsA, &MiscSettingsB);
+		UiDoGetButtons(18, 27, MiscSettingsA);
+		UiDoGetButtons(27, 31, MiscSettingsB);
 	}
 
 }

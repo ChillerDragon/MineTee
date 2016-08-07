@@ -27,7 +27,7 @@ CPlayer::CPlayer(CGameContext *pGameServer, int ClientID, int Team)
 	m_TeamChangeTick = Server()->Tick();
 
 	// MineTee
-	m_Bot = (ClientID >= MAX_CLIENTS-MAX_BOTS);
+	m_Bot = (ClientID >= g_Config.m_SvMaxClients);
 	m_IsFirstJoin = true;
 	m_BotType = -1;
 	m_BotSubType = -1;
@@ -112,7 +112,7 @@ void CPlayer::PostTick()
 	// update latency value
 	if(m_PlayerFlags&PLAYERFLAG_SCOREBOARD)
 	{
-		for(int i = 0; i < MAX_CLIENTS-MAX_BOTS; ++i)
+		for(int i = 0; i < g_Config.m_SvMaxClients; ++i)
 		{
 			if(GameServer()->m_apPlayers[i] && GameServer()->m_apPlayers[i]->GetTeam() != TEAM_SPECTATORS)
 				m_aActLatency[i] = GameServer()->m_apPlayers[i]->m_Latency.m_Min;

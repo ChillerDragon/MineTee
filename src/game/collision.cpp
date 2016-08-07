@@ -429,10 +429,13 @@ bool CCollision::IsBlockNear(int BlockID, ivec2 MapPos, int Radius)
 	CTile *pTiles = static_cast<CTile *>(m_pLayers->Map()->GetData(pTilemap->m_Data));
 
 	ivec2 InitPos = MapPos-ivec2(Radius, Radius);
+	InitPos.x = clamp(InitPos.x, 0, m_pLayers->MineTeeLayer()->m_Width);
+	InitPos.y = clamp(InitPos.y, 0, m_pLayers->MineTeeLayer()->m_Height);
+
 	const int Diam = Radius*2;
-	for (int x=InitPos.x; x<InitPos.x+Diam; x++)
+	for (int x=InitPos.x; x<InitPos.x+Diam && x<m_pLayers->MineTeeLayer()->m_Width; x++)
 	{
-		for (int y=InitPos.y; y<InitPos.y+Diam; y++)
+		for (int y=InitPos.y; y<InitPos.y+Diam && y<m_pLayers->MineTeeLayer()->m_Height; y++)
 		{
 			const int Index = y*m_pLayers->MineTeeLayer()->m_Width+x;
 			if (pTiles[Index].m_Index == BlockID)
@@ -533,7 +536,7 @@ void CCollision::UpdateLayerLights(float ScreenX0, float ScreenY0, float ScreenX
 
 					if (light) // Light founded?
 					{
-						pLightsTemp[c].m_Index = 0;
+						pLightsTemp[c].m_Index = aTileIndexDarkness[DarknessLevel];
 
 						// Do Diffuse..
 						for (int i=1;i<=4;i++)

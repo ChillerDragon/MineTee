@@ -102,7 +102,7 @@ void CPet::TickBotAI()
 			m_Pos.y += cephes_sinf(timelaps);
 			m_Core.m_Pos = m_Pos;
 
-			for (int i=MAX_CLIENTS-MAX_BOTS; i<MAX_CLIENTS; i++)
+			for (int i=g_Config.m_SvMaxClients; i<MAX_CLIENTS; i++)
 			{
 				CPlayer *pPlayer = GameServer()->m_apPlayers[i];
 				if (!pPlayer || pPlayer == m_pPlayer || !pPlayer->GetCharacter())

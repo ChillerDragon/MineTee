@@ -120,9 +120,11 @@ void CBinds::SetDefaults()
 	Bind(KEY_F4, "vote no");
 
 	// MineTee
-	Bind('e', "bgpaint");
-	Bind('r', "fgpaint");
 	Bind('g', "drop");
+	Bind('r', "fgpaint");
+	Bind('i', "open_inventory");
+	Bind('q', "bgpaint");
+	Bind('e', "active_block");
 }
 
 void CBinds::OnConsoleInit()

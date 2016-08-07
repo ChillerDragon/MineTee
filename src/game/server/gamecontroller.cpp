@@ -535,7 +535,7 @@ void CGameController::Tick()
 	// check for inactive players
 	if(g_Config.m_SvInactiveKickTime > 0)
 	{
-		for(int i = 0; i < MAX_CLIENTS-MAX_BOTS; ++i)
+		for(int i = 0; i < g_Config.m_SvMaxClients; ++i)
 		{
 		#ifdef CONF_DEBUG
 			if(g_Config.m_DbgDummies)
@@ -620,7 +620,7 @@ int CGameController::GetAutoTeam(int NotThisID)
 		return 0;
 
 	int aNumplayers[2] = {0,0};
-	for(int i = 0; i < MAX_CLIENTS-MAX_BOTS; i++)
+	for(int i = 0; i < g_Config.m_SvMaxClients; i++)
 	{
 		if(GameServer()->m_apPlayers[i] && i != NotThisID)
 		{
@@ -644,7 +644,7 @@ bool CGameController::CanJoinTeam(int Team, int NotThisID)
 		return true;
 
 	int aNumplayers[2] = {0,0};
-	for(int i = 0; i < MAX_CLIENTS-MAX_BOTS; i++)
+	for(int i = 0; i < g_Config.m_SvMaxClients; i++)
 	{
 		if(GameServer()->m_apPlayers[i] && i != NotThisID)
 		{
@@ -662,7 +662,7 @@ bool CGameController::CheckTeamBalance()
 		return true;
 
 	int aT[2] = {0, 0};
-	for(int i = 0; i < MAX_CLIENTS-MAX_BOTS; i++)
+	for(int i = 0; i < g_Config.m_SvMaxClients; i++)
 	{
 		CPlayer *pP = GameServer()->m_apPlayers[i];
 		if(pP && pP->GetTeam() != TEAM_SPECTATORS)
@@ -694,7 +694,7 @@ bool CGameController::CanChangeTeam(CPlayer *pPlayer, int JoinTeam)
 	if (!IsTeamplay() || JoinTeam == TEAM_SPECTATORS || !g_Config.m_SvTeambalanceTime)
 		return true;
 
-	for(int i = 0; i < MAX_CLIENTS-MAX_BOTS; i++)
+	for(int i = 0; i < g_Config.m_SvMaxClients; i++)
 	{
 		CPlayer *pP = GameServer()->m_apPlayers[i];
 		if(pP && pP->GetTeam() != TEAM_SPECTATORS)
@@ -740,7 +740,7 @@ void CGameController::DoWincheck()
 			// gather some stats
 			int Topscore = 0;
 			int TopscoreCount = 0;
-			for(int i = 0; i < MAX_CLIENTS-MAX_BOTS; i++)
+			for(int i = 0; i < g_Config.m_SvMaxClients; i++)
 			{
 				if(GameServer()->m_apPlayers[i])
 				{

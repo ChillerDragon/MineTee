@@ -145,7 +145,7 @@ int CNetConsole::Recv(char *pLine, int MaxLength, int *pClientID)
 
 int CNetConsole::Send(int ClientID, const char *pLine)
 {
-    if (ClientID >= MAX_CLIENTS-MAX_BOTS) // MineTee
+    if (ClientID >= g_Config.m_SvMaxClients) // MineTee
         return -1;
 
 	if(m_aSlots[ClientID].m_Connection.State() == NET_CONNSTATE_ONLINE)

@@ -123,7 +123,7 @@ void CMonster::RunAction()
 	        {
 	            Die(m_pPlayer->GetCID(), WEAPON_WORLD);
 	        }
-	        if (m_BotClientIDFix != -1 && GameServer()->m_apPlayers[m_BotClientIDFix])
+	        if (m_BotClientIDFix != -1)
 	        {
 	            CCharacter *pChar = GameServer()->m_apPlayers[m_BotClientIDFix]->GetCharacter();
 	            if (pChar && !GameServer()->Collision()->IntersectLine(m_Pos, pChar->m_Pos, 0x0, 0x0) && GameServer()->IntersectCharacter(m_Pos, pChar->m_Pos, 0x0, m_pPlayer->GetCID()) == m_BotClientIDFix)
@@ -163,7 +163,7 @@ void CMonster::TickBotAI()
     float LessDist = 500.0f;
 
     m_BotClientIDFix = -1;
-	for (int i=0; i<MAX_CLIENTS-MAX_BOTS; i++)
+	for (int i=0; i<g_Config.m_SvMaxClients; i++)
 	{
 	    CPlayer *pPlayer = GameServer()->m_apPlayers[i];
 	    if (!pPlayer || !pPlayer->GetCharacter() || pPlayer->IsBot())

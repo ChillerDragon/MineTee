@@ -298,7 +298,7 @@ void CGameContext::SendChat(int ChatterClientID, int Team, const char *pText)
 		Server()->SendPackMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_NOSEND, -1);
 
 		// send to the clients
-		for(int i = 0; i < MAX_CLIENTS-MAX_BOTS; i++)
+		for(int i = 0; i < g_Config.m_SvMaxClients; i++)
 		{
 			if(m_apPlayers[i] && m_apPlayers[i]->GetTeam() == Team)
 				Server()->SendPackMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_NORECORD, i);
@@ -788,7 +788,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				if(g_Config.m_SvVoteKickMin)
 				{
 					int PlayerNum = 0;
-					for(int i = 0; i < MAX_CLIENTS-MAX_BOTS; ++i)
+					for(int i = 0; i < g_Config.m_SvMaxClients; ++i)
 						if(m_apPlayers[i] && m_apPlayers[i]->GetTeam() != TEAM_SPECTATORS)
 							++PlayerNum;
 
@@ -801,7 +801,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				}
 
 				int KickID = str_toint(pMsg->m_Value);
-				if(KickID < 0 || KickID >= MAX_CLIENTS-MAX_BOTS || !m_apPlayers[KickID])
+				if(KickID < 0 || KickID >= g_Config.m_SvMaxClients || !m_apPlayers[KickID])
 				{
 					SendChatTarget(ClientID, "Invalid client id to kick");
 					return;
@@ -840,7 +840,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				}
 
 				int SpectateID = str_toint(pMsg->m_Value);
-				if(SpectateID < 0 || SpectateID >= MAX_CLIENTS-MAX_BOTS || !m_apPlayers[SpectateID] || m_apPlayers[SpectateID]->GetTeam() == TEAM_SPECTATORS)
+				if(SpectateID < 0 || SpectateID >= g_Config.m_SvMaxClients || !m_apPlayers[SpectateID] || m_apPlayers[SpectateID]->GetTeam() == TEAM_SPECTATORS)
 				{
 					SendChatTarget(ClientID, "Invalid client id to move");
 					return;
@@ -1663,7 +1663,7 @@ void CGameContext::OnShutdown()
 {
 	SaveMap("");
 
-	for (int i=0; i<MAX_CLIENTS-MAX_BOTS; i++)
+	for (int i=0; i<g_Config.m_SvMaxClients+MAX_BOTS; i++)
 	{
 		if (!m_apPlayers[i])
 			continue;
@@ -1821,7 +1821,7 @@ void CGameContext::UpdateBotInfo(int ClientID)
 
 void CGameContext::CreateBot(int ClientID, int BotType)
 {
-    int BotClientID = (MAX_CLIENTS-MAX_BOTS)+ClientID;
+    int BotClientID = g_Config.m_SvMaxClients+ClientID;
     if (!m_apPlayers[BotClientID])
     {
 		m_apPlayers[BotClientID] = new(BotClientID) CPlayer(this, BotClientID, TEAM_BOT);
@@ -1836,7 +1836,7 @@ CPet* CGameContext::SpawnPet(CPlayer *pOwner, vec2 Pos)
 		return 0x0;
 
 	CPet *pPet = 0x0;
-	for (int i=MAX_CLIENTS-MAX_BOTS; i<MAX_CLIENTS; i++)
+	for (int i=g_Config.m_SvMaxClients; i<MAX_CLIENTS; i++)
 	{
 		CPlayer *pPlayer = m_apPlayers[i];
 		if (!pPlayer || pPlayer->GetBotType() != BOT_PET || pPlayer->GetCharacter())
@@ -1858,7 +1858,7 @@ CPet* CGameContext::SpawnPet(CPlayer *pOwner, vec2 Pos)
 IBoss* CGameContext::SpawnBoss(vec2 Pos, int Type)
 {
 	IBoss *pBoss = 0x0;
-	for (int i=MAX_CLIENTS-MAX_BOTS; i<MAX_CLIENTS; i++)
+	for (int i=g_Config.m_SvMaxClients; i<MAX_CLIENTS; i++)
 	{
 		CPlayer *pPlayer = m_apPlayers[i];
 		if (!pPlayer || pPlayer->GetBotType() != BOT_BOSS || pPlayer->GetCharacter())
@@ -1938,14 +1938,14 @@ bool CGameContext::OnSendMap(int ClientID) // MineTee
 	return true;
 }
 
-int CGameContext::IntersectCharacter(vec2 HookPos, vec2 NewPos, vec2 *pNewPos2, int ownID)
+int CGameContext::IntersectCharacter(vec2 OrgPos, vec2 NewPos, vec2 *pNewPos2, int ownID)
 {
 	float PhysSize = 28.0f;
 	float Distance = 0.0f;
 	int ClosestID = -1;
 	CCharacter *pOwnChar = GetPlayerChar(ownID);
 
-	if (!m_Tuning.m_PlayerHooking || (ownID != -1 && !pOwnChar))
+	if (ownID != -1 && !pOwnChar)
         return ClosestID;
 
 	for (int i=0; i<MAX_CLIENTS; i++)
@@ -1958,13 +1958,13 @@ int CGameContext::IntersectCharacter(vec2 HookPos, vec2 NewPos, vec2 *pNewPos2, 
 			continue;
 
 		vec2 Position = pChar->GetCore()->m_Pos;
-		vec2 ClosestPoint = closest_point_on_line(HookPos, NewPos, Position);
-		if(distance(Position, ClosestPoint) < PhysSize+2.0f && distance(HookPos, Position) < Distance)
+		vec2 ClosestPoint = closest_point_on_line(OrgPos, NewPos, Position);
+		if(distance(Position, ClosestPoint) < PhysSize+2.0f && (distance(OrgPos, Position) < Distance || Distance == 0.0f))
 		{
 			if (pNewPos2)
 				*pNewPos2 = Position;
 			ClosestID = i;
-			Distance = distance(HookPos, Position);
+			Distance = distance(OrgPos, Position);
 		}
 	}
 

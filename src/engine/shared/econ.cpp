@@ -164,7 +164,7 @@ void CEcon::Update()
 
 void CEcon::Send(int ClientID, const char *pLine)
 {
-	if(!m_Ready || ClientID >= MAX_CLIENTS-MAX_BOTS) // MineTee
+	if(!m_Ready || ClientID >= g_Config.m_SvMaxClients) // MineTee
 		return;
 
 	if(ClientID == -1)

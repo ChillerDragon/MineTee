@@ -391,7 +391,7 @@ void CCharacter::FireWeapon()
 	if(CountInput(m_LatestPrevInput.m_Fire, m_LatestInput.m_Fire).m_Presses)
 		WillFire = true;
 
-	if(FullAuto && (m_LatestInput.m_Fire&1) && m_FastInventory[m_ActiveInventoryItem].m_Amount)
+	if(FullAuto && (m_LatestInput.m_Fire&1) && (m_FastInventory[m_ActiveInventoryItem].m_Amount || m_pPlayer->IsBot()))
 		WillFire = true;
 
 	if(!WillFire)
@@ -627,7 +627,7 @@ CCellData* CCharacter::GiveItem(int ItemID, int Amount)
 
 		if(pInvItem->m_Amount < g_pData->m_Weapons.m_aId[ItemID].m_Maxammo)
 		{
-			pInvItem->m_Amount = min(g_pData->m_Weapons.m_aId[ItemID].m_Maxammo, pInvItem->m_Amount+Amount);
+			pInvItem->m_Amount = clamp(pInvItem->m_Amount+Amount, 0, g_pData->m_Weapons.m_aId[ItemID].m_Maxammo);
 			pInvItem->m_ItemId = ItemID;
 
 			m_NeedSendFastInventory = true;
@@ -654,9 +654,6 @@ CCellData* CCharacter::GiveItem(int ItemID, int Amount)
     	m_NeedSendFastInventory = true;
     	return pInvItem;
     }
-
-    if (m_NeedSendFastInventory && m_ActiveBlockId != -1)
-		GameServer()->m_pController->SendInventory(m_pPlayer->GetCID(), false);
 
     return 0x0;
 }
@@ -884,7 +881,7 @@ void CCharacter::TickDefered()
 
 	// MineTee: Check Hook State
     int plHooked = m_Core.m_HookedPlayer;
-	if (plHooked >= MAX_CLIENTS-MAX_BOTS && plHooked < MAX_CLIENTS && GameServer()->m_apPlayers[plHooked] && GameServer()->m_apPlayers[plHooked]->GetBotType() == BOT_ANIMAL)
+	if (plHooked >= g_Config.m_SvMaxClients && plHooked < MAX_CLIENTS && GameServer()->m_apPlayers[plHooked] && GameServer()->m_apPlayers[plHooked]->GetBotType() == BOT_ANIMAL)
 	    m_Core.m_HookTick = 0;
 }
 
@@ -933,7 +930,7 @@ void CCharacter::Die(int Killer, int ItemID)
 	GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
 
 	// send the kill message
-	if (m_pPlayer->IsBot() && Killer >= 0 && Killer < MAX_CLIENTS-MAX_BOTS) // MineTee
+	if (m_pPlayer->IsBot() && Killer >= 0 && Killer < g_Config.m_SvMaxClients) // MineTee
 	{
 		CNetMsg_Sv_KillMsg Msg;
 		Msg.m_Killer = Killer;
@@ -1132,6 +1129,9 @@ void CCharacter::Snap(int SnappingClient)
 
 		if(m_pPlayer->GetCID() == SnappingClient && m_NeedSendFastInventory)
 		{
+		    if (m_ActiveBlockId != -1)
+				GameServer()->m_pController->SendInventory(m_pPlayer->GetCID(), false);
+
 			CNetObj_Inventory *pClientInventory = static_cast<CNetObj_Inventory *>(Server()->SnapNewItem(NETOBJTYPE_INVENTORY, m_pPlayer->GetCID(), sizeof(CNetObj_Inventory)));
 			if(!pClientInventory)
 				return;

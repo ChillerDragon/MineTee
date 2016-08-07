@@ -198,7 +198,7 @@ public:
 	virtual void SaveMap(const char *path);
 	virtual void GiveItem(int ClientID, int ItemID, int ammo);
 	virtual void Teleport(int ClientID, int ToID);
-	virtual int IntersectCharacter(vec2 HookPos, vec2 NewPos, vec2 *pNewPos2=0x0, int ownID=-1);
+	virtual int IntersectCharacter(vec2 OrgPos, vec2 NewPos, vec2 *pNewPos2=0x0, int ownID=-1);
 	void GetServerTime(bool *pIsDay, int64 *pTime);
 	virtual void AdvanceTime(int amount);
 	virtual void BlockInfo(int BlockID);

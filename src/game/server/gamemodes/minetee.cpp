@@ -67,7 +67,7 @@ void CGameControllerMineTee::Tick()
             mem_copy(pTempTiles, pTiles, sizeof(CTile)*pTmap->m_Width*pTmap->m_Height);
 
             int StartX, EndX, StartY, EndY;
-            for (int q=0; q<MAX_CLIENTS-MAX_BOTS; q++)
+            for (int q=0; q<g_Config.m_SvMaxClients; q++)
             {
 				if (!GetPlayerArea(q, &StartX, &EndX, &StartY, &EndY))
 					continue;
@@ -280,7 +280,7 @@ void CGameControllerMineTee::EnvirionmentTick(CTile *pTempTiles, const int *pTil
 
 			ModifTile(ivec2(x, y), CBlockManager::OVEN_ON);
 			ModifTile(TilePos, 0);
-			OnPlayerDestroyBlock(NUM_CLIENTS, TilePos); // FIXME: NUM_CLIENTS needs by something like 'WORLD_CLIENT'
+			OnPlayerDestroyBlock(g_Config.m_SvMaxClients, TilePos); // FIXME: NUM_CLIENTS needs by something like 'WORLD_CLIENT'
 		}
 	}
 
@@ -330,7 +330,7 @@ void CGameControllerMineTee::DestructionTick(CTile *pTempTiles, const int *pTile
 		}
 
 		if (!PlaceCheck)
-			OnPlayerDestroyBlock(NUM_CLIENTS, ivec2(x, y)); // FIXME: NUM_CLIENTS needs by something like 'WORLD_CLIENT'
+			OnPlayerDestroyBlock(g_Config.m_SvMaxClients, ivec2(x, y)); // FIXME: NUM_CLIENTS needs by something like 'WORLD_CLIENT'
 	}
 
 	// Cut Fluids
@@ -386,31 +386,39 @@ void CGameControllerMineTee::VegetationTick(CTile *pTempTiles, const int *pTileI
 	if (IsDay)
 	{
 		/** Growing **/
-		if (pTileIndex[TILE_CENTER] == CBlockManager::SUGAR_CANE &&
-			(pTileIndex[TILE_BOTTOM] == CBlockManager::SUGAR_CANE || pTileIndex[TILE_BOTTOM] == CBlockManager::GROUND_CULTIVATION_WET) &&
-			pTileIndex[TILE_TOP] == 0)
+		// Need Water
+		if (GameServer()->Collision()->IsBlockNear(CBlockManager::WATER_A, ivec2(x, y), 3)
+				|| GameServer()->Collision()->IsBlockNear(CBlockManager::WATER_B, ivec2(x, y), 3)
+				|| GameServer()->Collision()->IsBlockNear(CBlockManager::WATER_C, ivec2(x, y), 3)
+				|| GameServer()->Collision()->IsBlockNear(CBlockManager::WATER_D, ivec2(x, y), 3))
 		{
-			int tam=0;
-			bool canC = false;
-			for(int u=1; u<=5; u++)
+			if (pTileIndex[TILE_CENTER] == CBlockManager::SUGAR_CANE &&
+				(pTileIndex[TILE_BOTTOM] == CBlockManager::SUGAR_CANE || pTileIndex[TILE_BOTTOM] == CBlockManager::GROUND_CULTIVATION_WET) &&
+				pTileIndex[TILE_TOP] == 0)
 			{
-				int TileIndexTemp = (y+u)*pTmap->m_Width+x;
-				if (pTempTiles[TileIndexTemp].m_Index == CBlockManager::SUGAR_CANE)
-					tam++;
-				else
+				int tam=0;
+				bool canC = false;
+				for(int u=1; u<=5; u++)
 				{
-					if (pTempTiles[TileIndexTemp].m_Index == CBlockManager::GROUND_CULTIVATION_WET)
-						canC = true;
-					break;
+					int TileIndexTemp = (y+u)*pTmap->m_Width+x;
+					if (pTempTiles[TileIndexTemp].m_Index == CBlockManager::SUGAR_CANE)
+						tam++;
+					else
+					{
+						if (pTempTiles[TileIndexTemp].m_Index == CBlockManager::GROUND_CULTIVATION_WET)
+							canC = true;
+						break;
+					}
 				}
-			}
 
-			if (!(rand()%10) && canC && tam < 5)
-			{
-				ModifTile(ivec2(x, y-1), CBlockManager::SUGAR_CANE);
+				if (!(rand()%10) && canC && tam < 5)
+				{
+					ModifTile(ivec2(x, y-1), CBlockManager::SUGAR_CANE);
+				}
 			}
 		}
 
+		// Not need water near
 		if (pTileIndex[TILE_CENTER] == CBlockManager::CACTUS &&
 			(pTileIndex[TILE_BOTTOM] == CBlockManager::CACTUS || pTileIndex[TILE_BOTTOM] == CBlockManager::SAND) &&
 			pTileIndex[TILE_TOP] == 0)
@@ -462,12 +470,12 @@ void CGameControllerMineTee::VegetationTick(CTile *pTempTiles, const int *pTileI
 			if (!found)
 				ModifTile(ivec2(x, y-1), CBlockManager::CACTUS);
 		}
-		else if ((rand()%100)==3 && pTileIndex[TILE_CENTER] == CBlockManager::GRASS_D &&
-				pTileIndex[TILE_RIGHT] == 0 && pTileIndex[TILE_RIGHT_BOTTOM] == CBlockManager::GRASS)
+		else if (!(rand()%100) && pTileIndex[TILE_CENTER] == CBlockManager::GRASS_D &&
+				pTileIndex[TILE_RIGHT] == 0 && pTileIndex[TILE_BOTTOM] == CBlockManager::GRASS)
 		{
 			ModifTile(ivec2(x+1, y), CBlockManager::GRASS_A);
 		}
-		else if (rand()%100 == 34 && pTileIndex[TILE_CENTER] == CBlockManager::BROWN_TREE_SAPLING && pTileIndex[TILE_RIGHT_BOTTOM] == CBlockManager::GRASS)
+		else if (!(rand()%100) && pTileIndex[TILE_CENTER] == CBlockManager::BROWN_TREE_SAPLING && pTileIndex[TILE_BOTTOM] == CBlockManager::GRASS)
 		{
 			GenerateTree(ivec2(x, y));
 		}
@@ -502,12 +510,12 @@ void CGameControllerMineTee::OnCharacterSpawn(class CCharacter *pChr)
 				//case CPlayer::BOT_MONSTER_SPIDERTEE:
 				case BOT_MONSTER_EYE:
 					pChr->IncreaseHealth(15);
-					pChr->GiveItem(WEAPON_HAMMER, -1);
+					pChr->GiveItem(WEAPON_HAMMER, 255);
 					break;
 
 				case BOT_MONSTER_SKELETEE:
 					pChr->IncreaseHealth(20);
-					pChr->GiveItem(WEAPON_GRENADE, -1);
+					pChr->GiveItem(WEAPON_GRENADE, 255);
 					break;
 			}
 
@@ -519,8 +527,8 @@ void CGameControllerMineTee::OnCharacterSpawn(class CCharacter *pChr)
 	else if (!pChr->GetPlayer()->IsBot())
 	{
 		pChr->IncreaseHealth(10);
-		pChr->GiveItem(WEAPON_HAMMER, -1);
-		pChr->GiveItem(WEAPON_HAMMER_STONE, -1);
+		pChr->GiveItem(WEAPON_HAMMER, 255);
+		pChr->GiveItem(WEAPON_HAMMER_STONE, 255);
 		pChr->GiveItem(NUM_WEAPONS+CBlockManager::TORCH, 1);
 		pChr->SetInventoryItem(2);
 	}
@@ -736,7 +744,7 @@ void CGameControllerMineTee::OnClientActiveBlock(int ClientID)
 		const int BlockID = ((int)FinishPos.y/32)*GameServer()->Collision()->GetWidth()+((int)FinishPos.x/32);
 
 		// Check if block are used by other player
-		for (int i=0; i<NUM_CLIENTS; i++)
+		for (int i=0; i<g_Config.m_SvMaxClients; i++)
 		{
 			CCharacter *pCompChar = GameServer()->GetPlayerChar(i);
 			if (!pCompChar)
@@ -1101,7 +1109,7 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 
 	if (IsBot)
 	{
-		for (int q=0; q<MAX_CLIENTS-MAX_BOTS;q++)
+		for (int q=0; q<g_Config.m_SvMaxClients;q++)
 		{
 			int StartX, StartY, EndX, EndY;
 			if (!GetPlayerArea(q, &StartX, &EndX, &StartY, &EndY))
@@ -1155,16 +1163,24 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 
 			if (pEval->m_Got)
 			{
-				// Other bots near?
+				// Other bots/players near?
 				CCharacter *aEnts[MAX_BOTS];
-				int Num = GameServer()->m_World.FindEntities(P, 3200, (CEntity**)aEnts, MAX_BOTS, CGameWorld::ENTTYPE_CHARACTER);
-				for (int i=0; i<Num; i++)
+				int Num = GameServer()->m_World.FindEntities(P, 1200, (CEntity**)aEnts, MAX_BOTS, CGameWorld::ENTTYPE_CHARACTER);
+				if (BotType != BOT_ANIMAL)
 				{
-					if (aEnts[i]->GetPlayer()->IsBot())
+					for (int i=0; i<Num; i++)
 					{
-						pEval->m_Got = false;
-						return;
+						if (aEnts[i]->GetPlayer() && aEnts[i]->GetPlayer()->IsBot())
+						{
+							pEval->m_Got = false;
+							return;
+						}
 					}
+				}
+				else if (Num)
+				{
+					pEval->m_Got = false;
+					return;
 				}
 
 				// Good Light?

@@ -76,7 +76,7 @@ void CAnimal::TickBotAI()
     float LessDist = 500.0f;
 
     m_BotClientIDFix = -1;
-	for (int i=0; i<MAX_CLIENTS-MAX_BOTS; i++)
+	for (int i=0; i<g_Config.m_SvMaxClients; i++)
 	{
 	    CPlayer *pPlayer = GameServer()->m_apPlayers[i];
 	    if (!pPlayer || !pPlayer->GetCharacter() || pPlayer->IsBot())
@@ -94,7 +94,7 @@ void CAnimal::TickBotAI()
             {
                 /*vec2 DirPlayer = normalize(pPlayer->GetCharacter()->m_Pos - m_Pos);
                 bool isHooked = false;
-                for (int e=0; e<MAX_CLIENTS-MAX_BOTS; e++)
+                for (int e=0; e<g_Config.m_SvMaxClients; e++)
                 {
                     if (!GameServer()->m_apPlayers[e] || !GameServer()->m_apPlayers[e]->GetCharacter())
                         continue;

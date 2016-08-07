@@ -87,7 +87,7 @@
     {
         "name": "SPIDER WEB",
         "playerCollide": false,
-		"playerVelReduce": 0.35,
+		"playerVel": 0.35,
     },
     {
         "name": "ROSE",
@@ -1060,22 +1060,22 @@
     {
         "name": "WATER IV",
         "onPut": -1,
-		"playerVelReduce": 0.85
+		"playerVel": 0.85
     },
     {
         "name": "WATER III",
         "onPut": -1,
-		"playerVelReduce": 0.85
+		"playerVel": 0.85
     },
     {
         "name": "WATER II",
         "onPut": -1,
-		"playerVelReduce": 0.85
+		"playerVel": 0.85
     },
     {
         "name": "WATER I",
         "onPut": -1,
-		"playerVelReduce": 0.85
+		"playerVel": 0.85
     },
 
 
@@ -1175,25 +1175,25 @@
         "name": "LAVA IV",
         "lightSize": 5,
         "onPut": -1,
-		"playerVelReduce": 0.65
+		"playerVel": 0.65
     },
     {
         "name": "LAVA III",
         "lightSize": 5,
         "onPut": -1,
-		"playerVelReduce": 0.65
+		"playerVel": 0.65
     },
     {
         "name": "LAVA II",
         "lightSize": 5,
         "onPut": -1,
-		"playerVelReduce": 0.65
+		"playerVel": 0.65
     },
     {
         "name": "LAVA I",
         "lightSize": 5,
         "onPut": -1,
-		"playerVelReduce": 0.65
+		"playerVel": 0.65
     },
 
 

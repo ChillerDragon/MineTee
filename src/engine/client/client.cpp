@@ -989,7 +989,7 @@ void CClient::ProcessConnlessPacket(CNetChunk *pPacket)
 		Info.m_MaxClients = str_toint(Up.GetString());
 
 		// don't add invalid info to the server browser list
-		if(Info.m_NumClients < 0 || Info.m_NumClients > MAX_CLIENTS-MAX_BOTS || Info.m_MaxClients < 0 || Info.m_MaxClients > MAX_CLIENTS-MAX_BOTS ||
+		if(Info.m_NumClients < 0 || Info.m_NumClients > g_Config.m_SvMaxClients || Info.m_MaxClients < 0 || Info.m_MaxClients > g_Config.m_SvMaxClients ||
 			Info.m_NumPlayers < 0 || Info.m_NumPlayers > Info.m_NumClients || Info.m_MaxPlayers < 0 || Info.m_MaxPlayers > Info.m_MaxClients) // MineTee
 			return;
 

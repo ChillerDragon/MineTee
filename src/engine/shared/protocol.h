@@ -5,6 +5,7 @@
 #define ENGINE_SHARED_PROTOCOL_H
 
 #include <base/system.h>
+#include <engine/shared/config.h>
 
 /*
 	Connection diagram - How the initilization works.
@@ -89,13 +90,12 @@ enum
 	SERVER_FLAG_PASSWORD = 0x1,
 
     // MineTee
-	NUM_CLIENTS=16,
 	NUM_BOTS_ANIMAL=30,
 	NUM_BOTS_MONSTER=40,
 	NUM_BOTS_BOSS=1,
-	NUM_BOTS_PET=NUM_CLIENTS,
+	NUM_BOTS_PET=16,
     MAX_BOTS=NUM_BOTS_ANIMAL+NUM_BOTS_MONSTER+NUM_BOTS_PET+NUM_BOTS_BOSS,
-	MAX_CLIENTS=NUM_CLIENTS+MAX_BOTS,
+	MAX_CLIENTS=16+MAX_BOTS,
     //
 
 	MAX_INPUT_SIZE=128,
