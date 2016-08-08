@@ -66,6 +66,7 @@ public:
 	unsigned Crc();
 
 	int GetDataUncompressedSize(int Index); // MineTee
+	IOHANDLE *GetFile(); // MineTee (Fixme!)
 };
 
 // write access

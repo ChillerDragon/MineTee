@@ -152,6 +152,8 @@ function build(settings)
 		if family == "windows" then
 			-- disable visibility attribute support for gcc on windows
 			settings.cc.defines:Add("NO_VIZ")
+			-- LibGCC
+			settings.cc.flags:Add("-static-libgcc", "-static-libstdc++")
 		elseif platform == "macosx" then
 			settings.cc.flags:Add("-mmacosx-version-min=10.7")
 			settings.link.flags:Add("-mmacosx-version-min=10.7")

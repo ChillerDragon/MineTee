@@ -79,7 +79,7 @@ void CMapGen::FillMap(int Seed)
 	GenerateOre(CBlockManager::COAL_ORE, 200.0f, COAL_LEVEL, 50, 4);
 	GenerateOre(CBlockManager::IRON_ORE, 320.0f, IRON_LEVEL, 30, 2);
 	GenerateOre(CBlockManager::GOLD_ORE, 350.0f, GOLD_LEVEL, 15, 2);
-	GenerateOre(CBlockManager::DIAMOND_ORE, 400.0f, DIAMOND_LEVEL, 5, 1);
+	GenerateOre(CBlockManager::DIAMOND_ORE, 400.0f, DIAMOND_LEVEL, 10, 1);
 	dbg_msg("mapgen", "ores generated in %.5fs", (float)(time_get()-ProcessTime)/time_freq());
 
 	// caves

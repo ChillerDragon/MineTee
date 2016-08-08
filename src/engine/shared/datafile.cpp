@@ -408,6 +408,15 @@ int CDataFileReader::NumItems()
 	return m_pDataFile->m_Header.m_NumItems;
 }
 
+// FIXME: MineTee hack
+IOHANDLE *CDataFileReader::GetFile()
+{
+	if (!m_pDataFile)
+		return 0x0;
+	return &m_pDataFile->m_File;
+}
+//
+
 bool CDataFileReader::Close()
 {
 	if(!m_pDataFile)

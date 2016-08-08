@@ -1990,16 +1990,26 @@ void CGameContext::SaveMap(const char *path)
         return;
 
     CDataFileWriter fileWrite;
-    char aMapFile[255];
+    char aMapFile[512];
     str_format(aMapFile, sizeof(aMapFile), "maps/%s.map", Server()->GetMapName());
     if (path[0] == 0)
     {
     	// FIXME: Do this for not write&read in the same file... and yeah, is ugly :/
-    	char aMapFileCopy[255];
+    	char aMapFileCopy[512];
     	str_format(aMapFileCopy, sizeof(aMapFileCopy), "maps/%s__.map", Server()->GetMapName());
-    	fileWrite.SaveMap(Storage(), pMap->GetFileReader(), aMapFileCopy);
-    	Storage()->RemoveFile(aMapFile, IStorage::TYPE_SAVE);
-    	Storage()->RenameFile(aMapFileCopy, aMapFile, IStorage::TYPE_SAVE);
+    	if (fileWrite.SaveMap(Storage(), pMap->GetFileReader(), aMapFileCopy))
+    	{
+    		// Really hackish :(
+    		IOHANDLE *pTempFile = pMap->GetFileReader()->GetFile();
+    		io_close(*pTempFile);
+    		Storage()->RemoveFile(aMapFile, IStorage::TYPE_SAVE);
+    		Storage()->RenameFile(aMapFileCopy, aMapFile, IStorage::TYPE_SAVE);
+
+			char aMapsPath[512];
+			Storage()->GetCompletePath(IStorage::TYPE_SAVE, "maps/", aMapsPath, sizeof(aMapsPath));
+			str_format(aMapFileCopy, sizeof(aMapFileCopy), "%s%.map", Server()->GetMapName());
+			*pTempFile = io_open(aMapFileCopy, IOFLAG_READ);
+    	}
     }
     else
     	fileWrite.SaveMap(Storage(), pMap->GetFileReader(), aMapFile);
