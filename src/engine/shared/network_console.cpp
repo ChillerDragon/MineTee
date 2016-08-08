@@ -5,6 +5,7 @@
 
 #include <engine/console.h>
 #include <engine/shared/protocol.h> // MineTee
+#include <engine/shared/config.h> // MineTee
 
 #include "netban.h"
 #include "network.h"

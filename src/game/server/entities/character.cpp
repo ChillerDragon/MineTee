@@ -398,7 +398,7 @@ void CCharacter::FireWeapon()
 		return;
 
 	// check for ammo
-	if(!ActiveItemAmount)
+	if(!m_pPlayer->IsBot() && !ActiveItemAmount)
 	{
 		// 125ms is a magical limit of how fast a human can click
 		m_ReloadTimer = 125 * Server()->TickSpeed() / 1000;
@@ -417,6 +417,7 @@ void CCharacter::FireWeapon()
 	{
 		case WEAPON_HAMMER:
 		case WEAPON_HAMMER_STONE:
+		case WEAPON_HAMMER_IRON:
 		{
 			// reset objects Hit
 			m_NumObjectsHit = 0;
@@ -899,17 +900,17 @@ void CCharacter::TickPaused()
 
 bool CCharacter::IncreaseHealth(int Amount)
 {
-	if(m_Health >= 10)
+	if(m_Health >= 999)
 		return false;
-	m_Health = clamp(m_Health+Amount, 0, 10);
+	m_Health = clamp(m_Health+Amount, 0, 999);
 	return true;
 }
 
 bool CCharacter::IncreaseArmor(int Amount)
 {
-	if(m_Armor >= 10)
+	if(m_Armor >= 999)
 		return false;
-	m_Armor = clamp(m_Armor+Amount, 0, 10);
+	m_Armor = clamp(m_Armor+Amount, 0, 999);
 	return true;
 }
 
@@ -1130,7 +1131,7 @@ void CCharacter::Snap(int SnappingClient)
 		if(m_pPlayer->GetCID() == SnappingClient && m_NeedSendFastInventory)
 		{
 		    if (m_ActiveBlockId != -1)
-				GameServer()->m_pController->SendInventory(m_pPlayer->GetCID(), false);
+				GameServer()->m_pController->SendInventory(m_pPlayer->GetCID(), (m_ActiveBlockId != -2));
 
 			CNetObj_Inventory *pClientInventory = static_cast<CNetObj_Inventory *>(Server()->SnapNewItem(NETOBJTYPE_INVENTORY, m_pPlayer->GetCID(), sizeof(CNetObj_Inventory)));
 			if(!pClientInventory)
@@ -1211,7 +1212,11 @@ void CCharacter::UseAccountData(void *pAccountInfo)
 
 	// Check that can spawn in that place
 	if (GameServer()->Collision()->CheckPoint(m_Pos))
-		GameServer()->Collision()->ModifTile(ivec2(m_Pos.x/32, m_Pos.y/32), GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0, 0);
+	{
+		const ivec2 TileMapPos = ivec2(m_Pos.x/32, m_Pos.y/32);
+		GameServer()->SendTileModif(ALL_PLAYERS, TileMapPos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0, 0);
+		GameServer()->Collision()->ModifTile(TileMapPos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0, 0);
+	}
 
 	m_NeedSendFastInventory = true;
 }

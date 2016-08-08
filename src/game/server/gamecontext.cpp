@@ -121,7 +121,7 @@ void CGameContext::CreateHammerHit(vec2 Pos)
 }
 
 // MineTee
-void CGameContext::CreateExplosion(vec2 Pos, int Owner, int ItemID, bool NoDamage)
+void CGameContext::CreateExplosion(vec2 Pos, int Owner, int ItemID, bool NoDamage, int NotThis)
 {
 	// create the event
 	CNetEvent_Explosion *pEvent = (CNetEvent_Explosion *)m_Events.Create(NETEVENTTYPE_EXPLOSION, sizeof(CNetEvent_Explosion));
@@ -147,6 +147,9 @@ void CGameContext::CreateExplosion(vec2 Pos, int Owner, int ItemID, bool NoDamag
 		int Num = m_World.FindEntities(Pos, Radius, (CEntity**)apEnts, MAX_CLIENTS, CGameWorld::ENTTYPE_CHARACTER);
 		for(int i = 0; i < Num; i++)
 		{
+			if (apEnts[i]->GetPlayer()->GetCID() == NotThis)
+				continue;
+
 			vec2 Diff = apEnts[i]->m_Pos - Pos;
 			vec2 ForceDir(0,1);
 			float l = length(Diff);
@@ -1869,7 +1872,16 @@ IBoss* CGameContext::SpawnBoss(vec2 Pos, int Type)
 			CBossDune *pBossDune = new(pPlayer->GetCID()) CBossDune(&m_World);
 			pBoss = (IBoss*)pBossDune;
 			pPlayer->SetCharacter(pBossDune);
-			pBossDune->Spawn(pPlayer, Pos);
+			pPlayer->SetBotType(BOT_BOSS);
+			if (pBossDune->Spawn(pPlayer, Pos))
+			{
+				pPlayer->GetCharacter()->GiveItem(WEAPON_GUN, 255);
+				pPlayer->GetCharacter()->GiveItem(WEAPON_GRENADE, 255);
+				pPlayer->GetCharacter()->GiveItem(WEAPON_HAMMER_IRON, 255);
+				pPlayer->GetCharacter()->GiveItem(WEAPON_RIFLE, 255);
+				pPlayer->GetCharacter()->IncreaseHealth(200);
+				pPlayer->GetCharacter()->SetInventoryItem(0);
+			}
 		}
 
 		pPlayer->SetBotType(BOT_BOSS);

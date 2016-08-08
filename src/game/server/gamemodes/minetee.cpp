@@ -385,15 +385,17 @@ void CGameControllerMineTee::VegetationTick(CTile *pTempTiles, const int *pTileI
 
 	if (IsDay)
 	{
+		const bool HasWaterNear = (GameServer()->Collision()->IsBlockNear(CBlockManager::WATER_A, ivec2(x, y), 3)
+									|| GameServer()->Collision()->IsBlockNear(CBlockManager::WATER_B, ivec2(x, y), 3)
+									|| GameServer()->Collision()->IsBlockNear(CBlockManager::WATER_C, ivec2(x, y), 3)
+									|| GameServer()->Collision()->IsBlockNear(CBlockManager::WATER_D, ivec2(x, y), 3));
+
 		/** Growing **/
 		// Need Water
-		if (GameServer()->Collision()->IsBlockNear(CBlockManager::WATER_A, ivec2(x, y), 3)
-				|| GameServer()->Collision()->IsBlockNear(CBlockManager::WATER_B, ivec2(x, y), 3)
-				|| GameServer()->Collision()->IsBlockNear(CBlockManager::WATER_C, ivec2(x, y), 3)
-				|| GameServer()->Collision()->IsBlockNear(CBlockManager::WATER_D, ivec2(x, y), 3))
+		if (HasWaterNear)
 		{
 			if (pTileIndex[TILE_CENTER] == CBlockManager::SUGAR_CANE &&
-				(pTileIndex[TILE_BOTTOM] == CBlockManager::SUGAR_CANE || pTileIndex[TILE_BOTTOM] == CBlockManager::GROUND_CULTIVATION_WET) &&
+				(pTileIndex[TILE_BOTTOM] == CBlockManager::SAND || pTileIndex[TILE_BOTTOM] == CBlockManager::GROUND_CULTIVATION_WET) &&
 				pTileIndex[TILE_TOP] == 0)
 			{
 				int tam=0;
@@ -455,20 +457,26 @@ void CGameControllerMineTee::VegetationTick(CTile *pTempTiles, const int *pTileI
 		/** Creation **/
 		if (!(rand()%100) && (pTileIndex[TILE_CENTER] == CBlockManager::SAND) && pTileIndex[TILE_TOP] == 0)
 		{
-			bool found = false;
-
-			for (int i=-4; i<5; i++)
+			if (HasWaterNear)
 			{
-				int TileIndexTemp = (y-1)*pTmap->m_Width+(x+i);
-				if (pTempTiles[TileIndexTemp].m_Index == CBlockManager::CACTUS)
-				{
-					found = true;
-					break;
-				}
+				ModifTile(ivec2(x, y-1), CBlockManager::SUGAR_CANE);
 			}
+			else
+			{
+				bool found = false;
+				for (int i=-4; i<5; i++)
+				{
+					int TileIndexTemp = (y-1)*pTmap->m_Width+(x+i);
+					if (pTempTiles[TileIndexTemp].m_Index == CBlockManager::CACTUS)
+					{
+						found = true;
+						break;
+					}
+				}
 
-			if (!found)
-				ModifTile(ivec2(x, y-1), CBlockManager::CACTUS);
+				if (!found)
+					ModifTile(ivec2(x, y-1), CBlockManager::CACTUS);
+			}
 		}
 		else if (!(rand()%100) && pTileIndex[TILE_CENTER] == CBlockManager::GRASS_D &&
 				pTileIndex[TILE_RIGHT] == 0 && pTileIndex[TILE_BOTTOM] == CBlockManager::GRASS)
@@ -518,8 +526,6 @@ void CGameControllerMineTee::OnCharacterSpawn(class CCharacter *pChr)
 					pChr->GiveItem(WEAPON_GRENADE, 255);
 					break;
 			}
-
-			pChr->SetInventoryItem(0);
 		}
 		else
 			pChr->IncreaseHealth(5);
@@ -528,10 +534,9 @@ void CGameControllerMineTee::OnCharacterSpawn(class CCharacter *pChr)
 	{
 		pChr->IncreaseHealth(10);
 		pChr->GiveItem(WEAPON_HAMMER, 255);
-		pChr->GiveItem(WEAPON_HAMMER_STONE, 255);
 		pChr->GiveItem(NUM_WEAPONS+CBlockManager::TORCH, 1);
-		pChr->SetInventoryItem(2);
 	}
+	pChr->SetInventoryItem(0);
 }
 
 int CGameControllerMineTee::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon)
@@ -1370,10 +1375,11 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 	CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(MTTIndex);
 	if (!pBlockInfo)
 	{
-		SendInventory(ClientID, (str_comp(pBlockInfo->m_Functionality.m_aType, "craft-table") == 0));
+		SendInventory(ClientID, false);
 		return;
 	}
 
+	const bool IsCraftTable = (str_comp(pBlockInfo->m_Functionality.m_aType, "craft-table") == 0);
 	CPlayer *pPlayer = pChar->GetPlayer();
 	CCellData *pCellFrom = 0x0;
 	CCellData *pCellTo = 0x0;
@@ -1384,7 +1390,7 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 		pCellFrom = &pChar->m_FastInventory[From];
 	else
 	{
-		if (pChar->m_ActiveBlockId == -2 || str_comp(pBlockInfo->m_Functionality.m_aType, "craft-table") == 0)
+		if (pChar->m_ActiveBlockId == -2 || IsCraftTable)
 		{
 			if (From >= NUM_CELLS_LINE*4)
 			{
@@ -1410,7 +1416,7 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 			pCellTo = &pChar->m_FastInventory[To];
 		else
 		{
-			if (pChar->m_ActiveBlockId == -2 || str_comp(pBlockInfo->m_Functionality.m_aType, "craft-table") == 0)
+			if (pChar->m_ActiveBlockId == -2 || IsCraftTable)
 			{
 				if (To >= NUM_CELLS_LINE*4)
 				{
@@ -1418,7 +1424,7 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 					const int ToID = To-NUM_CELLS_LINE*4;
 					if (ToID == NUM_CELLS_LINE)
 					{
-						SendInventory(ClientID, (str_comp(pBlockInfo->m_Functionality.m_aType, "craft-table") == 0));
+						SendInventory(ClientID, IsCraftTable);
 						return;
 					}
 					pCellTo = &pPlayer->m_aCraft[To-NUM_CELLS_LINE*4];
@@ -1437,7 +1443,7 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 
 	if (IsFromCraftRes && IsToCraftZone)
 	{
-		SendInventory(ClientID, (str_comp(pBlockInfo->m_Functionality.m_aType, "craft-table") == 0));
+		SendInventory(ClientID, IsCraftTable);
 		return;
 	}
 
@@ -1481,7 +1487,7 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 			else
 			{
 				// TODO: SEND MOVE FAIL
-				SendInventory(ClientID, (str_comp(pBlockInfo->m_Functionality.m_aType, "craft-table") == 0));
+				SendInventory(ClientID, IsCraftTable);
 				return;
 			}
 		}
@@ -1515,10 +1521,10 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 		pCellFrom->m_Amount = 0;
 	}
 
-	if (pChar->m_ActiveBlockId == -2 || str_comp(pBlockInfo->m_Functionality.m_aType, "craft-table") == 0)
+	if (pChar->m_ActiveBlockId == -2 || IsCraftTable)
 	{
 		CheckCraft(ClientID);
-		SendInventory(ClientID, (str_comp(pBlockInfo->m_Functionality.m_aType, "craft-table") == 0));
+		SendInventory(ClientID, IsCraftTable);
 	}
 
 	pChar->m_NeedSendFastInventory = true;
@@ -1532,7 +1538,7 @@ void CGameControllerMineTee::CheckCraft(int ClientID)
 
 	CPlayer *pPlayer = pChar->GetPlayer();
 
-	bool Crafted = false;
+	bool DoCraft = false;
 	for (int q=0; q<CBlockManager::MAX_BLOCKS; q++)
 	{
 		mem_zero(pPlayer->m_aCraftRecipe, sizeof(CCellData)*NUM_CELLS_LINE);
@@ -1541,7 +1547,6 @@ void CGameControllerMineTee::CheckCraft(int ClientID)
 		if (!pBlockInfo)
 			continue;
 
-		Crafted = false;
 		bool NoCrafts = false;
 		for (int i=0; i<NUM_CELLS_LINE; i++)
 		{
@@ -1574,7 +1579,7 @@ void CGameControllerMineTee::CheckCraft(int ClientID)
 		if (NoCrafts)
 			continue;
 
-		Crafted = true;
+		bool Crafted = true;
 		for (int i=0; i<NUM_CELLS_LINE; i++)
 		{
 			if (pPlayer->m_aCraftRecipe[i].m_ItemId != pChar->GetPlayer()->m_aCraft[i].m_ItemId)
@@ -1584,10 +1589,12 @@ void CGameControllerMineTee::CheckCraft(int ClientID)
 			}
 		}
 
+		// q=0, ommit Air
 		if (Crafted && q != 0)
 		{
 			pChar->GetPlayer()->m_aCraft[NUM_CELLS_LINE].m_ItemId = q+NUM_WEAPONS;
 			pChar->GetPlayer()->m_aCraft[NUM_CELLS_LINE].m_Amount = pBlockInfo->m_CraftNum;
+			DoCraft = true;
 			break;
 		}
 		else
@@ -1595,9 +1602,67 @@ void CGameControllerMineTee::CheckCraft(int ClientID)
 			mem_zero(pPlayer->m_aCraftRecipe, sizeof(CCellData)*NUM_CELLS_LINE);
 			pChar->GetPlayer()->m_aCraft[NUM_CELLS_LINE].m_ItemId = 0;
 			pChar->GetPlayer()->m_aCraft[NUM_CELLS_LINE].m_Amount = 0;
-
 			if (q == 0)
 				break;
+		}
+	}
+
+	// TODO: Only for pre-alpha... need be changed to not hard-coded solution
+	if (!DoCraft)
+	{ // It's a weapon recipe?
+		static const CCellData s_WeaponsRecipes[NUM_WEAPONS][NUM_CELLS_LINE] =
+		{
+			{ {0,0}, {0,0}, {0,0}, {0,0}, {0,0}, {0,0}, {0,0}, {0,0}, {0,0} }, // None
+			{ {4,1}, {4,1}, {4,1}, {0,0}, {40,1}, {0,0}, {0,0}, {40,1}, {0,0} }, // Hammer Wood
+			{ {212,4}, {212,4}, {212,4}, {0,0}, {4,2}, {0,0}, {4,2}, {0,0}, {0,0} }, // Pistol
+			{ {212,8}, {212,8}, {212,8}, {0,0}, {4,2}, {212,8}, {4,2}, {0,0}, {0,0} }, // Shotgun
+			{ {212,4}, {212,4}, {212,4}, {212,4}, {212,4}, {212,4}, {31,2}, {4,2}, {31,2} }, // Grenade Launcher
+			{ {213,4}, {213,4}, {213,4}, {0,0}, {212,1}, {0,0}, {212,1}, {0,0}, {0,0} }, // Rifle
+			{ {0,0}, {0,0}, {0,0}, {0,0}, {0,0}, {0,0}, {0,0}, {0,0}, {0,0} }, // Ninja
+			{ {1,2}, {1,2}, {1,2}, {0,0}, {40,1}, {0,0}, {0,0}, {40,1}, {0,0} }, // Hammer Stone
+			{ {212,1}, {212,1}, {212,1}, {0,0}, {40,1}, {0,0}, {0,0}, {40,1}, {0,0} }, // Hammer Iron
+		};
+		static const int s_Amounts[NUM_WEAPONS] = { 0, 255, 200, 150, 25, 15, 0, 255, 255 };
+
+		for (int q=0; q<NUM_WEAPONS; q++)
+		{
+			mem_zero(pPlayer->m_aCraftRecipe, sizeof(CCellData)*NUM_CELLS_LINE);
+			for (int i=0; i<NUM_CELLS_LINE; i++)
+			{
+				if (s_WeaponsRecipes[q][i].m_ItemId > 0 && pChar->GetPlayer()->m_aCraft[i].m_ItemId == 0)
+				{
+					pPlayer->m_aCraftRecipe[i].m_ItemId = s_WeaponsRecipes[q][i].m_ItemId+NUM_WEAPONS;
+					pPlayer->m_aCraftRecipe[i].m_Amount = s_WeaponsRecipes[q][i].m_Amount;
+				}
+				else if (s_WeaponsRecipes[q][i].m_ItemId+NUM_WEAPONS == pChar->GetPlayer()->m_aCraft[i].m_ItemId
+					&& s_WeaponsRecipes[q][i].m_Amount <= pChar->GetPlayer()->m_aCraft[i].m_Amount)
+				{
+					pPlayer->m_aCraftRecipe[i].m_ItemId = s_WeaponsRecipes[q][i].m_ItemId+NUM_WEAPONS;
+					pPlayer->m_aCraftRecipe[i].m_Amount = s_WeaponsRecipes[q][i].m_Amount;
+				}
+			}
+
+			bool Crafted = true;
+			for (int i=0; i<NUM_CELLS_LINE; i++)
+			{
+				if (pPlayer->m_aCraftRecipe[i].m_ItemId != pChar->GetPlayer()->m_aCraft[i].m_ItemId)
+				{
+					Crafted = false;
+					break;
+				}
+			}
+
+			if (Crafted)
+			{
+				pChar->GetPlayer()->m_aCraft[NUM_CELLS_LINE].m_ItemId = q;
+				pChar->GetPlayer()->m_aCraft[NUM_CELLS_LINE].m_Amount = s_Amounts[q];
+				break;
+			}
+			else
+			{
+				pChar->GetPlayer()->m_aCraft[NUM_CELLS_LINE].m_ItemId = 0;
+				pChar->GetPlayer()->m_aCraft[NUM_CELLS_LINE].m_Amount = 0;
+			}
 		}
 	}
 }

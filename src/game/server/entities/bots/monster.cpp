@@ -79,15 +79,12 @@ void CMonster::RunAction()
 			break;
 
 		case BOT_MONSTER_EYE:
+			if (m_BotClientIDFix == -1)
+	            m_Core.m_Vel = vec2(rand()%2,rand()%2);
+			else
+				m_Core.m_Vel.y = -GameServer()->Tuning()->m_Gravity;
 		case BOT_MONSTER_ZOMBITEE:
-			if (m_pPlayer->GetBotSubType() == BOT_MONSTER_EYE)
-			{
-				if (m_BotClientIDFix == -1)
-		            m_Core.m_Vel = vec2(rand()%2,rand()%2);
-				else
-					m_Core.m_Vel.y = -GameServer()->Tuning()->m_Gravity;
-			}
-	        else if (Server()->Tick()-m_BotTimeGrounded > Server()->TickSpeed()*4)
+	        if (m_pPlayer->GetBotSubType() == BOT_MONSTER_ZOMBITEE && Server()->Tick()-m_BotTimeGrounded > Server()->TickSpeed()*4)
 	        {
 	            Die(m_pPlayer->GetCID(), WEAPON_WORLD);
 	            break;
@@ -104,12 +101,7 @@ void CMonster::RunAction()
 
 	            if (Server()->Tick() - m_BotTimePlayerFound > Server()->TickSpeed()*0.45f)
 	            {
-					vec2 DirHit = vec2(0.f, -1.f);
-					if (length(pChar->m_Pos - m_Pos) > 0.0f)
-						DirHit = normalize(pChar->m_Pos - m_Pos);
-					pChar->TakeDamage(vec2(0.f, -1.f) + normalize(DirHit + vec2(0.f, -1.1f)) * 10.0f, 3, m_pPlayer->GetCID(), WEAPON_WORLD);
-					GameServer()->CreateHammerHit(m_Pos);
-					GameServer()->CreateSound(m_Pos, SOUND_HIT);
+	            	m_LatestInput.m_Fire = m_Input.m_Fire = 1;
 					m_BotDir = 0;
 					m_BotTimePlayerFound = Server()->Tick();
 	            }
@@ -128,9 +120,7 @@ void CMonster::RunAction()
 	            CCharacter *pChar = GameServer()->m_apPlayers[m_BotClientIDFix]->GetCharacter();
 	            if (pChar && !GameServer()->Collision()->IntersectLine(m_Pos, pChar->m_Pos, 0x0, 0x0) && GameServer()->IntersectCharacter(m_Pos, pChar->m_Pos, 0x0, m_pPlayer->GetCID()) == m_BotClientIDFix)
 	            {
-					m_LatestInput.m_Fire = 1;
-					m_LatestPrevInput.m_Fire = 1;
-					m_Input.m_Fire = 1;
+	            	m_LatestInput.m_Fire = m_Input.m_Fire = 1;
 					m_BotDir = 0;
 	            }
 
@@ -319,12 +309,14 @@ void CMonster::TickBotAI()
     m_Input.m_Direction = m_BotDir;
 	m_Input.m_PlayerFlags = PLAYERFLAG_PLAYING;
 	//Check for legacy input
-	if (m_LatestInput.m_Fire && m_Input.m_Fire) m_Input.m_Fire = 0;
+	if (m_LatestPrevInput.m_Fire && m_Input.m_Fire) m_Input.m_Fire = 0;
 	if (m_LatestInput.m_Jump && m_Input.m_Jump) m_Input.m_Jump = 0;
 	//Ceck Double Jump
 	if (m_Input.m_Jump && (m_Jumped&1) && !(m_Jumped&2) && m_Core.m_Vel.y < GameServer()->Tuning()->m_Gravity)
 		m_Input.m_Jump = 0;
 
-	m_LatestPrevInput = m_LatestInput = m_Input;
+	m_LatestPrevInput = m_LatestInput;
+	m_LatestInput = m_Input;
 	m_BotLastPos = m_Pos;
+	CCharacter::FireWeapon();
 }

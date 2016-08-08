@@ -5,7 +5,6 @@
 #define ENGINE_SHARED_PROTOCOL_H
 
 #include <base/system.h>
-#include <engine/shared/config.h>
 
 /*
 	Connection diagram - How the initilization works.

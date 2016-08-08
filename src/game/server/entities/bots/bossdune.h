@@ -38,7 +38,13 @@ private:
     float m_BotTimeLastDamage;
     float m_BotTimeLastSound;
     float m_BotTimeLastChat;
+    float m_BotTimeFirstDamage;
+    float m_BotTimeExplosion;
+    float m_BotTimeLastWeaponChange;
+	float m_BotTimeNextWeaponChange;
     bool m_BotJumpTry;
+
+    bool m_Damaged;
 };
 
 #endif

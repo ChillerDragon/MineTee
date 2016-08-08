@@ -296,7 +296,7 @@ void CPlayers::RenderPlayer(
 	static float s_LastGameTickTime = Client()->GameTickTime();
 	if(m_pClient->m_Snap.m_pGameInfoObj && !(m_pClient->m_Snap.m_pGameInfoObj->m_GameStateFlags&GAMESTATEFLAG_PAUSED))
 		s_LastGameTickTime = Client()->GameTickTime();
-	if (Player.m_Weapon == WEAPON_HAMMER || Player.m_Weapon == WEAPON_HAMMER_STONE) // MineTee
+	if (Player.m_Weapon == WEAPON_HAMMER || Player.m_Weapon == WEAPON_HAMMER_STONE || Player.m_Weapon == WEAPON_HAMMER_IRON) // MineTee
 	{
 		float ct = (Client()->PrevGameTick()-Player.m_AttackTick)/(float)SERVER_TICK_SPEED + s_LastGameTickTime;
 		State.Add(&g_pData->m_aAnimations[ANIM_HAMMER_SWING], clamp(ct*5.0f,0.0f,1.0f), 1.0f);
@@ -415,7 +415,7 @@ void CPlayers::RenderPlayer(
 			vec2 Dir = Direction;
 			float Recoil = 0.0f;
 			vec2 p;
-			if (Player.m_Weapon == WEAPON_HAMMER || Player.m_Weapon == WEAPON_HAMMER_STONE)
+			if (Player.m_Weapon == WEAPON_HAMMER || Player.m_Weapon == WEAPON_HAMMER_STONE || Player.m_Weapon == WEAPON_HAMMER_IRON)
 			{
 				// Static position for hammer
 				p = Position + vec2(State.GetAttach()->m_X, State.GetAttach()->m_Y);
