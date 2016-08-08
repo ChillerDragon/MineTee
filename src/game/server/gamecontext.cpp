@@ -2007,7 +2007,7 @@ void CGameContext::SaveMap(const char *path)
 
 			char aMapsPath[512];
 			Storage()->GetCompletePath(IStorage::TYPE_SAVE, "maps/", aMapsPath, sizeof(aMapsPath));
-			str_format(aMapFileCopy, sizeof(aMapFileCopy), "%s%.map", Server()->GetMapName());
+			str_format(aMapFileCopy, sizeof(aMapFileCopy), "%s%s.map", aMapsPath, Server()->GetMapName());
 			*pTempFile = io_open(aMapFileCopy, IOFLAG_READ);
     	}
     }
