@@ -211,7 +211,7 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
 	static int64 lastAnimTime = time_get();
 	static int waveSum = 0;
 	static int64 lastWaveTime = time_get();
-	const float LeafOffX = cephes_cosf((int)(time_get())/100000.0f)*2.0f;
+	const float LeafOffX = cephes_cosf((int)(time_get())/(time_freq()*0.2f))*2.0f;
 
 	if (time_get()-lastAnimTime > time_freq()/100) // ~100Hz
 	{
