@@ -2030,7 +2030,7 @@ void CGameContext::GiveItem(int ClientID, int ItemID, int ammo)
 
 
 	char aBuf[128];
-	if (pChar->GiveItem(ItemID, ammo))
+	if (!pChar->GiveItem(ItemID, ammo))
 	{
 		str_format(aBuf, sizeof(aBuf), "Admin try to give you a '%s'! but your inventory is full :(", aItemName);
 		SendChatTarget(ClientID, aBuf);

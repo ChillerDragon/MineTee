@@ -623,7 +623,7 @@ CCellData* CCharacter::GiveItem(int ItemID, int Amount)
     if (IsWeapon)
     {
     	CCellData *pInvItem = GetFirstEmptyInventoryIndex();
-        if (IsInventoryFull() || !pInvItem)
+        if (!pInvItem)
             return 0x0;
 
 		if(pInvItem->m_Amount < g_pData->m_Weapons.m_aId[ItemID].m_Maxammo)
@@ -645,7 +645,7 @@ CCellData* CCharacter::GiveItem(int ItemID, int Amount)
     		HasItem = false;
     	}
 
-        if ((!HasItem && IsInventoryFull()) || !pInvItem)
+        if (!pInvItem)
             return 0x0;
 
         pInvItem->m_Amount = min(255, pInvItem->m_Amount+Amount);

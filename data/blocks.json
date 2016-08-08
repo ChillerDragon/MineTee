@@ -145,7 +145,7 @@
     {
         "name": "IRON BLOCK",
         "health": 120,
-        "onBreak": { "211":9 },
+        "onBreak": { "212":9 },
         "craft": [
         	{"211":1},{"211":1},{"211":1},
         	{"211":1},{"211":1},{"211":1},
@@ -155,7 +155,7 @@
     {
         "name": "GOLDEN BLOCK",
         "health": 100,
-        "onBreak": { "212":9 },
+        "onBreak": { "211":9 },
         "craft": [
         	{"212":1},{"212":1},{"212":1},
         	{"212":1},{"212":1},{"212":1},
@@ -209,8 +209,7 @@
     },
     {
         "name": "COAL",
-        "gravity": true,
-        "onPut": -1
+        "gravity": true
     },
     {
         "name": "GUNPOWDER"
@@ -220,12 +219,12 @@
     {
         "name": "GOLD ORE",
         "health": 40,
-        "onCook": { "212":1 }
+        "onCook": { "211":1 }
     },
     {
         "name": "IRON ORE",
         "health": 60,
-        "onCook": { "211":1 }
+        "onCook": { "212":1 }
     },
     {
         "name": "COAL ORE",
@@ -1089,13 +1088,13 @@
         "name": "ORANGE WOOL"
     },
     {
-        "name": "IRON INGOT",
-        "health": 20,
+        "name": "GOLD INGOT",
+        "health": 15,
         "onPut": -1
     },
     {
-        "name": "GOLD INGOT",
-        "health": 15,
+        "name": "IRON INGOT",
+        "health": 20,
         "onPut": -1
     },
     {
