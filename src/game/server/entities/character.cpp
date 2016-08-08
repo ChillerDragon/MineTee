@@ -1217,8 +1217,6 @@ void CCharacter::UseAccountData(void *pAccountInfo)
 		GameServer()->SendTileModif(ALL_PLAYERS, TileMapPos, GameServer()->Layers()->GetMineTeeGroupIndex(),  GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0, 0);
 		GameServer()->Collision()->ModifTile(TileMapPos, GameServer()->Layers()->GetMineTeeGroupIndex(), GameServer()->Layers()->GetMineTeeLayerIndex(), 0, 0, 0);
 	}
-
-	m_NeedSendFastInventory = true;
 }
 
 CCellData* CCharacter::InInventory(int ItemID)
