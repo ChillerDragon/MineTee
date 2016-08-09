@@ -2105,11 +2105,14 @@ int secure_rand()
 //
 
 // MineTee
-int mem_comp_zero(void *block,unsigned size)
+int mem_comp_zero(void *block, unsigned size)
 {
-	unsigned char aTestBlock[size];
-	memset(aTestBlock, 0u, sizeof(aTestBlock));
-	return memcmp(aTestBlock, block, size);
+	int res = 1;
+	unsigned char *pTestBlock = (unsigned char*)mem_alloc(sizeof(unsigned char)*size, 1);
+	mem_zero(pTestBlock, size);
+	res = memcmp(pTestBlock, block, size);
+	mem_free(pTestBlock);
+	return res;
 }
 
 #if defined(__cplusplus)

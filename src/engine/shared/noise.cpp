@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <numeric>
 #include <ctime> // time()
 
 #include <base/math.h>

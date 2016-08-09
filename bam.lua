@@ -144,7 +144,7 @@ function build(settings)
 	settings.cc.Output = Intermediate_Output
 
 	if config.compiler.driver == "cl" then
-		settings.cc.flags:Add("/wd4244", "/wd4577")
+		settings.cc.flags:Add("/wd4244", "/wd4577", "/EHsc")
 	else
 		settings.cc.flags:Add("-Wall", "-fno-exceptions")
 		-- c++11 support \o/
@@ -153,7 +153,8 @@ function build(settings)
 			-- disable visibility attribute support for gcc on windows
 			settings.cc.defines:Add("NO_VIZ")
 			-- LibGCC
-			settings.cc.flags:Add("-static-libgcc", "-static-libstdc++")
+			settings.cc.flags:Add("-static-libgcc")
+			settings.cc.flags_cxx:Add("-static-libstdc++")
 		elseif platform == "macosx" then
 			settings.cc.flags:Add("-mmacosx-version-min=10.7")
 			settings.link.flags:Add("-mmacosx-version-min=10.7")
