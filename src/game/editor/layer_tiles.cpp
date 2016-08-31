@@ -355,6 +355,9 @@ void CLayerTiles::ShowInfo()
 				str_format(aBuf, sizeof(aBuf), "%i", m_pTiles[c].m_Index);
 				m_pEditor->Graphics()->QuadsText(x*32, y*32, 16.0f, aBuf);
 
+				str_format(aBuf, sizeof(aBuf), "[%i]", m_pTiles[c].m_Skip);
+				m_pEditor->Graphics()->QuadsText(x*32, y*32+24.0f, 16.0f, aBuf);
+
 				char aFlags[4] = {	m_pTiles[c].m_Flags&TILEFLAG_VFLIP ? 'V' : ' ',
 									m_pTiles[c].m_Flags&TILEFLAG_HFLIP ? 'H' : ' ',
 									m_pTiles[c].m_Flags&TILEFLAG_ROTATE? 'R' : ' ',

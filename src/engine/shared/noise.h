@@ -14,10 +14,13 @@ public:
     double Noise(double x, double y) const { return Noise(x, y, 0); }
     double Noise(double x, double y, double z) const;
     int GetURandom(int Max, int Min);
+    uint32_t GetSeed() const { return m_Seed; }
 
 private:
     std::array<int, 512> m_aNumsPerlin;
+    // std::mt19937_64
     std::mt19937 m_Engine;
+    uint32_t m_Seed;
 };
 
 

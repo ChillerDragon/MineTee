@@ -24,8 +24,8 @@ public:
 
 	void SetOwner(class CPlayer *pPlayer) { m_pOwner = pPlayer; }
 
-	void FillAccountPetData(void *pPetInfo);
-	void UseAccountPetData(void *pPetInfo);
+	void FillAccountData(IAccountSystem::ACCOUNT_INFO *pAccountInfo);
+	void UseAccountData(IAccountSystem::ACCOUNT_INFO *pAccountInfo);
 
 	virtual void Tick();
 	virtual bool TakeDamage(vec2 Force, int Dmg, int From, int Weapon);

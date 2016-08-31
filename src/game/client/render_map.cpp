@@ -261,6 +261,7 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
 			{
                 // MineTee
 				bool TileSway = false;
+				float Rotation = 0.0f;
                 if (TileMineTee == 1)
                 {
                 	CBlockManager::CBlockInfo *pBlockInfo = m_pCollision->GetBlockManager()->GetBlockInfo(Index);
@@ -269,13 +270,45 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
 							((Index >= CBlockManager::WATER_A && Index <= CBlockManager::WATER_D) || (Index >= CBlockManager::LAVA_A && Index <= CBlockManager::LAVA_D)))
 						continue;
 
+                	// Check Rotation Aspect
+                	Rotation = 0.0f;
+                	int cC = mx + (my-1)*w;
+                	if (pTiles[cC].m_Index)
+                		Rotation = pBlockInfo->m_Aspect[0];
+                	cC = (mx-1) + my*w;
+                	if (pTiles[cC].m_Index)
+                	    Rotation = pBlockInfo->m_Aspect[1];
+                	cC = mx + (my+1)*w;
+					if (pTiles[cC].m_Index)
+						Rotation = pBlockInfo->m_Aspect[2];
+					cC = (mx+1) + my*w;
+					if (pTiles[cC].m_Index)
+						Rotation = pBlockInfo->m_Aspect[3];
+
                 	// Block Effects
                 	if (pEffects)
                 	{
 						CEffects *pEff = static_cast<CEffects*>(pEffects);
 
 						if (Index == CBlockManager::TORCH)
-							pEff->LightFlame(vec2(x*Scale+16.0f, y*Scale));
+						{
+							// TODO: Change this!
+							vec2 FlamePos;
+		                	int cC = mx + (my-1)*w;
+		                	if (pTiles[cC].m_Index)
+		                		FlamePos = vec2(x*Scale+16.0f, y*Scale);
+		                	cC = (mx-1) + my*w;
+		                	if (pTiles[cC].m_Index)
+		                		FlamePos = vec2(x*Scale+24.0f, y*Scale);
+		                	cC = mx + (my+1)*w;
+							if (pTiles[cC].m_Index)
+								FlamePos = vec2(x*Scale+16.0f, y*Scale);
+							cC = (mx+1) + my*w;
+							if (pTiles[cC].m_Index)
+								FlamePos = vec2(x*Scale+8.0f, y*Scale);
+
+							pEff->LightFlame(FlamePos);
+						}
 						if (my>0)
 						{
 							int tu = mx + (my-1)*w;
@@ -301,6 +334,7 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
                 		if (pTiles[tu].m_Index != 0 && !(pTiles[c].m_Flags&TILEFLAG_HFLIP))
                 			pTiles[c].m_Flags |= TILEFLAG_HFLIP;
                 	}
+
 
                 	// Tile Effects
                 	if (pBlockInfo->m_Effects.m_Sway)
@@ -376,23 +410,40 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
 			        else
 			        	Graphics()->SetColor(Color.r*r, Color.g*g, Color.b*b, Color.a*a);
 
+			        // Apply Aspect Rotation
+			        CPoint CenterTile = { (int)(x*Scale+Scale/2), (int)(y*Scale+Scale/2) };
+			        CPoint TilePos[4] = {
+			        		{ (int)(x*Scale+Scale), (int)(y*Scale) },
+							{ (int)(x*Scale), (int)(y*Scale) },
+							{ (int)(x*Scale+Scale), (int)(y*Scale+Scale) },
+							{ (int)(x*Scale), (int)(y*Scale+Scale) }
+			        };
+
+			        if (Rotation != 0.0f)
+			        {
+			        	Rotate(&CenterTile, &TilePos[0], Rotation);
+			        	Rotate(&CenterTile, &TilePos[1], Rotation);
+			        	Rotate(&CenterTile, &TilePos[2], Rotation);
+			        	Rotate(&CenterTile, &TilePos[3], Rotation);
+			        }
+
                     // MineTee
+			        float TileOffSetX[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+			        float TileOffSetY[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
                     if (TileSway)
                     {
-						Graphics()->QuadsSetSubsetFree(x0, y0, x1, y1, x3, y3, x2, y2);
-						IGraphics::CFreeformItem Freeform(
-							x*Scale+Scale+LeafOffX, y*Scale,
-							x*Scale+LeafOffX, y*Scale,
-							x*Scale+Scale, y*Scale+Scale,
-							x*Scale, y*Scale+Scale);
-						Graphics()->QuadsDrawFreeform(&Freeform, 1);
+                    	TileOffSetX[0] = LeafOffX;
+                    	TileOffSetX[1] = LeafOffX;
+                    	TileOffSetX[2] = 0.0f;
+                    	TileOffSetX[3] = 0.0f;
                     }
-                    else
-                    {
-                        Graphics()->QuadsSetSubsetFree(x0, y0, x1, y1, x2, y2, x3, y3);
-    					IGraphics::CQuadItem QuadItem(x*Scale, y*Scale, Scale, Scale);
-    					Graphics()->QuadsDrawTL(&QuadItem, 1);
-                    }
+					Graphics()->QuadsSetSubsetFree(x0, y0, x1, y1, x3, y3, x2, y2);
+					IGraphics::CFreeformItem Freeform(
+							TilePos[0].x+TileOffSetX[0], TilePos[0].y+TileOffSetY[0],
+							TilePos[1].x+TileOffSetX[1], TilePos[1].y+TileOffSetY[1],
+							TilePos[2].x+TileOffSetX[2], TilePos[2].y+TileOffSetY[2],
+							TilePos[3].x+TileOffSetX[3], TilePos[3].y+TileOffSetY[3]);
+					Graphics()->QuadsDrawFreeform(&Freeform, 1);
                     Graphics()->QuadsEnd();
 				}
 				else if (TileMineTee == 1 && Animated)

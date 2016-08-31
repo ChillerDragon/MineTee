@@ -27,10 +27,14 @@ CPlayer::CPlayer(CGameContext *pGameServer, int ClientID, int Team)
 	m_TeamChangeTick = Server()->Tick();
 
 	// MineTee
+	m_pPet = 0x0;
 	m_Bot = (ClientID >= g_Config.m_SvMaxClients);
 	m_IsFirstJoin = true;
 	m_BotType = -1;
 	m_BotSubType = -1;
+	m_Level = 0;
+	m_LayerLevel = 0;
+	m_SpawnPos = vec2(0.0f, 0.0f);
 	mem_zero(m_aInventory, sizeof(CCellData)*NUM_INVENTORY_CELLS);
 	mem_zero(m_aCraft, sizeof(CCellData)*NUM_CRAFT_CELLS);
 	mem_zero(m_aCraftRecipe, sizeof(CCellData)*NUM_RECIPE_CELLS);
@@ -39,8 +43,16 @@ CPlayer::CPlayer(CGameContext *pGameServer, int ClientID, int Team)
 
 CPlayer::~CPlayer()
 {
-	delete m_pCharacter;
-	m_pCharacter = 0;
+	if (m_pCharacter)
+	{
+		delete m_pCharacter;
+		m_pCharacter = 0;
+	}
+	if (m_pPet)
+	{
+		delete m_pPet;
+		m_pPet = 0;
+	}
 }
 
 void CPlayer::Tick()
@@ -153,6 +165,9 @@ void CPlayer::Snap(int SnappingClient)
 	pPlayerInfo->m_ClientID = m_ClientID;
 	pPlayerInfo->m_Score = m_Score;
 	pPlayerInfo->m_Team = m_Team;
+
+	if (m_ClientID < g_Config.m_SvMaxClients)
+		dbg_msg("PL", "Team: %d -- %d", m_Team, m_ClientID);
 
 	if(m_ClientID == SnappingClient)
 		pPlayerInfo->m_Local = 1;
@@ -313,28 +328,27 @@ void CPlayer::TryRespawn()
         else if (m_BotType == BOT_MONSTER)
         	m_BotSubType = rand()%NUM_MONSTERS;
 
+        if(!GameServer()->m_pController->CanSpawn(m_Team, &SpawnPos, m_BotType, m_BotSubType))
+        	return;
+
         GameServer()->UpdateBotInfo(m_ClientID);
-    }
-    //
 
-	if(!GameServer()->m_pController->CanSpawn(m_Team, &SpawnPos, m_BotType, m_BotSubType))
-		return;
-
-	// MineTee
-	if (!IsBot())
-	{
-		m_pCharacter = new(m_ClientID) CCharacter(&GameServer()->m_World);
-	}
-	else
-	{
 		if (m_BotType == BOT_MONSTER)
 			m_pCharacter = new(m_ClientID) CMonster(&GameServer()->m_World);
 		else if (m_BotType == BOT_ANIMAL)
 			m_pCharacter = new(m_ClientID) CAnimal(&GameServer()->m_World);
 		else
 			return;
-	}
-	//
+    }
+    else
+    {
+    	if (m_SpawnPos.x == 0.0f && m_SpawnPos.y == 0.0f)
+    		m_SpawnPos = m_pGameServer->m_pController->GetMapSpawn();
+
+    	SpawnPos = m_SpawnPos;
+    	m_pCharacter = new(m_ClientID) CCharacter(&GameServer()->m_World);
+    }
+    //
 
 	m_Spawning = false;
 
@@ -354,17 +368,20 @@ int CPlayer::GetFirstEmptyInventoryIndex()
 }
 
 
-void CPlayer::FillAccountData(void *pAccountInfo)
+void CPlayer::FillAccountData(IAccountSystem::ACCOUNT_INFO *pAccountInfo)
 {
-	IAccountSystem::ACCOUNT_INFO *pInfo = (IAccountSystem::ACCOUNT_INFO*)pAccountInfo;
-	pInfo->m_Level = m_Level;
-	str_copy(pInfo->m_aSkinName, m_TeeInfos.m_SkinName, sizeof(pInfo->m_aSkinName));
-	mem_copy(&pInfo->m_Inventory, &m_aInventory, sizeof(CCellData)*NUM_INVENTORY_CELLS);
+	pAccountInfo->m_IsNew = false;
+	pAccountInfo->m_Level = m_Level;
+	pAccountInfo->m_LayerLevel = m_LayerLevel;
+	pAccountInfo->m_SpawnPos = m_SpawnPos;
+	str_copy(pAccountInfo->m_aSkinName, m_TeeInfos.m_SkinName, sizeof(pAccountInfo->m_aSkinName));
+	mem_copy(&pAccountInfo->m_Inventory, &m_aInventory, sizeof(CCellData)*NUM_INVENTORY_CELLS);
 }
-void CPlayer::UseAccountData(void *pAccountInfo)
+void CPlayer::UseAccountData(IAccountSystem::ACCOUNT_INFO *pAccountInfo)
 {
-	IAccountSystem::ACCOUNT_INFO *pInfo = (IAccountSystem::ACCOUNT_INFO*)pAccountInfo;
-	m_Level = pInfo->m_Level;
-	str_copy(m_TeeInfos.m_SkinName, pInfo->m_aSkinName, sizeof(pInfo->m_aSkinName));
-	mem_copy(&m_aInventory, &pInfo->m_Inventory, sizeof(CCellData)*NUM_INVENTORY_CELLS);
+	m_Level = pAccountInfo->m_Level;
+	m_LayerLevel = pAccountInfo->m_LayerLevel;
+	m_SpawnPos = pAccountInfo->m_SpawnPos;
+	str_copy(m_TeeInfos.m_SkinName, pAccountInfo->m_aSkinName, sizeof(pAccountInfo->m_aSkinName));
+	mem_copy(&m_aInventory, &pAccountInfo->m_Inventory, sizeof(CCellData)*NUM_INVENTORY_CELLS);
 }

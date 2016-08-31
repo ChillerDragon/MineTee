@@ -1585,11 +1585,12 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 	// MineTee: Removed other gamemodes!
 	m_pController = new CGameControllerMineTee(this);
 
-	if (g_Config.m_SvMapGeneration && m_pServer->m_MapGenerated) // generate a random world if wanted
+	if (m_pServer->m_MapGenerated) // generate a random world if wanted
 	{
 		m_MapGen.FillMap(g_Config.m_SvMapGenerationSeed);
 		SaveMap("");
 	}
+	m_pController->GenerateMapSpawn();
 
 	// setup core world
 	//for(int i = 0; i < MAX_CLIENTS; i++)
@@ -1906,9 +1907,10 @@ bool CGameContext::OnSendMap(int ClientID) // MineTee
         if (!pMap)
             return false;
 
+        // MineTee: Create a temporal map for send to the client because the map in the memory isn't in the same format that the map on the disk.
         CDataFileWriter fileWrite;
         char aMapFile[255];
-        str_format(aMapFile, sizeof(aMapFile), "maps/%s_tmp.map", Server()->GetMapName());
+        str_format(aMapFile, sizeof(aMapFile), "worlds/%s/%s.tmp", Server()->GetMapName(), Server()->GetMapName());
         if (!fileWrite.SaveMap(pStorage, pMap->GetFileReader(), aMapFile, Server()->GetBlocksData(), Server()->GetBlocksDataSize()))
 		{
 			return false;
@@ -1944,7 +1946,7 @@ bool CGameContext::OnSendMap(int ClientID) // MineTee
 		io_read(File, Server()->m_aClientsMapInfo[ClientID].m_pCurrentMapData, Server()->m_aClientsMapInfo[ClientID].m_CurrentMapSize);
 
 		io_close(File);
-		fs_remove(aMapFile);
+		//Storage()->RemoveFile(aMapFile, IStorage::TYPE_SAVE); -- Not used to save disk writes...
 	}
 
 	return true;
@@ -1991,24 +1993,24 @@ void CGameContext::SaveMap(const char *path)
 
     CDataFileWriter fileWrite;
     char aMapFile[512];
-    str_format(aMapFile, sizeof(aMapFile), "maps/%s.map", Server()->GetMapName());
+    str_format(aMapFile, sizeof(aMapFile), "worlds/%s/%s.map", Server()->GetMapName(), Server()->GetMapName());
     if (path[0] == 0)
     {
     	// FIXME: Do this for not write&read in the same file... and yeah, is ugly :/
     	char aMapFileCopy[512];
-    	str_format(aMapFileCopy, sizeof(aMapFileCopy), "maps/%s__.map", Server()->GetMapName());
+    	str_format(aMapFileCopy, sizeof(aMapFileCopy), "worlds/%s/%s__.map", Server()->GetMapName(), Server()->GetMapName());
     	if (fileWrite.SaveMap(Storage(), pMap->GetFileReader(), aMapFileCopy))
     	{
     		// Really hackish :(
-    		IOHANDLE *pTempFile = pMap->GetFileReader()->GetFile();
-    		io_close(*pTempFile);
+    		//IOHANDLE *pTempFile = pMap->GetFileReader()->GetFile();
+    		//io_close(*pTempFile);
     		Storage()->RemoveFile(aMapFile, IStorage::TYPE_SAVE);
     		Storage()->RenameFile(aMapFileCopy, aMapFile, IStorage::TYPE_SAVE);
 
-			char aMapsPath[512];
-			Storage()->GetCompletePath(IStorage::TYPE_SAVE, "maps/", aMapsPath, sizeof(aMapsPath));
-			str_format(aMapFileCopy, sizeof(aMapFileCopy), "%s%s.map", aMapsPath, Server()->GetMapName());
-			*pTempFile = io_open(aMapFileCopy, IOFLAG_READ);
+			//char aMapsPath[512];
+			//Storage()->GetCompletePath(IStorage::TYPE_SAVE, "worlds", aMapsPath, sizeof(aMapsPath));
+			//str_format(aMapFileCopy, sizeof(aMapFileCopy), "%s%s/%s.map", aMapsPath, Server()->GetMapName(), Server()->GetMapName());
+			//*pTempFile = io_open(aMapFileCopy, IOFLAG_READ);
     	}
     }
     else
@@ -2018,7 +2020,7 @@ void CGameContext::SaveMap(const char *path)
 
     char aBuf[128];
     str_format(aBuf, sizeof(aBuf), "Map saved in '%s'!", aMapFile);
-    SendChat(-1, CGameContext::CHAT_ALL, aBuf);
+    Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", aBuf);
 }
 
 void CGameContext::GiveItem(int ClientID, int ItemID, int ammo)
@@ -2125,7 +2127,7 @@ void CGameContext::SaveAccount(int ClientID)
 	mem_zero(&pAccountInfo->m_PetInfo, sizeof(IAccountSystem::ACCOUNT_INFO::PetInfo));
 	CPet *pPet = pPlayer->GetPet();
 	if (pPet)
-		pPet->FillAccountPetData(&pAccountInfo->m_PetInfo);
+		pPet->FillAccountData(pAccountInfo);
 	else
 		pAccountInfo->m_PetInfo.m_Alive = false;
 
@@ -2162,7 +2164,7 @@ void CGameContext::SendRelease(int ClientID)
 
 void CGameContext::OnClientMoveCell(int ClientID, int From, int To, unsigned char Qty)
 {
-	m_pController->OnClientMoveCell(ClientID, From, To, Qty);
+	m_pController->OnClientMoveCell(ClientID, From, To, Qty); // All moved to 'minetee' controller
 }
 
 void CGameContext::OnClientRelease(int ClientID)

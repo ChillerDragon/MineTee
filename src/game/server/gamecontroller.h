@@ -68,6 +68,8 @@ protected:
 	int m_UnbalancedTick;
 	bool m_ForceBalanced;
 
+	vec2 m_MapSpawn; // MineTee
+
 public:
 	const char *m_pGameType;
 
@@ -165,6 +167,9 @@ public:
 	virtual void OnClientMoveCell(int ClientID, int From, int To, unsigned char Qty) {}
 	virtual void LoadData() {}
 	virtual void SaveData() {}
+	virtual void GenerateMapSpawn() {}
+	virtual vec2 GetMapSpawn() const { return m_MapSpawn; }
+	virtual bool CheckBlockPosition(ivec2 MapPos) { return true; }
 };
 
 #endif

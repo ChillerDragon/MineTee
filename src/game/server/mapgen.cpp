@@ -34,7 +34,7 @@ void CMapGen::FillMap(int Seed)
 	if (!m_pLayers->MineTeeLayer())
 		return;
 
-	dbg_msg("mapget", "started map generation with seed=%d", Seed);
+	dbg_msg("mapgen", "started map generation with seed=%d", Seed);
 
 	if (m_pNoise)
 		delete m_pNoise;
@@ -89,6 +89,12 @@ void CMapGen::FillMap(int Seed)
 	GenerateCaves(CBlockManager::LAVA_D);
 	dbg_msg("mapgen", "caves generated in %.5fs", (float)(time_get()-ProcessTime)/time_freq());
 
+	// Flat Zones
+	ProcessTime = time_get();
+	GenerateFlatZones();
+	dbg_msg("mapgen", "flat zones generated in %.5fs", (float)(time_get()-ProcessTime)/time_freq());
+
+
 	// Improve Environment
 	ProcessTime = time_get();
 	DoFallSteps();
@@ -130,6 +136,29 @@ void CMapGen::FillMap(int Seed)
 	GenerateSkip();
 
 	dbg_msg("mapgen", "map successfully generated in %.5fs", (float)(time_get()-TotalTime)/time_freq());
+}
+
+void CMapGen::GenerateFlatZones()
+{
+	const int DirtLevel = PercOf(DIRT_LEVEL, m_pLayers->MineTeeLayer()->m_Height);
+	const float frequency = 64.0f / (float)m_pLayers->MineTeeLayer()->m_Width;
+
+	for (int TilePosX = 1; TilePosX < m_pLayers->MineTeeLayer()->m_Width-1; TilePosX++)
+	{
+		const float N = m_pNoise->Noise((float)TilePosX * frequency);
+		if (N > 0.1f)
+		{
+			for (int e=TilePosX-10; e<TilePosX+10; e++)
+			{
+				int TilePosY;
+				for (TilePosY=1; TilePosY<DirtLevel; TilePosY++)
+					ModifTile(ivec2(e, TilePosY), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::AIR);
+
+				if (m_pCollision->GetMineTeeTileIndexAt(vec2(e*32.0f, (TilePosY+1)*32.0f)) == CBlockManager::DIRT)
+					ModifTile(ivec2(e, TilePosY), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::GRASS);
+			}
+		}
+	}
 }
 
 void CMapGen::GenerateBasicTerrain()
@@ -189,11 +218,11 @@ void CMapGen::GenerateOre(int Type, float F, int RawLevel, int Radius, int Clust
 {
 	const int Level = PercOf(RawLevel, m_pLayers->MineTeeLayer()->m_Height);
 	const int MaxOreLevel = Level+Radius;
+	const float frequency = F / (float)m_pLayers->MineTeeLayer()->m_Width;
 	for(int x = 0; x < m_pLayers->MineTeeLayer()->m_Width; x++)
 	{
 		for(int y = Level; y < MaxOreLevel; y++)
 		{
-			float frequency = F / (float)m_pLayers->MineTeeLayer()->m_Width;
 			float noise = m_pNoise->Noise((float)x * frequency, (float)y * frequency);
 
 			if(noise > 0.85f)
@@ -222,11 +251,11 @@ void CMapGen::GenerateCaves(int FillBlock)
 	const int StoneLevel = PercOf(STONE_LEVEL, m_pLayers->MineTeeLayer()->m_Height);
 
 	// cut in the caves with a 2d perlin noise
+	const float frequency = 32.0f / (float)m_pLayers->MineTeeLayer()->m_Width;
 	for(int x = 0; x < m_pLayers->MineTeeLayer()->m_Width; x++)
 	{
 		for(int y = StoneLevel; y < m_pLayers->MineTeeLayer()->m_Height; y++)
 		{
-			float frequency = 32.0f / (float)m_pLayers->MineTeeLayer()->m_Width;
 			float noise = m_pNoise->Noise((float)x * frequency, (float)y * frequency);
 	
 			if(noise > 0.4f)
@@ -240,11 +269,11 @@ void CMapGen::GenerateBiomes(int FillBlock)
 	const int StoneLevel = PercOf(DIRT_LEVEL, m_pLayers->MineTeeLayer()->m_Height);
 
 	// cut in the caves with a 2d perlin noise
+	const float frequency = 32.0f / (float)m_pLayers->MineTeeLayer()->m_Width;
 	for(int x = 0; x < m_pLayers->MineTeeLayer()->m_Width; x++)
 	{
 		for(int y = StoneLevel; y < m_pLayers->MineTeeLayer()->m_Height; y++)
 		{
-			float frequency = 32.0f / (float)m_pLayers->MineTeeLayer()->m_Width;
 			float noise = m_pNoise->Noise((float)x * frequency, (float)y * frequency);
 
 			if(noise > 0.4f)
@@ -279,19 +308,29 @@ void CMapGen::GenerateTunnels(int Num)
 void CMapGen::GenerateWater()
 {
 	const int WaterLevel = PercOf(WATER_LEVEL, m_pLayers->MineTeeLayer()->m_Height);
-
+	const float frequency = 128.0f / (float)m_pLayers->MineTeeLayer()->m_Width;
 	for(int x = 0; x < m_pLayers->MineTeeLayer()->m_Width; x++)
-		for(int y = WaterLevel; m_pCollision->GetMineTeeTileIndexAt(vec2(x*32, y*32)) == CBlockManager::AIR; y++)
-			ModifTile(ivec2(x, y), m_pLayers->GetMineTeeLayerIndex(), y==WaterLevel?CBlockManager::WATER_A:CBlockManager::WATER_D);
+	{
+		const float N = m_pNoise->Noise((float)x * frequency);
+		if (N > 0.1f)
+		{
+			for (int e=x-10; e<x+10; e++)
+			{
+				for(int y = WaterLevel; m_pCollision->GetMineTeeTileIndexAt(vec2(e*32, y*32)) == CBlockManager::AIR; y++)
+					ModifTile(ivec2(e, y), m_pLayers->GetMineTeeLayerIndex(), y==WaterLevel?CBlockManager::WATER_A:CBlockManager::WATER_D);
+			}
+		}
+	}
 }
 
 void CMapGen::GenerateFlowers()
 {
 	const int aFlowers[] = {CBlockManager::ROSE, CBlockManager::DAISY, CBlockManager::BROWN_TREE_SAPLING, CBlockManager::GRASS_A};
+	const int aMaxFieldsSize[] = { 3, 3, 1, 30 };
 	for(int x = 1; x < m_pLayers->MineTeeLayer()->m_Width-1; x++)
 	{
-		int FieldSize = m_pNoise->Perlin()->GetURandom(2,3);
 		int rnd = m_pNoise->Perlin()->GetURandom(0,(sizeof(aFlowers)/sizeof(int))-1);
+		int FieldSize = m_pNoise->Perlin()->GetURandom(1,aMaxFieldsSize[rnd]);
 		if(!m_pNoise->Perlin()->GetURandom(0,32))
 		{
 			for(int f = x; f - x <= FieldSize; f++)
@@ -331,7 +370,7 @@ void CMapGen::GenerateMushrooms()
 				if(y >= m_pLayers->MineTeeLayer()->m_Height)
 					break;
 
-				if(m_pCollision->GetMineTeeTileIndexAt(vec2(x*32, f*32)) != CBlockManager::AIR)
+				if(m_pCollision->GetMineTeeTileIndexAt(vec2(f*32, y*32)) != CBlockManager::AIR)
 					continue;
 
 				ModifTile(ivec2(f, y), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::MUSHROOM_RED + m_pNoise->Perlin()->GetURandom(0,2));
@@ -344,15 +383,31 @@ void CMapGen::GenerateMushrooms()
 
 void CMapGen::GenerateTrees()
 {
+	int BlockTreeID = CBlockManager::WOOD_BROWN;
+	bool InUse = false;
 	int LastTreeX = 0;
+	const int BlocksTree[2] = { CBlockManager::WOOD_BROWN, CBlockManager::WOOD_BIRCH};
 	const int TreesLevelMin = PercOf(VEGETATION_LEVEL_MIN, m_pLayers->MineTeeLayer()->m_Height);
 	const int TreesLevelMax = PercOf(VEGETATION_LEVEL_MAX, m_pLayers->MineTeeLayer()->m_Height);
 
 	for(int x = 10; x < m_pLayers->MineTeeLayer()->m_Width-10; x++)
 	{
 		// trees like to spawn in groups
-		if((abs(LastTreeX - x) >= 8) || (abs(LastTreeX - x) <= 8 && abs(LastTreeX - x) >= 3 && !m_pNoise->Perlin()->GetURandom(0,8)))
+		if (!InUse && !m_pNoise->Perlin()->GetURandom(0,8))
 		{
+			LastTreeX = x;
+			InUse = true;
+			BlockTreeID = BlocksTree[m_pNoise->Perlin()->GetURandom(0,1)];
+		}
+
+		if (InUse)
+		{
+			if (x-LastTreeX >= 24)
+			{
+				InUse = false;
+				continue;
+			}
+
 			int TempTileY = TreesLevelMin;
 			while(m_pCollision->GetMineTeeTileIndexAt(vec2(x*32, (TempTileY+1)*32)) != CBlockManager::GRASS
 					&& m_pCollision->GetMineTeeTileIndexAt(vec2(x*32, (TempTileY+1)*32)) != CBlockManager::SAND
@@ -367,7 +422,7 @@ void CMapGen::GenerateTrees()
 			const int TileBase = m_pCollision->GetMineTeeTileIndexAt(vec2(x*32, (TempTileY+1)*32));
 			const ivec2 TileMapPos = {x, TempTileY};
 			if (TileBase == CBlockManager::GRASS)
-				GenerateTree(TileMapPos);
+				GenerateTree(TileMapPos, BlockTreeID);
 			else if (TempTileY > 4 && TileBase == CBlockManager::SAND)
 			{
 				if (m_pCollision->IsBlockNear(CBlockManager::WATER_A, TileMapPos, 3)
@@ -384,17 +439,19 @@ void CMapGen::GenerateTrees()
 						ModifTile(ivec2(x, TempTileY+i), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::CACTUS);
 				}
 			}
-			LastTreeX = x;
+
+			x += m_pNoise->Perlin()->GetURandom(3,8);
 		}
+
 	}
 }
 
-void CMapGen::GenerateTree(ivec2 Pos)
+void CMapGen::GenerateTree(ivec2 Pos, int BlockID)
 {
 	// plant the tree \o/
 	int TreeHeight = m_pNoise->Perlin()->GetURandom(4,5);
 	for(int h = 0; h <= TreeHeight; h++)
-		ModifTile(ivec2(Pos.x, Pos.y-h), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::WOOD_BROWN);
+		ModifTile(ivec2(Pos.x, Pos.y-h), m_pLayers->GetMineTeeLayerIndex(), BlockID);
 
 	// add the leafs
 	for(int l = 0; l <= TreeHeight/2.5f; l++)
@@ -421,22 +478,21 @@ void CMapGen::GenerateBorder()
 	for(int i = 0; i < m_pLayers->MineTeeLayer()->m_Width; i++)
 	{
 		// bottom border
-		ModifTile(ivec2(i, m_pLayers->MineTeeLayer()->m_Height-1), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::BEDROCK);
+		ModifTile(ivec2(i, m_pLayers->MineTeeLayer()->m_Height-1), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::BEDROCK, false);
 	}
 
 	for(int i = 0; i < m_pLayers->MineTeeLayer()->m_Height; i++)
 	{
 		// left border
-		ModifTile(ivec2(0, i), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::BEDROCK);
+		ModifTile(ivec2(0, i), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::BEDROCK, false);
 		
 		// right border
-		ModifTile(ivec2(m_pLayers->MineTeeLayer()->m_Width-1, i), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::BEDROCK);
+		ModifTile(ivec2(m_pLayers->MineTeeLayer()->m_Width-1, i), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::BEDROCK, false);
 	}
 }
 
 void CMapGen::GenerateSkip()
 {
-
 	for(int g = 0; g < m_pLayers->NumGroups(); g++)
 	{
 		CMapItemGroup *pGroup = m_pLayers->GetGroup(g);
@@ -451,7 +507,7 @@ void CMapGen::GenerateSkip()
 				CTile *pTiles = (CTile *)m_pLayers->Map()->GetData(pTmap->m_Data);
 				for(int y = 0; y < pTmap->m_Height; y++)
 				{
-					for(int x = 0; x < pTmap->m_Width;)
+					for(int x = 1; x < pTmap->m_Width;)
 					{
 						int sx;
 						for(sx = 1; x+sx < pTmap->m_Width && sx < 255; sx++)
@@ -663,9 +719,9 @@ void CMapGen::DoWaterSteps()
 	}
 }
 
-inline void CMapGen::ModifTile(ivec2 Pos, int Layer, int BlockId)
+inline void CMapGen::ModifTile(ivec2 Pos, int Layer, int BlockId, bool limited)
 {
 	CBlockManager::CBlockInfo *pBlockInfo = m_pCollision->GetBlockManager()->GetBlockInfo(BlockId);
 	if (pBlockInfo)
-		m_pCollision->ModifTile(Pos, m_pLayers->GetMineTeeGroupIndex(), Layer, BlockId, 0, pBlockInfo->m_Health);
+		m_pCollision->ModifTile(Pos, m_pLayers->GetMineTeeGroupIndex(), Layer, BlockId, 0, pBlockInfo->m_Health, limited, false);
 }

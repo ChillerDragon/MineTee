@@ -46,7 +46,7 @@ public:
 	// MineTee
 	bool IsBlockNear(int BlockID, ivec2 MapPos, int Radius);
 	CBlockManager* BlockManager() { return m_pBlockManager; }
-	bool ModifTile(ivec2 pos, int group, int layer, int index, int flags, int reserved);
+	bool ModifTile(ivec2 pos, int group, int layer, int index, int flags, int reserved, bool limited=true, bool regen=true);
 	void RegenerateSkip(CTile *pTiles, int Width, int Height, ivec2 Pos, bool Delete);
 	int GetMineTeeTileIndexAt(vec2 Pos);
 	CTile* GetMineTeeTileAt(vec2 Pos);

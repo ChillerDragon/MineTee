@@ -1,5 +1,5 @@
 /* (c) Alexandre Díaz. See licence.txt in the root of the distribution for more information. */
-/* If you are missing that file, acquire a complete release at teeworlds.com.                */
+/* If you are missing that file, acquire a complete release at https://github.com/CytraL/MineTee */
 #ifndef ENGINE_SHARED_BLOCK_PROVIDER_H
 #define ENGINE_SHARED_BLOCK_PROVIDER_H
 #include <map>
@@ -192,6 +192,8 @@ public:
     		m_Explode = false;
     		m_PlayerVel = 1.0f;
 
+    		mem_zero(m_Aspect, sizeof(float)*4);
+
     		mem_zero(m_Functionality.m_aType, sizeof(m_Functionality.m_aType));
     		m_Functionality.m_NormalItems = 0;
     		m_Functionality.m_MutatedItems = 0;
@@ -225,6 +227,7 @@ public:
 		int m_OnPut;
 		int m_OnWear;
 		int m_OnSun;
+		float m_Aspect[4];
 		float m_PlayerVel;
 		std::map<int, unsigned char> m_vOnBreak;
 		std::map<int, unsigned int> m_vProbabilityOnBreak;

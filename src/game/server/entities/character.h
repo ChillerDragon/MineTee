@@ -9,6 +9,7 @@
 #include <game/generated/protocol.h>
 #include <game/block_manager.h> // MineTee
 #include <engine/shared/network.h> // MineTee
+#include <engine/accountsystem.h> // MineTee
 
 #include <game/gamecore.h>
 
@@ -19,7 +20,7 @@ enum
 	WEAPON_WORLD = -1, // death tiles etc
 };
 
-class CCharacter : public CEntity
+class CCharacter : public CEntity, public AccountSerializable
 {
 	MACRO_ALLOC_POOL_ID()
 	friend class CMonster;
@@ -89,8 +90,8 @@ public:
 	CCellData* GetFirstEmptyInventoryIndex();
 
     int GetCurrentAmmo(int wid);
-    void FillAccountData(void *pAccountInfo);
-    void UseAccountData(void *pAccountInfo);
+    virtual void FillAccountData(IAccountSystem::ACCOUNT_INFO *pAccountInfo);
+    virtual void UseAccountData(IAccountSystem::ACCOUNT_INFO *pAccountInfo);
 
 private:
 	// player controlling this character

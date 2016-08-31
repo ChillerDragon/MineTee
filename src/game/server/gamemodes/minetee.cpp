@@ -1,5 +1,5 @@
 /* (c) Alexandre Díaz. See licence.txt in the root of the distribution for more information. */
-/* If you are missing that file, acquire a complete release at teeworlds.com.                */
+/* If you are missing that file, acquire a complete release at https://github.com/CytraL/MineTee */
 #include "minetee.h"
 #include <engine/shared/config.h>
 #include <game/generated/protocol.h>
@@ -22,12 +22,22 @@ CGameControllerMineTee::CGameControllerMineTee(class CGameContext *pGameServer)
 	m_lpChests.clear();
 	m_lpSigns.clear();
 
+	m_pNoise = new CPerlinOctave(7, g_Config.m_SvMapGenerationSeed);
+	m_AutoSaveTimer = time_get();
+
 	LoadData();
 }
 
 void CGameControllerMineTee::Tick()
 {
     bool Vegetal=false, Envirionment=false, Destruction=false, Cook = false, Wear = false;
+
+    if (m_pNoise->Perlin()->GetSeed() != g_Config.m_SvMapGenerationSeed) // ignore_convention
+    {
+    	delete m_pNoise;
+    	m_pNoise = new CPerlinOctave(7, g_Config.m_SvMapGenerationSeed);
+    }
+
 
     //Control Actions
     if (Server()->Tick() - m_TimeVegetal > Server()->TickSpeed()*60.0f)
@@ -116,6 +126,13 @@ void CGameControllerMineTee::Tick()
 
             mem_free(pTempTiles);
         }
+    }
+
+    // Auto-Save
+    if (g_Config.m_SvMapAutoSave > 0 && time_get()-m_AutoSaveTimer >= g_Config.m_SvMapAutoSave*time_freq())
+    {
+    	GameServer()->SaveMap("");
+    	m_AutoSaveTimer = time_get();
     }
 
 	CGameController::Tick();
@@ -502,7 +519,6 @@ void CGameControllerMineTee::VegetationTick(CTile *pTempTiles, const int *pTileI
 
 void CGameControllerMineTee::OnCharacterSpawn(class CCharacter *pChr)
 {
-	// Zombies Weapons
 	if (pChr->GetPlayer()->IsBot())
 	{
 		if (pChr->GetPlayer()->GetBotType() == BOT_MONSTER)
@@ -530,11 +546,14 @@ void CGameControllerMineTee::OnCharacterSpawn(class CCharacter *pChr)
 		else
 			pChr->IncreaseHealth(5);
 	}
-	else if (!pChr->GetPlayer()->IsBot())
+	else
 	{
 		pChr->IncreaseHealth(10);
-		pChr->GiveItem(WEAPON_HAMMER, 255);
-		pChr->GiveItem(NUM_WEAPONS+CBlockManager::TORCH, 1);
+
+		if (!pChr->InInventory(WEAPON_HAMMER))
+			pChr->GiveItem(WEAPON_HAMMER, 255);
+		if (!pChr->InInventory(NUM_WEAPONS+CBlockManager::TORCH))
+			pChr->GiveItem(NUM_WEAPONS+CBlockManager::TORCH, 1);
 	}
 	pChr->SetInventoryItem(0);
 }
@@ -543,7 +562,7 @@ int CGameControllerMineTee::OnCharacterDeath(class CCharacter *pVictim, class CP
 {
     CGameController::OnCharacterDeath(pVictim, pKiller, Weapon);
 
-    if (!(pVictim->GetPlayer()->IsBot() && pVictim->GetPlayer() == pKiller) && Weapon > WEAPON_WORLD)
+    if (pVictim->GetPlayer() != pKiller && Weapon > WEAPON_WORLD)
     {
 		for (size_t i=0; i<NUM_CELLS_LINE; i++)
 		{
@@ -746,7 +765,8 @@ void CGameControllerMineTee::OnClientActiveBlock(int ClientID)
 			return;
 		}
 
-		const int BlockID = ((int)FinishPos.y/32)*GameServer()->Collision()->GetWidth()+((int)FinishPos.x/32);
+		const ivec2 FinishMapPos = ivec2((int)FinishPos.x/32, (int)FinishPos.y/32);
+		const int BlockID = FinishMapPos.y*GameServer()->Collision()->GetWidth()+FinishMapPos.x;
 
 		// Check if block are used by other player
 		for (int i=0; i<g_Config.m_SvMaxClients; i++)
@@ -791,6 +811,15 @@ void CGameControllerMineTee::OnClientActiveBlock(int ClientID)
 			SendInventory(ClientID, true);
 			Actived = true;
 		}
+		else if (str_comp(pBlockInfo->m_Functionality.m_aType, "bed") == 0)
+		{
+			vec2 NewHomePos = vec2(FinishPos.x, FinishPos.y-32.0f-16.0f);
+			if (pChar->GetPlayer()->m_SpawnPos != NewHomePos)
+			{
+				pChar->GetPlayer()->m_SpawnPos = NewHomePos;
+				GameServer()->SendChatTarget(ClientID, "Home changed successfully!");
+			}
+		}
 	}
 
 	if (!Actived)
@@ -817,7 +846,7 @@ void CGameControllerMineTee::OnPlayerPutBlock(int ClientID, ivec2 TilePos, int B
 
 void CGameControllerMineTee::OnPlayerDestroyBlock(int ClientID, ivec2 TilePos)
 {
-	const vec2 WorldTilePos = vec2(TilePos.x*32.0f, TilePos.y*32.0f);
+	const vec2 WorldTilePos = vec2(TilePos.x*32.0f+16.0f, TilePos.y*32.0f+16.0f);
 	CTile *pTile = GameServer()->Collision()->GetMineTeeTileAt(WorldTilePos);
 	if (!pTile)
 		return;
@@ -851,7 +880,7 @@ void CGameControllerMineTee::OnPlayerDestroyBlock(int ClientID, ivec2 TilePos)
 				if (itProb != pBlockInfo->m_vProbabilityOnBreak.end() && !(rand()%itProb->second))
 				{
 					CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, it->first);
-					pPickup->m_Pos = WorldTilePos + vec2(8.0f, 8.0f);
+					pPickup->m_Pos = WorldTilePos - vec2(8.0f, 8.0f);
 					pPickup->m_Amount = it->second;
 				}
 			}
@@ -859,7 +888,7 @@ void CGameControllerMineTee::OnPlayerDestroyBlock(int ClientID, ivec2 TilePos)
 		else
 		{
 			CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_BLOCK, TileIndex);
-			pPickup->m_Pos = WorldTilePos + vec2(8.0f, 8.0f);
+			pPickup->m_Pos = WorldTilePos - vec2(8.0f, 8.0f);
 		}
 	}
 
@@ -884,8 +913,6 @@ void CGameControllerMineTee::OnPlayerDestroyBlock(int ClientID, ivec2 TilePos)
 				pPickup->m_Amount = pChest->m_apItems[i].m_Amount;
 				pPickup->m_Owner = ClientID;
 			}
-			mem_free(pChest->m_apItems);
-			mem_free(pChest);
 			m_lpChests.erase(it);
 
 			it = m_lpChests.begin();
@@ -898,6 +925,9 @@ void CGameControllerMineTee::OnPlayerDestroyBlock(int ClientID, ivec2 TilePos)
 				else
 					++it;
 			}
+
+			mem_free(pChest->m_apItems);
+			mem_free(pChest);
 		}
 	}
 	else if (pBlockInfo && str_comp(pBlockInfo->m_Functionality.m_aType, "sign") == 0)
@@ -1107,18 +1137,37 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
     return true;
 }
 
+void CGameControllerMineTee::GenerateMapSpawn()
+{
+	if (m_MapSpawn.x != 0.0f || m_MapSpawn.y != 0.0f)
+		return;
+
+	CSpawnEval SpawnEval;
+	do
+	{
+		GenerateRandomSpawn(&SpawnEval, -1);
+	} while (!SpawnEval.m_Got);
+	m_MapSpawn = SpawnEval.m_Pos;
+}
+
 void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 {
 	vec2 P;
-	bool IsBot = (BotType != -1);
+	const bool IsBot = (BotType != -1);
 
 	if (IsBot)
 	{
 		for (int q=0; q<g_Config.m_SvMaxClients;q++)
 		{
 			int StartX, StartY, EndX, EndY;
-			if (!GetPlayerArea(q, &StartX, &EndX, &StartY, &EndY))
+			if (!GetPlayerArea(q, &StartX, &EndX, &StartY, &EndY)) // The bot only spawn inside player area
 				continue;
+
+			// Increase Area for Spawn bots outside player vision.
+			StartX = max(0, StartX-10);
+			EndX = min(GameServer()->Collision()->GetWidth(), EndX+10);
+			StartY = max(0, StartY-10);
+			EndY = min(GameServer()->Collision()->GetHeight(), EndY+10);
 
 
 			if (BotType != BOT_ANIMAL) // Enemies can spawn underground or outside
@@ -1126,76 +1175,80 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 				P = vec2(int_rand(StartX, EndX), int_rand(StartY, EndY));
 				P = vec2(P.x*32.0f + 16.0f, P.y*32.0f + 16.0f);
 
-				if (GameServer()->Collision()->GetCollisionAt(P.x-32, P.y) != 0 ||
-					GameServer()->Collision()->GetCollisionAt(P.x+32, P.y) != 0 ||
-					GameServer()->Collision()->GetCollisionAt(P.x, P.y-32) != 0)
+				const int TileIndex = GameServer()->Collision()->GetMineTeeTileIndexAt(vec2(P.x, P.y+32.0f));
+				if (GameServer()->Collision()->CheckPoint(vec2(P.x, P.y), true) && !GameServer()->Collision()->CheckPoint(vec2(P.x, P.y+32.0f), true)
+						&& GameServer()->m_BlockManager.IsFluid(TileIndex))
+				{
+					pEval->m_Got = false;
 					return;
+				}
 			}
 			else // Animals only spawn in the outside
 			{
 				bool found = false;
-				do
-				{
-					found = false;
-					P = vec2(int_rand(StartX, EndX), 0);
-					P = vec2(P.x*32.0f + 16.0f, 16.0f);
-					const int TotalH = GameServer()->Collision()->GetHeight()*32;
-					for (int i=P.y; i<TotalH-1; i+=32)
-					{
-						if (GameServer()->Collision()->CheckPoint(vec2(P.x, i), true))
-						{
-							P.y = i-32;
-							found = true;
-							break;
-						}
-					}
-				} while (!found);
-			}
 
-			int TileIndex = GameServer()->Collision()->GetMineTeeTileIndexAt(P);
-			if (GameServer()->Collision()->GetCollisionAt(P.x, P.y+32) == CCollision::COLFLAG_SOLID
-					&& !GameServer()->m_BlockManager.IsFluid(TileIndex))
-			{
-				float S = EvaluateSpawnPos(pEval, P);
-				if(!pEval->m_Got || pEval->m_Score > S)
+				P = vec2(int_rand(StartX, EndX), 0);
+				P = vec2(P.x*32.0f + 16.0f, 16.0f);
+				const int TotalH = GameServer()->Collision()->GetHeight()*32;
+				for (int i=P.y; i<TotalH-32; i+=32)
 				{
-					pEval->m_Got = true;
-					pEval->m_Score = S;
-					P.y -= 8; // Be secure that not spawn stuck
-					pEval->m_Pos = P;
+					const int TileIndex = GameServer()->Collision()->GetMineTeeTileIndexAt(vec2(P.x, i-32));
+					if (GameServer()->Collision()->CheckPoint(vec2(P.x, i), true) && !GameServer()->m_BlockManager.IsFluid(TileIndex))
+					{
+						P.y = i-32;
+						found = true;
+						break;
+					}
+				}
+
+				if (!found)
+				{
+					pEval->m_Got = false;
+					return;
 				}
 			}
+
+			// TODO: EvaluateSpawnPos
+			float S = EvaluateSpawnPos(pEval, P);
+			if(!pEval->m_Got || pEval->m_Score > S)
+			{
+				pEval->m_Got = true;
+				pEval->m_Score = S;
+				P.y -= 8; // Be secure that not spawn stuck
+				pEval->m_Pos = P;
+			}
+
+			// Check Position
+			const float frequency = 64.0f / (float)GameServer()->Layers()->MineTeeLayer()->m_Width;
+			const ivec2 MapPos = ivec2(P.x/32, P.y/32);
+			const float noise = m_pNoise->Noise((float)MapPos.x * frequency, (float)MapPos.y * frequency);
+			if (noise < 0.4f)
+				pEval->m_Got = false;
 
 			if (pEval->m_Got)
 			{
 				// Other bots/players near?
 				CCharacter *aEnts[MAX_BOTS];
 				int Num = GameServer()->m_World.FindEntities(P, 1200, (CEntity**)aEnts, MAX_BOTS, CGameWorld::ENTTYPE_CHARACTER);
-				if (BotType != BOT_ANIMAL)
-				{
-					for (int i=0; i<Num; i++)
-					{
-						if (aEnts[i]->GetPlayer() && aEnts[i]->GetPlayer()->IsBot())
-						{
-							pEval->m_Got = false;
-							return;
-						}
-					}
-				}
-				else if (Num)
+				if (Num)
 				{
 					pEval->m_Got = false;
 					return;
 				}
 
 				// Good Light?
-				UpdateLayerLights(P); // TODO: Can decrease performance... because slow light implementation :/
+				UpdateLayerLights(P); // TODO: Decrease performance... hi lag! O_o
 				CTile *pMTLTiles = GameServer()->Layers()->TileLights();
 				int TileLightIndex = static_cast<int>(P.y/32)*GameServer()->Layers()->Lights()->m_Width+static_cast<int>(P.x/32);
-				if (BotType == BOT_ANIMAL && pMTLTiles[TileLightIndex].m_Index != 0)
+				if (TileLightIndex < 0 || TileLightIndex >= GameServer()->Layers()->Lights()->m_Width*GameServer()->Layers()->Lights()->m_Height)
 					pEval->m_Got = false;
-				else if (BotType != BOT_ANIMAL && pMTLTiles[TileLightIndex].m_Index != 202)
-					pEval->m_Got = false;
+				else
+				{
+					if (BotType == BOT_ANIMAL && pMTLTiles[TileLightIndex].m_Index != 0)
+						pEval->m_Got = false;
+					else if (BotType != BOT_ANIMAL && pMTLTiles[TileLightIndex].m_Index != 202)
+						pEval->m_Got = false;
+				}
 			}
 		}
 	}
@@ -1207,11 +1260,15 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 			found = false;
 			P = vec2(rand()%GameServer()->Collision()->GetWidth(), 0);
 			P = vec2(P.x*32.0f + 16.0f, 16.0f);
-			const int TotalH = GameServer()->Collision()->GetHeight()*32;
-			for (int i=P.y; i<TotalH-1; i+=32)
+			const int TotalH = (GameServer()->Collision()->GetHeight()-1)*32;
+			for (int i=P.y; i<TotalH; i+=32)
 			{
+				const int TileIndex = GameServer()->Collision()->GetMineTeeTileIndexAt(vec2(P.x, i-32));
 				if (GameServer()->Collision()->CheckPoint(vec2(P.x, i), true))
 				{
+					if (GameServer()->m_BlockManager.IsFluid(TileIndex))
+						break;
+
 					P.y = i-32;
 					found = true;
 					break;
@@ -1219,18 +1276,13 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 			}
 		} while (!found);
 
-		int TileIndex = GameServer()->Collision()->GetMineTeeTileIndexAt(P);
-		if (GameServer()->Collision()->GetCollisionAt(P.x, P.y+32) == CCollision::COLFLAG_SOLID
-				&& !GameServer()->m_BlockManager.IsFluid(TileIndex))
+		float S = EvaluateSpawnPos(pEval, P);
+		if(!pEval->m_Got || pEval->m_Score > S)
 		{
-			float S = EvaluateSpawnPos(pEval, P);
-			if(!pEval->m_Got || pEval->m_Score > S)
-			{
-				pEval->m_Got = true;
-				pEval->m_Score = S;
-				P.y -= 8; // Be secure that not spawn stuck
-				pEval->m_Pos = P;
-			}
+			pEval->m_Got = true;
+			pEval->m_Score = S;
+			P.y -= 8; // Be secure that not spawn stuck
+			pEval->m_Pos = P;
 		}
 	}
 }
@@ -1239,7 +1291,7 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 void CGameControllerMineTee::GenerateTree(ivec2 Pos)
 {
 	// plant the tree \o/
-	int TreeHeight = GameServer()->MapGen()->GetNoise()->Perlin()->GetURandom(4,5);
+	int TreeHeight = m_pNoise->Perlin()->GetURandom(4,5);
 	for(int h = 0; h <= TreeHeight; h++)
 		ModifTile(ivec2(Pos.x, Pos.y-h), GameServer()->Layers()->GetMineTeeLayerIndex(), CBlockManager::WOOD_BROWN);
 
@@ -1263,8 +1315,28 @@ void CGameControllerMineTee::GenerateTree(ivec2 Pos)
 }
 //
 
+bool CGameControllerMineTee::CheckBlockPosition(ivec2 MapPos)
+{
+	// Inside
+	if (MapPos.x <= 0 || MapPos.x >= GameServer()->Layers()->MineTeeLayer()->m_Width || MapPos.y <= 0 || MapPos.y >= GameServer()->Layers()->MineTeeLayer()->m_Height)
+		return false;
+
+	// Protect Map Spawn
+	const ivec2 MapSpawn = ivec2(m_MapSpawn.x/32, m_MapSpawn.y/32);
+
+	dbg_msg("CHECK", "S: %d [[ %d ]] %d", MapSpawn.x-30, MapPos.x, MapSpawn.x+30);
+
+	if (MapPos.x >= MapSpawn.x-30 && MapPos.x <= MapSpawn.x+30 && MapPos.y <= MapSpawn.y+30)
+		return false;
+
+	return true;
+}
+
 void CGameControllerMineTee::ModifTile(ivec2 MapPos, int TileIndex, int Reserved)
 {
+	if (!CheckBlockPosition(MapPos))
+		return;
+
 	if (Reserved == -1)
 	{
 		CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(TileIndex);
@@ -1342,9 +1414,12 @@ bool CGameControllerMineTee::TakeBlockDamage(vec2 WorldPos, int WeaponItemID, in
 	CTile *pTile = GameServer()->Collision()->GetMineTeeTileAt(WorldPos);
 	if (pTile && pTile->m_Index > 0)
 	{
+		const ivec2 TilePos = ivec2(WorldPos.x/32, WorldPos.y/32);
+		if (!CheckBlockPosition(TilePos))
+			return false;
+
 		pTile->m_Reserved = max(0, pTile->m_Reserved-Dmg);
 
-		const ivec2 TilePos = ivec2(WorldPos.x/32, WorldPos.y/32);
 		if (pTile->m_Reserved == 0)
 		{
 			if (WeaponItemID < NUM_WEAPONS)
@@ -1720,6 +1795,8 @@ void CGameControllerMineTee::LoadData()
 				m_lpSigns.insert(std::make_pair(SignID, StoredSign));
 			}
 		}
+		else if (ItemType == TYPE_MAP_SPAWN)
+			io_read(File, &m_MapSpawn, sizeof(vec2)); // Get Map Spawn
 	}
 
 	io_close(File);
@@ -1771,6 +1848,12 @@ void CGameControllerMineTee::SaveData()
 		++itSign;
 	}
 
+	// Save Map Spawn
+	ItemType = TYPE_MAP_SPAWN;
+	io_write(File, &ItemType, sizeof(unsigned));
+	NumRegs = 1;
+	io_write(File, &NumRegs, sizeof(unsigned));
+	io_write(File, &m_MapSpawn, sizeof(vec2)); // The Map Spawn
 
 	io_close(File);
 }

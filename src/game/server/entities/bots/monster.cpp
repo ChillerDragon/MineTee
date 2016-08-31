@@ -115,7 +115,7 @@ void CMonster::RunAction()
 	        {
 	            Die(m_pPlayer->GetCID(), WEAPON_WORLD);
 	        }
-	        if (m_BotClientIDFix != -1)
+	        if (m_BotClientIDFix != -1 && GameServer()->m_apPlayers[m_BotClientIDFix])
 	        {
 	            CCharacter *pChar = GameServer()->m_apPlayers[m_BotClientIDFix]->GetCharacter();
 	            if (pChar && !GameServer()->Collision()->IntersectLine(m_Pos, pChar->m_Pos, 0x0, 0x0) && GameServer()->IntersectCharacter(m_Pos, pChar->m_Pos, 0x0, m_pPlayer->GetCID()) == m_BotClientIDFix)
@@ -123,9 +123,8 @@ void CMonster::RunAction()
 	            	m_LatestInput.m_Fire = m_Input.m_Fire = 1;
 					m_BotDir = 0;
 	            }
-
-	            m_BotClientIDFix = -1;
 	        }
+	        m_BotClientIDFix = -1;
 	        break;
 	}
 }

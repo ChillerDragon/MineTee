@@ -18,15 +18,16 @@ class CModalCell : public CComponent
 	bool m_MousePressed;
 	int m_MousePressedKey;
 	int m_SelectedCell;
+	int m_SelectedQty;
 
 	bool m_EscapePressed;
 	int64 m_LastInput;
 
-	void MoveItem(int From, int To, int Qty);
-
 	void RenderChest(CUIRect MainView);
 	void RenderInventory(CUIRect MainView);
 	void RenderCraftTable(CUIRect MainView);
+
+	void DrawToolTipItemName(int ItemID);
 
 	void OnClose();
 	void OnOpen();

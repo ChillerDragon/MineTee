@@ -102,15 +102,14 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
         	{
         		CPet *pPet = GameServer()->SpawnPet(GetPlayer(), pAccountInfo->m_PetInfo.m_Pos);
         		if (pPet)
-        			pPet->UseAccountPetData(&pAccountInfo->m_PetInfo);
+        			pPet->UseAccountData(pAccountInfo);
         		else
         			GameServer()->SendChatTarget(GetPlayer()->GetCID(), "Oops! I need fix this! Sry but your pet is lost :/");
         	}
         }
-
-        m_NeedSendFastInventory = true;
 		m_pPlayer->m_IsFirstJoin = false;
 	}
+	m_NeedSendFastInventory = true;
 
 	return true;
 }
@@ -245,7 +244,7 @@ void CCharacter::Construct()
     if (m_pPlayer->m_PlayerFlags&PLAYERFLAG_BGPAINT)
     {
         ivec2 TilePos = ivec2((m_Pos.x+m_LatestInput.m_TargetX*Zoom)/32.0f, (m_Pos.y+m_LatestInput.m_TargetY*Zoom)/32.0f);
-        if (TilePos.x > 0 && TilePos.x < GameServer()->Layers()->MineTeeLayer()->m_Width && TilePos.y > 0 && TilePos.y < GameServer()->Layers()->MineTeeLayer()->m_Height)
+        if (GameServer()->m_pController->CheckBlockPosition(TilePos))
         {
             int Index = TilePos.y*GameServer()->Layers()->MineTeeLayer()->m_Width+TilePos.x;
             CTile *pMTTiles = (CTile *)GameServer()->Layers()->Map()->GetData(GameServer()->Layers()->MineTeeLayer()->m_Data);
@@ -264,7 +263,7 @@ void CCharacter::Construct()
     else if (m_pPlayer->m_PlayerFlags&PLAYERFLAG_FGPAINT)
     {
         ivec2 TilePos = ivec2((m_Pos.x+m_LatestInput.m_TargetX*Zoom)/32.0f, (m_Pos.y+m_LatestInput.m_TargetY*Zoom)/32.0f);
-        if (TilePos.x > 0 && TilePos.x < GameServer()->Layers()->MineTeeLayer()->m_Width && TilePos.y > 0 && TilePos.y < GameServer()->Layers()->MineTeeLayer()->m_Height)
+        if (GameServer()->m_pController->CheckBlockPosition(TilePos))
         {
             int Index = TilePos.y*GameServer()->Layers()->MineTeeLayer()->m_Width+TilePos.x;
             CTile *pMTTiles = (CTile *)GameServer()->Layers()->Map()->GetData(GameServer()->Layers()->MineTeeLayer()->m_Data);
@@ -286,6 +285,9 @@ void CCharacter::Construct()
         if (!(GameServer()->Collision()->GetCollisionAt(finishPosPost.x, finishPosPost.y)&CCollision::COLFLAG_SOLID))
         {
             ivec2 TilePos(finishPosPost.x/32, finishPosPost.y/32);
+            if (!GameServer()->m_pController->CheckBlockPosition(TilePos))
+            	return;
+
             CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(ActiveBlock);
             int TileIndex = pBlockInfo->m_OnPut;
             if (TileIndex == -1)
@@ -302,40 +304,6 @@ void CCharacter::Construct()
                     continue;
 
                 if (distance(ivec2(pChar->m_Pos.x/32, pChar->m_Pos.y/32), TilePos) < 2)
-                    return;
-            }
-
-            //check blocks
-            unsigned char DenyBlocks[] = { CBlockManager::TORCH };
-            CTile *pMTTiles = (CTile *)GameServer()->Layers()->Map()->GetData(GameServer()->Layers()->MineTeeLayer()->m_Data);
-            for (size_t i=0; i<sizeof(DenyBlocks); i++)
-            {
-                if (ActiveBlock != DenyBlocks[i])
-                    continue;
-
-                int Index = (TilePos.y-1)*GameServer()->Layers()->MineTeeLayer()->m_Width+TilePos.x;
-                if (pMTTiles[Index].m_Index == DenyBlocks[i])
-                    return;
-                Index = (TilePos.y+1)*GameServer()->Layers()->MineTeeLayer()->m_Width+TilePos.x;
-                if (pMTTiles[Index].m_Index == DenyBlocks[i])
-                    return;
-                Index = TilePos.y*GameServer()->Layers()->MineTeeLayer()->m_Width+(TilePos.x-1);
-                if (pMTTiles[Index].m_Index == DenyBlocks[i])
-                    return;
-                Index = TilePos.y*GameServer()->Layers()->MineTeeLayer()->m_Width+(TilePos.x+1);
-                if (pMTTiles[Index].m_Index == DenyBlocks[i])
-                    return;
-                Index = (TilePos.y-1)*GameServer()->Layers()->MineTeeLayer()->m_Width+(TilePos.x-1);
-                if (pMTTiles[Index].m_Index == DenyBlocks[i])
-                    return;
-                Index = (TilePos.y+1)*GameServer()->Layers()->MineTeeLayer()->m_Width+(TilePos.x+1);
-                if (pMTTiles[Index].m_Index == DenyBlocks[i])
-                    return;
-                Index = (TilePos.y+1)*GameServer()->Layers()->MineTeeLayer()->m_Width+(TilePos.x-1);
-                if (pMTTiles[Index].m_Index == DenyBlocks[i])
-                    return;
-                Index = (TilePos.y-1)*GameServer()->Layers()->MineTeeLayer()->m_Width+(TilePos.x+1);
-                if (pMTTiles[Index].m_Index == DenyBlocks[i])
                     return;
             }
 
@@ -382,7 +350,8 @@ void CCharacter::FireWeapon()
 	vec2 Direction = normalize(vec2(m_LatestInput.m_TargetX, m_LatestInput.m_TargetY));
 
 	bool FullAuto = false;
-	if(ActiveItem == WEAPON_GRENADE || ActiveItem == WEAPON_SHOTGUN || ActiveItem == WEAPON_RIFLE)
+	if(ActiveItem == WEAPON_GRENADE || ActiveItem == WEAPON_SHOTGUN || ActiveItem == WEAPON_RIFLE
+			|| ActiveItem == WEAPON_HAMMER || ActiveItem == WEAPON_HAMMER_IRON || ActiveItem == WEAPON_HAMMER_STONE)
 		FullAuto = true;
 
 
@@ -422,6 +391,7 @@ void CCharacter::FireWeapon()
 			// reset objects Hit
 			m_NumObjectsHit = 0;
 			GameServer()->CreateSound(m_Pos, SOUND_HAMMER_FIRE);
+			int Hits = 0;
 
             if (GameServer()->IsMineTeeSrv())
             {
@@ -432,18 +402,20 @@ void CCharacter::FireWeapon()
                     if (GameServer()->Collision()->GetCollisionAt(finishPosPost.x, finishPosPost.y) == CCollision::COLFLAG_SOLID)
                     {
                     	CTile *pMTTile = GameServer()->Collision()->GetMineTeeTileAt(finishPosPost);
-                    	CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(pMTTile->m_Index);
-						if (pMTTile && pBlockInfo && pBlockInfo->m_Health > 0)
-							GameServer()->m_pController->TakeBlockDamage(finishPosPost, ActiveItem, g_pData->m_Weapons.m_aId[ActiveItem].m_Blockdamage, m_pPlayer->GetCID());
-
-						Fired = true;
-						m_ReloadTimer=Server()->TickSpeed()/8;
+                    	if (pMTTile)
+                    	{
+							CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(pMTTile->m_Index);
+							if (pMTTile && pBlockInfo && pBlockInfo->m_Health > 0)
+							{
+								Fired = GameServer()->m_pController->TakeBlockDamage(finishPosPost, ActiveItem, g_pData->m_Weapons.m_aId[ActiveItem].m_Blockdamage, m_pPlayer->GetCID());
+								m_ReloadTimer=Server()->TickSpeed()/8;
+							}
+                    	}
                     }
                 }
             }
 
 			CCharacter *apEnts[MAX_CLIENTS];
-			int Hits = 0;
 			int Num = GameServer()->m_World.FindEntities(ProjStartPos, m_ProximityRadius*0.5f, (CEntity**)apEnts,
 														MAX_CLIENTS, CGameWorld::ENTTYPE_CHARACTER);
 
@@ -920,7 +892,7 @@ void CCharacter::Die(int Killer, int ItemID)
 		Killer = m_pPlayer->GetCID();
 
 	// we got to wait 0.5 secs or 20 if bot before respawning
-	float RespawnTick = (m_pPlayer->IsBot())?Server()->TickSpeed()*20:Server()->TickSpeed()/2; // MineTee
+	float RespawnTick = m_pPlayer->IsBot()?Server()->TickSpeed()*20.0f:Server()->TickSpeed()/2.0f; // MineTee
     m_pPlayer->m_RespawnTick = Server()->Tick()+RespawnTick;
 	int ModeSpecial = GameServer()->m_pController->OnCharacterDeath(this, GameServer()->m_apPlayers[Killer], ItemID);
 
@@ -931,15 +903,12 @@ void CCharacter::Die(int Killer, int ItemID)
 	GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
 
 	// send the kill message
-	if (m_pPlayer->IsBot() && Killer >= 0 && Killer < g_Config.m_SvMaxClients) // MineTee
-	{
-		CNetMsg_Sv_KillMsg Msg;
-		Msg.m_Killer = Killer;
-		Msg.m_Victim = m_pPlayer->GetCID();
-		Msg.m_Weapon = ItemID;
-		Msg.m_ModeSpecial = ModeSpecial;
-		Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, -1);
-	}
+	CNetMsg_Sv_KillMsg Msg;
+	Msg.m_Killer = Killer;
+	Msg.m_Victim = m_pPlayer->GetCID();
+	Msg.m_Weapon = ItemID;
+	Msg.m_ModeSpecial = ModeSpecial;
+	Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, -1);
 
 	// a nice sound
 	GameServer()->CreateSound(m_Pos, SOUND_PLAYER_DIE);
@@ -953,7 +922,7 @@ void CCharacter::Die(int Killer, int ItemID)
 	GameServer()->CreateDeath(m_Pos, m_pPlayer->GetCID());
 
 	// MineTee
-	if (GameServer()->IsMineTeeSrv()  && m_pPlayer->GetTeam() <= TEAM_BLUE)
+	if (GameServer()->IsMineTeeSrv() && m_pPlayer->GetTeam() <= TEAM_BLUE)
 	{
 	    GameServer()->CreateTombstone(m_Pos);
 	}
@@ -1193,22 +1162,20 @@ void CCharacter::DropItem(int Index)
     }
 }
 
-void CCharacter::FillAccountData(void *pAccountInfo)
+void CCharacter::FillAccountData(IAccountSystem::ACCOUNT_INFO *pAccountInfo)
 {
-	IAccountSystem::ACCOUNT_INFO *pInfo = (IAccountSystem::ACCOUNT_INFO*)pAccountInfo;
-	pInfo->m_Alive = m_Alive;
-	pInfo->m_Pos = m_Pos;
-	pInfo->m_Health = m_Health;
-	pInfo->m_ActiveInventoryItem = m_ActiveInventoryItem;
-	mem_copy(&pInfo->m_FastInventory, &m_FastInventory, sizeof(CCellData)*NUM_CELLS_LINE);
+	pAccountInfo->m_Alive = m_Alive;
+	pAccountInfo->m_Pos = m_Pos;
+	pAccountInfo->m_Health = m_Health;
+	pAccountInfo->m_ActiveInventoryItem = m_ActiveInventoryItem;
+	mem_copy(&pAccountInfo->m_FastInventory, &m_FastInventory, sizeof(CCellData)*NUM_CELLS_LINE);
 }
-void CCharacter::UseAccountData(void *pAccountInfo)
+void CCharacter::UseAccountData(IAccountSystem::ACCOUNT_INFO *pAccountInfo)
 {
-	IAccountSystem::ACCOUNT_INFO *pInfo = (IAccountSystem::ACCOUNT_INFO*)pAccountInfo;
-	m_Core.m_Pos = m_Pos = pInfo->m_Pos;
-	m_Health = pInfo->m_Health;
-	m_ActiveInventoryItem = pInfo->m_ActiveInventoryItem;
-	mem_copy(&m_FastInventory, &pInfo->m_FastInventory, sizeof(CCellData)*NUM_CELLS_LINE);
+	m_Core.m_Pos = m_Pos = pAccountInfo->m_Pos;
+	m_Health = pAccountInfo->m_Health;
+	m_ActiveInventoryItem = pAccountInfo->m_ActiveInventoryItem;
+	mem_copy(&m_FastInventory, &pAccountInfo->m_FastInventory, sizeof(CCellData)*NUM_CELLS_LINE);
 
 	// Check that can spawn in that place
 	if (GameServer()->Collision()->CheckPoint(m_Pos))

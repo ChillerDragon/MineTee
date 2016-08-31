@@ -140,23 +140,23 @@ void CPet::TickBotAI()
 	m_BotLastPos = m_Pos;
 }
 
-void CPet::FillAccountPetData(void *pPetInfo)
+void CPet::FillAccountData(IAccountSystem::ACCOUNT_INFO *pAccountInfo)
 {
-	IAccountSystem::ACCOUNT_INFO::PetInfo *pPetI = (IAccountSystem::ACCOUNT_INFO::PetInfo*)pPetInfo;
-	pPetI->m_Alive = true;
-	pPetI->m_Pos = m_Pos;
-	pPetI->m_ActiveInventoryItem = m_ActiveInventoryItem;
-	str_copy(pPetI->m_aName, Server()->ClientName(m_pPlayer->GetCID()), sizeof(pPetI->m_aName));
-	str_copy(pPetI->m_aSkinName, m_pPlayer->m_TeeInfos.m_SkinName, sizeof(pPetI->m_aSkinName));
-	mem_copy(&pPetI->m_Inventory, &m_FastInventory, sizeof(CCellData)*NUM_CELLS_LINE);
+	IAccountSystem::ACCOUNT_INFO::PetInfo *pPetInfo = &pAccountInfo->m_PetInfo;
+	pPetInfo->m_Alive = true;
+	pPetInfo->m_Pos = m_Pos;
+	pPetInfo->m_ActiveInventoryItem = m_ActiveInventoryItem;
+	str_copy(pPetInfo->m_aName, Server()->ClientName(m_pPlayer->GetCID()), sizeof(pPetInfo->m_aName));
+	str_copy(pPetInfo->m_aSkinName, m_pPlayer->m_TeeInfos.m_SkinName, sizeof(pPetInfo->m_aSkinName));
+	mem_copy(&pPetInfo->m_Inventory, &m_FastInventory, sizeof(CCellData)*NUM_CELLS_LINE);
 }
 
-void CPet::UseAccountPetData(void *pPetInfo)
+void CPet::UseAccountData(IAccountSystem::ACCOUNT_INFO *pAccountInfo)
 {
-	IAccountSystem::ACCOUNT_INFO::PetInfo *pPetI = (IAccountSystem::ACCOUNT_INFO::PetInfo*)pPetInfo;
-	m_Core.m_Pos = m_Pos = pPetI->m_Pos;
-	mem_copy(&m_FastInventory, &pPetI->m_Inventory, sizeof(CCellData)*NUM_CELLS_LINE);
-	m_ActiveInventoryItem = pPetI->m_ActiveInventoryItem;
-	Server()->SetClientName(m_pPlayer->GetCID(), pPetI->m_aName, true);
-	str_copy(m_pPlayer->m_TeeInfos.m_SkinName, pPetI->m_aSkinName, sizeof(m_pPlayer->m_TeeInfos.m_SkinName));
+	IAccountSystem::ACCOUNT_INFO::PetInfo *pPetInfo = &pAccountInfo->m_PetInfo;
+	m_Core.m_Pos = m_Pos = pPetInfo->m_Pos;
+	mem_copy(&m_FastInventory, &pPetInfo->m_Inventory, sizeof(CCellData)*NUM_CELLS_LINE);
+	m_ActiveInventoryItem = pAccountInfo->m_ActiveInventoryItem;
+	Server()->SetClientName(m_pPlayer->GetCID(), pPetInfo->m_aName, true);
+	str_copy(m_pPlayer->m_TeeInfos.m_SkinName, pPetInfo->m_aSkinName, sizeof(m_pPlayer->m_TeeInfos.m_SkinName));
 }

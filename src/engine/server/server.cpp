@@ -786,6 +786,7 @@ void CServer::SendMap(int ClientID)
 		Msg.AddString(GetMapName(), 0);
 		Msg.AddInt(m_aClientsMapInfo[ClientID].m_CurrentMapCrc);
 		Msg.AddInt(m_aClientsMapInfo[ClientID].m_CurrentMapSize);
+		Msg.AddInt(1); // MineTee
 		SendMsgEx(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH, ClientID, true);
 	}
 	else
@@ -1290,67 +1291,71 @@ char *CServer::GetMapName()
 	return pMapShortName;
 }
 
-int CServer::LoadMap(const char *pMapSize, const char *pMapName, bool GenerateMap)
+// MineTee
+int CServer::LoadMap(const char *pMapSize, const char *pMapName)
 {
 	//DATAFILE *df;
 	char aBuf[512];
-	str_format(aBuf, sizeof(aBuf), "maps/%s.map", pMapName);
+	str_format(aBuf, sizeof(aBuf), "worlds/%s/%s.map", pMapName, pMapName);
 
 	/*df = datafile_load(buf);
 	if(!df)
 		return 0;*/
 
+	char aPath[512];
+	char aFullPath[512];
+	str_format(aFullPath, sizeof(aFullPath), "worlds/%s/", pMapName);
+	Storage()->GetCompletePath(IStorage::TYPE_SAVE, aFullPath, aPath, sizeof(aPath));
+	if (!fs_is_dir(aPath))
+		Storage()->CreateFolder(aFullPath, IStorage::TYPE_SAVE);
 
-	if (GenerateMap)
+	if(!m_MapChecker.Exists(Storage(), aBuf, IStorage::TYPE_SAVE))
 	{
-		if(!m_MapChecker.Exists(Storage(), aBuf, IStorage::TYPE_ALL))
+		int w=300, h=100;
+		if (str_comp_nocase(pMapSize,"medium") == 0)
 		{
-			int w=300, h=100;
-			if (str_comp_nocase(pMapSize,"medium") == 0)
-			{
-				w=1500;
-				h=200;
-			}
-			else if (str_comp_nocase(pMapSize,"large") == 0)
-			{
-				w=3000;
-				h=400;
-			}
-			else if (str_comp_nocase(pMapSize,"nomemory") == 0)
-			{
-				w=10000;
-				h=800;
-			}
-
-			CImageInfoFile ImgInfo;
-			ImgInfo.m_pData = 0x0;
-			if (g_Config.m_SvCustomTileset)
-			{
-				if (!LoadPNG(&ImgInfo, "mapres/minetee.png", IStorage::TYPE_ALL))
-				{
-					Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "mapgen", "can't read minetee tileset!");
-					return 0;
-				}
-			}
-
-		    CDataFileWriter fileWrite;
-		    if (!fileWrite.CreateEmptyMineTeeMap(Storage(), aBuf, w, h, &ImgInfo))
-		    {
-		    	m_MapGenerated = false;
-		    	return 0;
-		    }
-		    else
-		    	m_MapGenerated = true;
-
-		    if (g_Config.m_SvCustomTileset)
-		    {
-			    mem_free(ImgInfo.m_pData);
-			    ImgInfo.m_pData = 0x0;
-		    }
+			w=1500;
+			h=200;
 		}
-		else // If exists don't generate
+		else if (str_comp_nocase(pMapSize,"large") == 0)
+		{
+			w=3000;
+			h=400;
+		}
+		else if (str_comp_nocase(pMapSize,"nomemory") == 0)
+		{
+			w=10000;
+			h=800;
+		}
+
+		CImageInfoFile ImgInfo;
+		ImgInfo.m_pData = 0x0;
+		if (g_Config.m_SvCustomTileset)
+		{
+			if (!LoadPNG(&ImgInfo, "mapres/minetee.png", IStorage::TYPE_ALL))
+			{
+				Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "mapgen", "can't read minetee tileset!");
+				return 0;
+			}
+		}
+
+		CDataFileWriter fileWrite;
+		if (!fileWrite.CreateEmptyMineTeeMap(Storage(), aBuf, w, h, &ImgInfo))
+		{
 			m_MapGenerated = false;
+			return 0;
+		}
+		else
+			m_MapGenerated = true;
+
+		if (g_Config.m_SvCustomTileset)
+		{
+			mem_free(ImgInfo.m_pData);
+			ImgInfo.m_pData = 0x0;
+		}
 	}
+	else // If exists don't generate
+		m_MapGenerated = false;
 
 
 	// check for valid standard map
@@ -1362,18 +1367,6 @@ int CServer::LoadMap(const char *pMapSize, const char *pMapName, bool GenerateMa
 
 	if(!m_pMap->Load(aBuf))
 		return 0;
-
-	// MineTee
-	char aPath[512];
-	char aFullPath[512];
-	Storage()->GetCompletePath(IStorage::TYPE_SAVE, "worlds/", aPath, sizeof(aPath));
-	if (!fs_is_dir(aPath))
-		Storage()->CreateFolder("worlds/", IStorage::TYPE_SAVE);
-
-	str_format(aFullPath, sizeof(aFullPath), "worlds/%s/", pMapName);
-	Storage()->GetCompletePath(IStorage::TYPE_SAVE, aFullPath, aPath, sizeof(aPath));
-	if (!fs_is_dir(aPath))
-		Storage()->CreateFolder(aFullPath, IStorage::TYPE_SAVE);
 
 	str_format(aFullPath, sizeof(aFullPath), "worlds/%s/accounts.dat", pMapName);
 	m_AccountSystem.Init(aFullPath, Storage());
@@ -1436,7 +1429,7 @@ int CServer::Run()
 	m_PrintCBIndex = Console()->RegisterPrintCallback(g_Config.m_ConsoleOutputLevel, SendRconLineAuthed, this);
 
 	// load map
-	if(!LoadMap(g_Config.m_SvMapGenerationSize, g_Config.m_SvMap, g_Config.m_SvMapGeneration))
+	if(!LoadMap(g_Config.m_SvMapGenerationSize, g_Config.m_SvMap))
 	{
 		dbg_msg("server", "failed to load map. mapname='%s'", g_Config.m_SvMap);
 		return -1;
@@ -1504,7 +1497,7 @@ int CServer::Run()
 				m_MapReload = 0;
 
 				// load map
-				if(LoadMap(g_Config.m_SvMapGenerationSize, g_Config.m_SvMap, g_Config.m_SvMapGeneration))
+				if(LoadMap(g_Config.m_SvMapGenerationSize, g_Config.m_SvMap))
 				{
 					// new map loaded
 					GameServer()->OnShutdown();

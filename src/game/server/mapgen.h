@@ -71,6 +71,7 @@ class CMapGen
 	void GenerateBossZones();
 	void GenerateBiomes(int FillBlock);
 	void GenerateEnvDecorations(int FillBlock, float F, int RawLevel);
+	void GenerateFlatZones();
 
 	void GenerateChests();
 
@@ -78,13 +79,13 @@ class CMapGen
 	void DoWaterSteps();
 
 	void CreateStructure(int StructureID, ivec2 Pos);
-	void ModifTile(ivec2 Pos, int Layer, int BlockId);
+	void ModifTile(ivec2 Pos, int Layer, int BlockId, bool limited=true);
 
 public:
 	CMapGen();
 	~CMapGen();
 
-	void GenerateTree(ivec2 Pos);
+	void GenerateTree(ivec2 Pos, int BlockID);
 
 	void FillMap(int Seed);
 	void Init(CLayers *pLayers, CCollision *pCollision, CBlockManager *pBlockManager);

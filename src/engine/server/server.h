@@ -214,7 +214,7 @@ public:
 
 	void PumpNetwork();
 
-	int LoadMap(const char *pMapSize, const char *pMapName, bool GenerateMap);
+	int LoadMap(const char *pMapSize, const char *pMapName);
 
 	void InitRegister(CNetServer *pNetServer, IEngineMasterServer *pMasterServer, IConsole *pConsole);
 	int Run();

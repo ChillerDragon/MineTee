@@ -8,9 +8,9 @@
 #include "shared/config.h"
 #include <base/vmath.h>
 #include <game/block_manager.h>
+#include <engine/shared/network.h>
 #include <engine/shared/protocol.h>
 #include <game/generated/protocol.h>
-#include <game/server/entities/character.h>
 
 
 class IAccountSystem : public IInterface
@@ -21,10 +21,13 @@ public:
 	{
 		// General
 		unsigned char m_aKey[MINETEE_USER_KEY_SIZE];
+		bool m_IsNew;
 
 		// Player Info
 		unsigned m_Level;
 		char m_aSkinName[64];
+		vec2 m_SpawnPos;
+		int m_LayerLevel;
 
 		// Character Info
 		vec2 m_Pos;
@@ -53,6 +56,13 @@ public:
 	virtual bool Remove(const unsigned char *pKey) = 0;
 	virtual int GetNum() const = 0;
 	virtual void Save() = 0;
+};
+
+class AccountSerializable
+{
+public:
+	virtual void FillAccountData(IAccountSystem::ACCOUNT_INFO *pAccountData) = 0;
+	virtual void UseAccountData(IAccountSystem::ACCOUNT_INFO *pAccountData) = 0;
 };
 
 #endif

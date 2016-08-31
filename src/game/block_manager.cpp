@@ -102,6 +102,13 @@ bool CBlockManager::Init(char *pData, int DataSize)
 			pBlockInfo->m_LightColor.b = (float)((*pJsonObject)["lightColor"].u.array.values[2]->u.dbl)/255.0f;
 		}
 
+		items = (*pJsonObject)["aspect"].u.array.length;
+		if (items == 4)
+		{
+			for (int i=0; i<4; i++)
+				pBlockInfo->m_Aspect[i] = (float)((*pJsonObject)["aspect"].u.array.values[i]->u.dbl);
+		}
+
 		items = (*pJsonObject)["place"].u.array.length;
 		if (items == 8)
 		{

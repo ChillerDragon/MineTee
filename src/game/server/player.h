@@ -10,7 +10,7 @@
 #include "gamecontext.h"
 
 // player object
-class CPlayer
+class CPlayer : public AccountSerializable
 {
 	MACRO_ALLOC_POOL_ID()
 
@@ -23,7 +23,7 @@ public:
 	};
 
 	CPlayer(CGameContext *pGameServer, int ClientID, int Team);
-	~CPlayer();
+	virtual ~CPlayer();
 
 	void Init(int CID);
 
@@ -111,6 +111,8 @@ public:
 	CCellData m_aCraftRecipe[NUM_RECIPE_CELLS];
 	bool m_IsFirstJoin;
 	int m_Level;
+	int m_LayerLevel;
+	vec2 m_SpawnPos;
 	bool IsBot() const { return m_Bot; }
 	int GetBotType() const { return m_BotType; }
 	int GetBotSubType() const { return m_BotSubType; }
@@ -123,8 +125,8 @@ public:
 	}
 	void SetHardTeam(int team) { m_Team = team; }
 	void SetCharacter(CCharacter *pChar) { if (!m_pCharacter) m_pCharacter = pChar; }
-	void FillAccountData(void *pAccountData);
-	void UseAccountData(void *pAccountData);
+	void FillAccountData(IAccountSystem::ACCOUNT_INFO *pAccountData);
+	void UseAccountData(IAccountSystem::ACCOUNT_INFO *pAccountData);
 	void SetBotType(int BotType) { m_BotType = BotType; }
 	void SetBotSubType(int BotSubType) { m_BotSubType = BotSubType; }
 	int GetFirstEmptyInventoryIndex();

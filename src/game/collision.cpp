@@ -107,17 +107,13 @@ bool CCollision::IsTileSolid(int x, int y, bool nocoll)
 			if (pBlockInfo->m_HalfTile)
 			{
 				Nx *= 32; Ny *= 32;
-
-				if ((!TileIndexTop && y >= Ny+16.0f) || (TileIndexTop && y <= Ny+16.0f))
-					return 1;
-
-				return 0;
+				return ((!TileIndexTop && y >= Ny+16.0f) || (TileIndexTop && y <= Ny+16.0f));
 			}
     	}
         if (m_pBlockManager->IsFluid(TileIndex))
-        	return 0;
+        	return false;
         else if (nocoll && !pBlockInfo->m_PlayerCollide)
-            return 0;
+            return false;
     }
 
 	return GetTile(x, y)&COLFLAG_SOLID;
@@ -295,11 +291,11 @@ CTile* CCollision::GetMineTeeTileAt(vec2 Pos)
 }
 
 
-bool CCollision::ModifTile(ivec2 pos, int group, int layer, int index, int flags, int reserved)
+bool CCollision::ModifTile(ivec2 pos, int group, int layer, int index, int flags, int reserved, bool limited, bool regen)
 {
     CMapItemGroup *pGroup = m_pLayers->GetGroup(group);
     CMapItemLayer *pLayer = m_pLayers->GetLayer(pGroup->m_StartLayer+layer);
-    if (pLayer->m_Type != LAYERTYPE_TILES || pos.y <= 1)
+    if (pLayer->m_Type != LAYERTYPE_TILES || (limited && pos.y <= 1))
         return false;
 
     CMapItemLayerTilemap *pTilemap = reinterpret_cast<CMapItemLayerTilemap *>(pLayer);
@@ -315,7 +311,8 @@ bool CCollision::ModifTile(ivec2 pos, int group, int layer, int index, int flags
         pTiles[tpos].m_Index = index;
         pTiles[tpos].m_Reserved = reserved;
 
-        RegenerateSkip(pTiles, pTilemap->m_Width, pTilemap->m_Height, pos, !index);
+        if (regen)
+        	RegenerateSkip(pTiles, pTilemap->m_Width, pTilemap->m_Height, pos, !index);
 
     	if (index == 0)
     	{
@@ -340,7 +337,8 @@ bool CCollision::ModifTile(ivec2 pos, int group, int layer, int index, int flags
         pTiles[tpos].m_Index = index;
         pTiles[tpos].m_Reserved = 1;
 
-        RegenerateSkip(pTiles, pTilemap->m_Width, pTilemap->m_Height, pos, !index);
+        if (regen)
+        	RegenerateSkip(pTiles, pTilemap->m_Width, pTilemap->m_Height, pos, !index);
     }
     else
     {
@@ -373,49 +371,38 @@ void CCollision::RegenerateSkip(CTile *pTiles, int Width, int Height, ivec2 Pos,
 	if (!pTiles || Pos.x < 0 || Pos.x >= Width || Pos.y < 0 || Pos.y >= Height)
 		return;
 
-
 	int sx, i;
 
 	if (Delete)
 	{
 		// Back Tile
-		sx = 1;
-		for (i=Pos.x+1; i<Width; i++)
+		for (i=Pos.x-1; i>=1; i--)
 		{
-			if (!pTiles[Pos.y*Width+i].m_Index)
-				sx++;
-			else
+			if (pTiles[Pos.y*Width+i].m_Index)
 				break;
 		}
-		for (i=Pos.x-1; i>=0; i--)
-		{
-			if (!pTiles[Pos.y*Width+i].m_Index)
-				sx++;
-			else
-				break;
-		}
-		i = max(0, i);
-		pTiles[Pos.y*Width+i].m_Skip = sx;
+		i = max(1, i);
+		pTiles[Pos.y*Width+i].m_Skip += pTiles[Pos.y*Width+Pos.x].m_Skip+1;
 		// Current Tile
 		pTiles[Pos.y*Width+Pos.x].m_Skip = 0;
 	}
 	else
 	{
 		// Back Tile
-		for (i=Pos.x-1, sx=0; i>=0; i--)
+		for (i=Pos.x-1, sx=0; i>=1; i--)
 		{
 			if (!pTiles[Pos.y*Width+i].m_Index)
-				sx++;
+				++sx;
 			else
 				break;
 		}
-		i = max(0, i);
+		i = max(1, i);
 		pTiles[Pos.y*Width+i].m_Skip = sx;
 		// Current Tile
 		for (i=Pos.x+1, sx=0; i<Width; i++)
 		{
 			if (!pTiles[Pos.y*Width+i].m_Index)
-				sx++;
+				++sx;
 			else
 				break;
 		}

@@ -88,9 +88,9 @@ MACRO_CONFIG_INT(SvVoteKickBantime, sv_vote_kick_bantime, 5, 0, 1440, CFGFLAG_SE
 MACRO_CONFIG_INT(SvMonsters, sv_monsters, 1, 0, 1, CFGFLAG_SERVER, "Enable/Disable Monsters")
 MACRO_CONFIG_INT(SvAnimals, sv_animals, 1, 0, 1, CFGFLAG_SERVER, "Enable/Disable Animals")
 
-MACRO_CONFIG_INT(SvMapGeneration, sv_map_generation, 1, 0, 1, CFGFLAG_SERVER, "Enable/Disable random world generation")
 MACRO_CONFIG_STR(SvMapGenerationSize, sv_map_generation_size, 16, "medium", CFGFLAG_SERVER, "Set size of the world generation (small,medium,large)")
-MACRO_CONFIG_INT(SvMapGenerationSeed, sv_map_generation_seed, 0, 0, 2147483647, CFGFLAG_SERVER, "Set seed of the world generation (")
+MACRO_CONFIG_INT(SvMapGenerationSeed, sv_map_generation_seed, 0, 0, 2147483647, CFGFLAG_SERVER, "Set seed of the world generation")
+MACRO_CONFIG_INT(SvMapAutoSave, sv_map_auto_save, 300, 0, 2147483647, CFGFLAG_SERVER, "Seconds between saves (0: Disable)")
 
 // debug
 #ifdef CONF_DEBUG // this one can crash the server if not used correctly

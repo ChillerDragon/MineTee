@@ -8,6 +8,7 @@
 CPerlin::CPerlin(uint32_t seed)
 : m_Engine(seed)
 {
+	m_Seed = seed;
     auto mid_range = m_aNumsPerlin.begin() + 256;
 
     std::iota(m_aNumsPerlin.begin(), mid_range, 0); //Generate sequential numbers in the lower half

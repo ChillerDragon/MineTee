@@ -1078,7 +1078,7 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 				else
 				{
 					if (IsMineTee)
-						str_format(m_aMapdownloadFilename, sizeof(m_aMapdownloadFilename), "downloadedmaps/mt_%s.map", pMap);
+						str_copy(m_aMapdownloadFilename, "downloadedmaps/minetee.map", sizeof(m_aMapdownloadFilename));
 					else
 						str_format(m_aMapdownloadFilename, sizeof(m_aMapdownloadFilename), "downloadedmaps/%s_%08x.map", pMap, MapCrc);
 
@@ -2445,6 +2445,9 @@ int main(int argc, const char **argv) // ignore_convention
 // MineTee
 void CClient::SendMoveCell(int From, int To, int Qty)
 {
+	if (Qty == 0 || From == To)
+		return;
+
 	CMsgPacker Msg(NETMSG_CELL_MOVE);
 	Msg.AddInt(From);
 	Msg.AddInt(To);

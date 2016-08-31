@@ -7,11 +7,13 @@
 #include <game/mapitems.h>
 #include <game/block_manager.h>
 #include <engine/shared/network.h>
+#include <engine/shared/noise.h>
 
 enum
 {
 	TYPE_CHESTS=1,
 	TYPE_SIGNS,
+	TYPE_MAP_SPAWN,
 };
 
 class CChest
@@ -90,6 +92,7 @@ public:
 	virtual bool OnChat(int cid, int team, const char *msg);
 	virtual bool CanSpawn(int Team, vec2 *pPos, int BotType, int BotSubType);
 	virtual bool OnFunctionalBlock(int BlockID, ivec2 TilePos);
+	virtual bool CheckBlockPosition(ivec2 MapPos);
 	bool CanJoinTeam(int Team, int NotThisID);
 	void OnClientActiveBlock(int ClientID);
 	void OnPlayerPutBlock(int ClientID, ivec2 TilePos, int BlockID, int BlockFlags, int Reserved);
@@ -97,6 +100,7 @@ public:
 	void OnClientMoveCell(int ClientID, int From, int To, unsigned char Qty);
 	bool TakeBlockDamage(vec2 WorldPos, int WeaponItemID, int Dmg, int Owner);
 	void SendInventory(int ClientID, bool IsCraftTable);
+	void GenerateMapSpawn();
 
 	void CreateChestSingle(int ClientID, ivec2 TilePos, int NumTiles = 0, CCellData *pCellData = 0x0);
 
@@ -112,6 +116,8 @@ private:
 	float m_TimeDestruction;
     float m_TimeWear;
     float m_TimeCook;
+    CPerlinOctave *m_pNoise;
+    int64 m_AutoSaveTimer;
 
     void VegetationTick(CTile *pTempTiles, const int *pTileIndex, int x, int y, const CBlockManager::CBlockInfo *pBlockInfo);
     void EnvirionmentTick(CTile *pTempTiles, const int *pTileIndex, int x, int y, const CBlockManager::CBlockInfo *pBlockInfo);

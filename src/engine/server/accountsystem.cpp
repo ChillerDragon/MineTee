@@ -36,10 +36,25 @@ IAccountSystem::ACCOUNT_INFO* CAccountSystem::Create(const unsigned char *pKey)
 {
 	ACCOUNT_INFO NewAccount;
 	mem_copy(NewAccount.m_aKey, pKey, sizeof(NewAccount.m_aKey));
+	NewAccount.m_IsNew = true;
 	NewAccount.m_Alive = false;
 	NewAccount.m_Pos = vec2(0.0f, 0.0f);
+	NewAccount.m_SpawnPos = vec2(0.0f, 0.0f);
+	NewAccount.m_LayerLevel = 0;
 	NewAccount.m_Level = 0;
-	mem_zero(NewAccount.m_FastInventory, sizeof(CCellData)*(NUM_CELLS_LINE*4));
+	NewAccount.m_Health = 0;
+	NewAccount.m_Pos = NewAccount.m_SpawnPos = vec2(0.0f, 0.0f);
+	NewAccount.m_ActiveInventoryItem = -1;
+	NewAccount.m_PetInfo.m_ActiveInventoryItem = -1;
+	NewAccount.m_PetInfo.m_Alive = false;
+	NewAccount.m_PetInfo.m_Pos = vec2(0.0f, 0.0f);
+	NewAccount.m_PetInfo.m_Type = -1;
+	mem_zero(NewAccount.m_PetInfo.m_aName, sizeof(NewAccount.m_PetInfo.m_aName));
+	mem_zero(NewAccount.m_PetInfo.m_aSkinName, sizeof(NewAccount.m_PetInfo.m_aSkinName));
+	mem_zero(NewAccount.m_PetInfo.m_Inventory, sizeof(CCellData)*(NUM_CELLS_LINE*4));
+	str_copy(NewAccount.m_aSkinName, "default", sizeof(NewAccount.m_aSkinName));
+	mem_zero(NewAccount.m_FastInventory, sizeof(CCellData)*(NUM_CELLS_LINE));
+	mem_zero(NewAccount.m_Inventory, sizeof(CCellData)*(NUM_CELLS_LINE*3));
 	m_lAccounts.push_back(NewAccount);
 	Save();
 	return &(*m_lAccounts.rbegin());
