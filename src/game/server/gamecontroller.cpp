@@ -479,8 +479,9 @@ void CGameController::Tick()
 	if(GameServer()->m_World.m_Paused)
 		++m_RoundStartTick;
 
+	// MineTee
 	// do team-balancing
-	if(IsTeamplay() && m_UnbalancedTick != -1 && Server()->Tick() > m_UnbalancedTick+g_Config.m_SvTeambalanceTime*Server()->TickSpeed()*60)
+	/*if(IsTeamplay() && m_UnbalancedTick != -1 && Server()->Tick() > m_UnbalancedTick+g_Config.m_SvTeambalanceTime*Server()->TickSpeed()*60)
 	{
 		GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", "Balancing teams");
 
@@ -532,7 +533,7 @@ void CGameController::Tick()
 			m_ForceBalanced = true;
 		}
 		m_UnbalancedTick = -1;
-	}
+	}*/
 
 	// check for inactive players
 	if(g_Config.m_SvInactiveKickTime > 0)
@@ -774,7 +775,7 @@ int CGameController::ClampTeam(int Team)
 	if(Team < 0)
 		return TEAM_SPECTATORS;
 
-    if (GameServer()->IsMineTeeSrv() && Team > TEAM_BLUE) // MineTee
+    if (GameServer()->IsMineTeeSrv()) // MineTee
         return Team;
 
 	if(IsTeamplay())

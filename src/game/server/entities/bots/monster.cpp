@@ -72,7 +72,7 @@ void CMonster::RunAction()
 			if ((Server()->Tick() - m_BotTimePlayerFound > Server()->TickSpeed()*0.35f || Server()->Tick()-m_BotTimeGrounded > Server()->TickSpeed()*4))
 			{ // Kill-Self
 
-				Die(m_pPlayer->GetCID(), WEAPON_WORLD);
+				Die(m_pPlayer->GetCID(), WEAPON_SELF);
 				GameServer()->CreateExplosion(m_Pos, m_pPlayer->GetCID(), WEAPON_GRENADE, false);
 				GameServer()->CreateSound(m_Pos, SOUND_GRENADE_EXPLODE);
 			}
@@ -86,7 +86,7 @@ void CMonster::RunAction()
 		case BOT_MONSTER_ZOMBITEE:
 	        if (m_pPlayer->GetBotSubType() == BOT_MONSTER_ZOMBITEE && Server()->Tick()-m_BotTimeGrounded > Server()->TickSpeed()*4)
 	        {
-	            Die(m_pPlayer->GetCID(), WEAPON_WORLD);
+	            Die(m_pPlayer->GetCID(), WEAPON_SELF);
 	            break;
 	        }
 
@@ -113,7 +113,7 @@ void CMonster::RunAction()
 		case BOT_MONSTER_SKELETEE:
 	        if (Server()->Tick()-m_BotTimeGrounded > Server()->TickSpeed()*4)
 	        {
-	            Die(m_pPlayer->GetCID(), WEAPON_WORLD);
+	            Die(m_pPlayer->GetCID(), WEAPON_SELF);
 	        }
 	        if (m_BotClientIDFix != -1 && GameServer()->m_apPlayers[m_BotClientIDFix])
 	        {

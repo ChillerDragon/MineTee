@@ -393,27 +393,24 @@ void CCharacter::FireWeapon()
 			GameServer()->CreateSound(m_Pos, SOUND_HAMMER_FIRE);
 			int Hits = 0;
 
-            if (GameServer()->IsMineTeeSrv())
-            {
-                vec2 colTilePos = ProjStartPos+Direction * 80.0f;
-                if (GameServer()->Collision()->IntersectLine(ProjStartPos, colTilePos, &colTilePos, 0x0, false))
-                {
-                    vec2 finishPosPost = colTilePos+Direction * 8.0f;
-                    if (GameServer()->Collision()->GetCollisionAt(finishPosPost.x, finishPosPost.y) == CCollision::COLFLAG_SOLID)
-                    {
-                    	CTile *pMTTile = GameServer()->Collision()->GetMineTeeTileAt(finishPosPost);
-                    	if (pMTTile)
-                    	{
-							CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(pMTTile->m_Index);
-							if (pMTTile && pBlockInfo && pBlockInfo->m_Health > 0)
-							{
-								Fired = GameServer()->m_pController->TakeBlockDamage(finishPosPost, ActiveItem, g_pData->m_Weapons.m_aId[ActiveItem].m_Blockdamage, m_pPlayer->GetCID());
-								m_ReloadTimer=Server()->TickSpeed()/8;
-							}
-                    	}
-                    }
-                }
-            }
+			vec2 colTilePos = ProjStartPos+Direction * 80.0f;
+			if (GameServer()->Collision()->IntersectLine(ProjStartPos, colTilePos, &colTilePos, 0x0, false))
+			{
+				vec2 finishPosPost = colTilePos+Direction * 8.0f;
+				if (GameServer()->Collision()->GetCollisionAt(finishPosPost.x, finishPosPost.y) == CCollision::COLFLAG_SOLID)
+				{
+					CTile *pMTTile = GameServer()->Collision()->GetMineTeeTileAt(finishPosPost);
+					if (pMTTile)
+					{
+						CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(pMTTile->m_Index);
+						if (pMTTile && pBlockInfo && pBlockInfo->m_Health > 0)
+						{
+							Fired = GameServer()->m_pController->TakeBlockDamage(finishPosPost, ActiveItem, g_pData->m_Weapons.m_aId[ActiveItem].m_Blockdamage, m_pPlayer->GetCID());
+							m_ReloadTimer=Server()->TickSpeed()/8;
+						}
+					}
+				}
+			}
 
 			CCharacter *apEnts[MAX_CLIENTS];
 			int Num = GameServer()->m_World.FindEntities(ProjStartPos, m_ProximityRadius*0.5f, (CEntity**)apEnts,
@@ -888,9 +885,6 @@ bool CCharacter::IncreaseArmor(int Amount)
 
 void CCharacter::Die(int Killer, int ItemID)
 {
-	if (Killer == -1) // MineTee
-		Killer = m_pPlayer->GetCID();
-
 	// we got to wait 0.5 secs or 20 if bot before respawning
 	float RespawnTick = m_pPlayer->IsBot()?Server()->TickSpeed()*20.0f:Server()->TickSpeed()/2.0f; // MineTee
     m_pPlayer->m_RespawnTick = Server()->Tick()+RespawnTick;

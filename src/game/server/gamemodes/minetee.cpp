@@ -1164,9 +1164,9 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 				continue;
 
 			// Increase Area for Spawn bots outside player vision.
-			StartX = max(0, StartX-10);
+			StartX = max(1, StartX-10);
 			EndX = min(GameServer()->Collision()->GetWidth(), EndX+10);
-			StartY = max(0, StartY-10);
+			StartY = max(1, StartY-10);
 			EndY = min(GameServer()->Collision()->GetHeight(), EndY+10);
 
 
@@ -1175,9 +1175,8 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 				P = vec2(int_rand(StartX, EndX), int_rand(StartY, EndY));
 				P = vec2(P.x*32.0f + 16.0f, P.y*32.0f + 16.0f);
 
-				const int TileIndex = GameServer()->Collision()->GetMineTeeTileIndexAt(vec2(P.x, P.y+32.0f));
-				if (GameServer()->Collision()->CheckPoint(vec2(P.x, P.y), true) && !GameServer()->Collision()->CheckPoint(vec2(P.x, P.y+32.0f), true)
-						&& GameServer()->m_BlockManager.IsFluid(TileIndex))
+				const int TileIndex = GameServer()->Collision()->GetMineTeeTileIndexAt(P);
+				if (GameServer()->Collision()->CheckPoint(P, true) || !GameServer()->Collision()->CheckPoint(vec2(P.x, P.y+32.0f), true) || GameServer()->m_BlockManager.IsFluid(TileIndex))
 				{
 					pEval->m_Got = false;
 					return;
@@ -1389,16 +1388,32 @@ void CGameControllerMineTee::UpdateLayerLights(vec2 Pos)
 	int itt = (int)tt%(int)GameServer()->m_World.m_Core.m_Tuning.m_DayNightDuration;
 	tt = itt/GameServer()->m_World.m_Core.m_Tuning.m_DayNightDuration;
 
-	if (tt < 0.01f)
-		s_LightLevel=(IsDay)?4:0;
-	else if (tt < 0.02f)
-		s_LightLevel=(IsDay)?3:1;
-	else if (tt < 0.03f)
-		s_LightLevel=(IsDay)?2:2;
-	else if (tt < 0.04f)
-		s_LightLevel=(IsDay)?1:3;
+	if (IsDay)
+	{
+		if (tt < 0.01f)
+			s_LightLevel=4;
+		else if (tt < 0.02f)
+			s_LightLevel=3;
+		else if (tt < 0.03f)
+			s_LightLevel=2;
+		else if (tt < 0.04f)
+			s_LightLevel=1;
+		else
+			s_LightLevel=0;
+	}
 	else
-		s_LightLevel=(IsDay)?0:4;
+	{
+		if (tt < 0.51f)
+			s_LightLevel=0;
+		else if (tt < 0.52f)
+			s_LightLevel=1;
+		else if (tt < 0.53f)
+			s_LightLevel=2;
+		else if (tt < 0.54f)
+			s_LightLevel=3;
+		else
+			s_LightLevel=4;
+	}
 
 
 	if (s_LightLevel >= 0)
@@ -1430,6 +1445,7 @@ bool CGameControllerMineTee::TakeBlockDamage(vec2 WorldPos, int WeaponItemID, in
 		{
 			ModifTile(TilePos, pTile->m_Index, pTile->m_Reserved);
 			GameServer()->CreateSound(WorldPos, SOUND_DESTROY_BLOCK);
+			return true;
 		}
 	}
 
@@ -1461,6 +1477,7 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 	bool IsFromCraftRes = false;
 	bool IsToCraftZone = false;
 
+	// Get From & To
 	if (From < NUM_CELLS_LINE)
 		pCellFrom = &pChar->m_FastInventory[From];
 	else
@@ -1516,12 +1533,14 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 		}
 	}
 
+	// Can't move from craft result to craft zone
 	if (IsFromCraftRes && IsToCraftZone)
 	{
 		SendInventory(ClientID, IsCraftTable);
 		return;
 	}
 
+	// Do movement
 	if (pCellFrom && pCellTo)
 	{
 		if (pCellFrom->m_ItemId < NUM_WEAPONS)
@@ -1583,7 +1602,7 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 			}
 		}
 	}
-	else if (pCellFrom && !pCellTo && !IsFromCraftRes && pCellFrom->m_ItemId != 0)
+	else if (pCellFrom && !pCellTo && !IsFromCraftRes && pCellFrom->m_ItemId != 0) // Drop Item
 	{
 		CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_DROPITEM, pCellFrom->m_ItemId);
 		pPickup->m_Pos = pChar->m_Pos;
@@ -1596,7 +1615,8 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 		pCellFrom->m_Amount = 0;
 	}
 
-	if (pChar->m_ActiveBlockId == -2 || IsCraftTable)
+	// Check craft
+	if (IsToCraftZone)
 	{
 		CheckCraft(ClientID);
 		SendInventory(ClientID, IsCraftTable);
@@ -1818,10 +1838,12 @@ void CGameControllerMineTee::SaveData()
 	io_write(File, &Version, sizeof(short));
 
 	// Save item count
-	unsigned ItemCount = 2;
+	unsigned ItemCount = 0;
+	const unsigned ItemCountOffset = io_tell(File);
 	io_write(File, &ItemCount, sizeof(unsigned));
 
 	// Save Chests
+	++ItemCount;
 	ItemType = TYPE_CHESTS;
 	io_write(File, &ItemType, sizeof(unsigned));
 	NumRegs = m_lpChests.size();
@@ -1836,6 +1858,7 @@ void CGameControllerMineTee::SaveData()
 	}
 
 	// Save Signs
+	++ItemCount;
 	ItemType = TYPE_SIGNS;
 	io_write(File, &ItemType, sizeof(unsigned));
 	NumRegs = m_lpSigns.size();
@@ -1849,11 +1872,16 @@ void CGameControllerMineTee::SaveData()
 	}
 
 	// Save Map Spawn
+	++ItemCount;
 	ItemType = TYPE_MAP_SPAWN;
 	io_write(File, &ItemType, sizeof(unsigned));
 	NumRegs = 1;
 	io_write(File, &NumRegs, sizeof(unsigned));
 	io_write(File, &m_MapSpawn, sizeof(vec2)); // The Map Spawn
+
+	// Now known the 'ItemCount'. Write it.
+	io_seek(File, ItemCountOffset, IOSEEK_START);
+	io_write(File, &ItemCount, sizeof(unsigned));
 
 	io_close(File);
 }

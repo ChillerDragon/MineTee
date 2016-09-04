@@ -610,14 +610,15 @@ void CGameContext::OnClientEnter(int ClientID)
 
 void CGameContext::OnClientConnected(int ClientID)
 {
+	// MineTee
 	// Check which team the player should be on
-	const int StartTeam = g_Config.m_SvTournamentMode ? TEAM_SPECTATORS : m_pController->GetAutoTeam(ClientID);
+	//const int StartTeam = g_Config.m_SvTournamentMode ? TEAM_SPECTATORS : m_pController->GetAutoTeam(ClientID);
 
-	m_apPlayers[ClientID] = new(ClientID) CPlayer(this, ClientID, StartTeam);
+	m_apPlayers[ClientID] = new(ClientID) CPlayer(this, ClientID, TEAM_RED);
 	//players[client_id].init(client_id);
 	//players[client_id].client_id = client_id;
 
-	(void)m_pController->CheckTeamBalance();
+	//(void)m_pController->CheckTeamBalance();
 
 #ifdef CONF_DEBUG
 	if(g_Config.m_DbgDummies)
@@ -924,6 +925,8 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				else
 					SendBroadcast("Teams must be balanced, please join other team", ClientID);
 			}
+			else if (pMsg->m_Team == TEAM_SPECTATORS && !Server()->IsAuthed(ClientID)) // MineTee
+				SendBroadcast("Spectate mode are not allowed", ClientID);
 			else
 			{
 				char aBuf[128];

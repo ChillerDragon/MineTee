@@ -1946,7 +1946,7 @@ void CServer::ResetBotInfo(int ClientID, int BotType, int BotSubType)
     else
     	str_copy(m_aClients[ClientID].m_aName , "", MAX_NAME_LENGTH);
 
-    str_copy(m_aClients[ClientID].m_aClan, "MineBOT", MAX_CLAN_LENGTH);
+    str_copy(m_aClients[ClientID].m_aClan, "BOTijo", MAX_CLAN_LENGTH);
     m_aClients[ClientID].m_Country = 724;
 
     m_aClients[ClientID].m_Score = 0;

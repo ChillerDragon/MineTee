@@ -121,6 +121,7 @@ void CMapGen::FillMap(int Seed)
 	GenerateBossZones();
 	dbg_msg("mapgen", "Bosses spawned in %.5fs", (float)(time_get()-ProcessTime)/time_freq());
 
+
 	// Chests
 	ProcessTime = time_get();
 	GenerateChests();

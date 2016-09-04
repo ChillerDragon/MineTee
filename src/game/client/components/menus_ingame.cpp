@@ -389,10 +389,10 @@ void CMenus::RenderServerControlKick(CUIRect MainView, bool FilterSpectators)
 {
 	int NumOptions = 0;
 	int Selected = -1;
-	static int aPlayerIDs[MAX_CLIENTS];
+	static int aPlayerIDs[MAX_CLIENTS-MAX_BOTS];
 	for(int i = 0; i < MAX_CLIENTS; i++)
 	{
-		if(!m_pClient->m_Snap.m_paInfoByTeam[i])
+		if(!m_pClient->m_Snap.m_paInfoByTeam[i] || m_pClient->m_Snap.m_paInfoByTeam[i]->m_Team > TEAM_BLUE)
 			continue;
 
 		int Index = m_pClient->m_Snap.m_paInfoByTeam[i]->m_ClientID;

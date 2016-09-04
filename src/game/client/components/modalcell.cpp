@@ -141,14 +141,14 @@ void CModalCell::RenderChest(CUIRect MainView)
 	static bool m_LastMousePressed = m_MousePressed;
 	const int NumRows = (m_pClient->m_NumCells-NUM_CELLS_LINE)/NUM_CELLS_LINE; // One line for fast inventory (the first 9 cells)
 
-	CUIRect Modal = MainView;
-	Modal.h = (NumRows+3.0f)*30.0f+5.0f;
-	Modal.y = MainView.h/2.0f;
-	CUIRect OrgModal = Modal;
+	CUIRect OrgModal = MainView, Modal;
+	OrgModal.h = (NumRows+3.0f)*30.0f+5.0f;
+	OrgModal.y = MainView.h/2.0f;
+	OrgModal.VMargin(120.0f, &OrgModal);
 	// render background
-	RenderTools()->DrawUIRect(&Modal, vec4(0,0,0,0.5f), CUI::CORNER_T, 10.0f);
+	RenderTools()->DrawUIRect(&OrgModal, vec4(0,0,0,0.5f), CUI::CORNER_T, 10.0f);
 
-	Modal.Margin(5.0f, &Modal);
+	OrgModal.Margin(5.0f, &Modal);
 
 	CUIRect Title;
 	Modal.HSplitTop(30.0f, &Title, &Modal);
@@ -332,9 +332,10 @@ void CModalCell::RenderInventory(CUIRect MainView)
 	for (int q=0; q<2; q++)
 	{
 		int StartInvIndex = NUM_CELLS_LINE*4;
+		CUIRect OrgCraftTable = CraftTable;
 		for (int y=0; y<2; y++)
 		{
-			CraftTable.HSplitTop(30.0f, &ButtonLine, &CraftTable);
+			OrgCraftTable.HSplitTop(30.0f, &ButtonLine, &OrgCraftTable);
 			for (int x=0; x<2; x++)
 			{
 				CurItemID = m_pClient->m_apLatestCells[StartInvIndex].m_ItemId;
@@ -601,14 +602,14 @@ void CModalCell::RenderCraftTable(CUIRect MainView)
 	const int NumRows = (m_pClient->m_NumCells-(NUM_CELLS_LINE*2+1))/NUM_CELLS_LINE; // One line for fast inventory (the first 9 cells) + One line for craft (the last 9 cells) + One craft result (latest cell)
 
 	CUIRect Button, ButtonLine;
-	CUIRect Modal = MainView;
-	Modal.h = (NumRows+3.0f)*30.0f+5.0f+120.0f;
-	Modal.y = MainView.h/2.0f;
-	CUIRect OrgModal = Modal;
+	CUIRect OrgModal = MainView, Modal;
+	OrgModal.h = (NumRows+3.0f)*30.0f+5.0f+120.0f;
+	OrgModal.y = MainView.h/2.0f;
+	OrgModal.VMargin(120.0f, &OrgModal);
 	// render background
-	RenderTools()->DrawUIRect(&Modal, vec4(0,0,0,0.5f), CUI::CORNER_T, 10.0f);
+	RenderTools()->DrawUIRect(&OrgModal, vec4(0,0,0,0.5f), CUI::CORNER_T, 10.0f);
 
-	Modal.Margin(5.0f, &Modal);
+	OrgModal.Margin(5.0f, &Modal);
 
 	CUIRect Title;
 	Modal.HSplitTop(30.0f, &Title, &Modal);

@@ -22,6 +22,11 @@ CPlayer::CPlayer(CGameContext *pGameServer, int ClientID, int Team)
 	m_pCharacter = 0;
 	m_ClientID = ClientID;
 	m_Team = GameServer()->m_pController->ClampTeam(Team);
+	if (ClientID == 0)
+	{
+		dbg_msg("PALYER", "Crea con Team: %d", Team);
+		dbg_msg("PALYER", "Termina con Team: %d", m_Team);
+	}
 	m_SpectatorID = SPEC_FREEVIEW;
 	m_LastActionTick = Server()->Tick();
 	m_TeamChangeTick = Server()->Tick();
@@ -165,9 +170,6 @@ void CPlayer::Snap(int SnappingClient)
 	pPlayerInfo->m_ClientID = m_ClientID;
 	pPlayerInfo->m_Score = m_Score;
 	pPlayerInfo->m_Team = m_Team;
-
-	if (m_ClientID < g_Config.m_SvMaxClients)
-		dbg_msg("PL", "Team: %d -- %d", m_Team, m_ClientID);
 
 	if(m_ClientID == SnappingClient)
 		pPlayerInfo->m_Local = 1;
@@ -313,6 +315,10 @@ void CPlayer::TryRespawn()
 {
 	vec2 SpawnPos;
 
+    if(!GameServer()->m_pController->CanSpawn(m_Team, &SpawnPos, m_BotType, m_BotSubType))
+    	return;
+
+
 	// MineTee
     if (IsBot())
     {
@@ -327,9 +333,6 @@ void CPlayer::TryRespawn()
         }
         else if (m_BotType == BOT_MONSTER)
         	m_BotSubType = rand()%NUM_MONSTERS;
-
-        if(!GameServer()->m_pController->CanSpawn(m_Team, &SpawnPos, m_BotType, m_BotSubType))
-        	return;
 
         GameServer()->UpdateBotInfo(m_ClientID);
 
