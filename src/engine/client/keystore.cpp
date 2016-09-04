@@ -2,6 +2,7 @@
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 
 #include "keystore.h"
+#include <cstdint>
 
 void CKeyStore::Init(const char *pFileStore, IStorage *pStorage)
 {

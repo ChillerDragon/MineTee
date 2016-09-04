@@ -1,6 +1,6 @@
 #ifndef NOISE_H
 #define NOISE_H
-#include <stdint.h>
+#include <cstdint>
 
 #include <random>
 #include <array>
@@ -13,7 +13,7 @@ public:
     double Noise(double x) const { return Noise(x, 0, 0); }
     double Noise(double x, double y) const { return Noise(x, y, 0); }
     double Noise(double x, double y, double z) const;
-    int GetURandom(int Max, int Min);
+    int GetURandom(int Min, int Max);
     uint32_t GetSeed() const { return m_Seed; }
 
 private:

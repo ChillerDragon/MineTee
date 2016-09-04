@@ -17,9 +17,9 @@ CPerlin::CPerlin(uint32_t seed)
     //p now has the numbers 0-255, shuffled, and duplicated
 }
 
-int CPerlin::GetURandom(int Max, int Min)
+int CPerlin::GetURandom(int Min, int Max)
 {
-	std::uniform_int_distribution<int> uni(Max,Min);
+	std::uniform_int_distribution<int> uni(Min,Max);
 	return uni(m_Engine);
 }
 

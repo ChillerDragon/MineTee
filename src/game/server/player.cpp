@@ -22,11 +22,6 @@ CPlayer::CPlayer(CGameContext *pGameServer, int ClientID, int Team)
 	m_pCharacter = 0;
 	m_ClientID = ClientID;
 	m_Team = GameServer()->m_pController->ClampTeam(Team);
-	if (ClientID == 0)
-	{
-		dbg_msg("PALYER", "Crea con Team: %d", Team);
-		dbg_msg("PALYER", "Termina con Team: %d", m_Team);
-	}
 	m_SpectatorID = SPEC_FREEVIEW;
 	m_LastActionTick = Server()->Tick();
 	m_TeamChangeTick = Server()->Tick();
