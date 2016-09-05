@@ -66,14 +66,14 @@ class CGameControllerMineTee : public CGameController
 	enum
 	{
 		TILE_CENTER = 0,
-		TILE_TOP,
 		TILE_LEFT_TOP,
+		TILE_TOP,
+		TILE_RIGHT_TOP,
 		TILE_LEFT,
+		TILE_RIGHT,
 		TILE_LEFT_BOTTOM,
 		TILE_BOTTOM,
 		TILE_RIGHT_BOTTOM,
-		TILE_RIGHT,
-		TILE_RIGHT_TOP,
 		NUM_TILE_POS
 	};
 

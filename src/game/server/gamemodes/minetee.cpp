@@ -93,7 +93,7 @@ void CGameControllerMineTee::Tick()
 				for(int y = StartY; y < EndY; y++)
 					for(int x = StartX; x < EndX; x++)
 					{
-						const int Index[NUM_TILE_POS] = { y*pTmap->m_Width+x, (y-1)*pTmap->m_Width+x, (y-1)*pTmap->m_Width+(x-1), y*pTmap->m_Width+(x-1), (y+1)*pTmap->m_Width+(x-1), (y+1)*pTmap->m_Width+x, (y+1)*pTmap->m_Width+(x+1), y*pTmap->m_Width+(x+1), (y-1)*pTmap->m_Width+(x+1) };
+						const int Index[NUM_TILE_POS] = { y*pTmap->m_Width+x, (y-1)*pTmap->m_Width+(x-1), (y-1)*pTmap->m_Width+x, (y-1)*pTmap->m_Width+(x+1), y*pTmap->m_Width+(x-1), y*pTmap->m_Width+(x+1), (y+1)*pTmap->m_Width+(x-1), (y+1)*pTmap->m_Width+x, (y+1)*pTmap->m_Width+(x+1) };
 						const int TileIndex[NUM_TILE_POS] = { pTempTiles[Index[0]].m_Index, pTempTiles[Index[1]].m_Index, pTempTiles[Index[2]].m_Index, pTempTiles[Index[3]].m_Index, pTempTiles[Index[4]].m_Index, pTempTiles[Index[5]].m_Index, pTempTiles[Index[6]].m_Index, pTempTiles[Index[7]].m_Index, pTempTiles[Index[8]].m_Index };
 
 						const CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(TileIndex[TILE_CENTER]);
@@ -142,8 +142,8 @@ void CGameControllerMineTee::EnvirionmentTick(CTile *pTempTiles, const int *pTil
 {
 	CMapItemLayerTilemap *pTmap = GameServer()->Layers()->MineTeeLayer();
 	CTile *pTiles = (CTile *)GameServer()->Layers()->Map()->GetData(pTmap->m_Data);
-	const ivec2 Positions[NUM_TILE_POS] = { ivec2(x,y), ivec2(x,y-1), ivec2(x-1,y-1), ivec2(x-1,y), ivec2(x-1,y+1), ivec2(x,y+1), ivec2(x+1,y+1), ivec2(x+1,y), ivec2(x+1,y-1) };
-	const int Index[NUM_TILE_POS] = { y*pTmap->m_Width+x, (y-1)*pTmap->m_Width+x, (y-1)*pTmap->m_Width+(x-1), y*pTmap->m_Width+(x-1), (y+1)*pTmap->m_Width+(x-1), (y+1)*pTmap->m_Width+x, (y+1)*pTmap->m_Width+(x+1), y*pTmap->m_Width+(x+1), (y-1)*pTmap->m_Width+(x+1) };
+	const ivec2 Positions[NUM_TILE_POS] = { ivec2(x,y), ivec2(x-1,y-1), ivec2(x,y-1), ivec2(x+1,y-1), ivec2(x-1,y), ivec2(x+1,y), ivec2(x-1,y+1), ivec2(x,y+1), ivec2(x+1,y+1) };
+	const int Index[NUM_TILE_POS] = { y*pTmap->m_Width+x, (y-1)*pTmap->m_Width+(x-1), (y-1)*pTmap->m_Width+x, (y-1)*pTmap->m_Width+(x+1), y*pTmap->m_Width+(x-1), y*pTmap->m_Width+(x+1), (y+1)*pTmap->m_Width+(x-1), (y+1)*pTmap->m_Width+x, (y+1)*pTmap->m_Width+(x+1) };
 	int FluidType = 0;
 	bool IsFluid = GameServer()->m_BlockManager.IsFluid(pTileIndex[TILE_CENTER], &FluidType);
 
@@ -207,10 +207,11 @@ void CGameControllerMineTee::EnvirionmentTick(CTile *pTempTiles, const int *pTil
 
 		for (int e=0; e<pArray->size(); e++)
 		{
-			if ((*pArray)[e] == -2)
+			const int MutaBlockID = (*pArray)[e];
+			if (MutaBlockID == -2)
 				continue;
-			else if (((*pArray)[e] == -1 && !pTileIndex[TILE_TOP+e]) ||
-					((*pArray)[e] != -1 && pTileIndex[TILE_TOP+e] != (*pArray)[e]))
+			else if ((MutaBlockID == -1 && !pTileIndex[TILE_LEFT_TOP+e]) ||
+					(MutaBlockID != -1 && pTileIndex[TILE_LEFT_TOP+e] != MutaBlockID))
 			{
 				MutationCheck = false;
 				break;
@@ -324,31 +325,35 @@ void CGameControllerMineTee::EnvirionmentTick(CTile *pTempTiles, const int *pTil
 void CGameControllerMineTee::DestructionTick(CTile *pTempTiles, const int *pTileIndex, int x, int y, const CBlockManager::CBlockInfo *pBlockInfo)
 {
 	// Place Check
-	if (pBlockInfo->m_vPlace.size() > 0)
+	if (pBlockInfo->m_vPlace.size() == NUM_TILE_POS-1)
 	{
-		bool PlaceCheck = true;
+		int CheckCount = 0;
 		for (int i=0; i<pBlockInfo->m_vPlace.size(); i++)
 		{
-			PlaceCheck = true;
 			const array<int> *pArray = &pBlockInfo->m_vPlace[i];
-			for (int e=0; e<pArray->size(); e++)
+			const int NumItems = pArray->size();
+
+			bool PosCheck = false;
+			for (int e=0; e<NumItems; e++)
 			{
 				const int PlaceBlockID = (*pArray)[e];
 				if (PlaceBlockID == -2)
-					continue;
-				else if ((PlaceBlockID == -1 && pTileIndex[TILE_TOP+i] == 0) ||
-					(PlaceBlockID != -1 && pTileIndex[TILE_TOP+i] != PlaceBlockID))
+					PosCheck = true;
+				else if ((PlaceBlockID == -1 && pTileIndex[TILE_LEFT_TOP+i] != 0)
+						|| (PlaceBlockID > -1 && pTileIndex[TILE_LEFT_TOP+i] == PlaceBlockID))
 				{
-					PlaceCheck = false;
+					PosCheck = true;
 					break;
 				}
 			}
 
-			if (PlaceCheck)
+			if (!PosCheck)
 				break;
+
+			++CheckCount;
 		}
 
-		if (!PlaceCheck)
+		if (CheckCount < NUM_TILE_POS-1)
 			OnPlayerDestroyBlock(g_Config.m_SvMaxClients, ivec2(x, y)); // FIXME: NUM_CLIENTS needs by something like 'WORLD_CLIENT'
 	}
 

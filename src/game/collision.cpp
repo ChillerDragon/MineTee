@@ -310,6 +310,7 @@ bool CCollision::ModifTile(ivec2 pos, int group, int layer, int index, int flags
 
     if (pTilemap == m_pLayers->MineTeeLayer())
     {
+    	CBlockManager::CBlockInfo *pBlockInfo = m_pBlockManager->GetBlockInfo(index);
         CTile *pTiles = static_cast<CTile *>(m_pLayers->Map()->GetData(pTilemap->m_Data));
         pTiles[tpos].m_Flags = flags;
         pTiles[tpos].m_Index = index;
@@ -323,14 +324,14 @@ bool CCollision::ModifTile(ivec2 pos, int group, int layer, int index, int flags
     		m_pTiles[tpos].m_Index = 0;
     		m_pTiles[tpos].m_Flags = 0;
     	}
-    	else if (index == CBlockManager::BEDROCK)
+    	else if (!pBlockInfo->m_Hookable)
     	{
             m_pTiles[tpos].m_Index = COLFLAG_SOLID|COLFLAG_NOHOOK;
             m_pTiles[tpos].m_Flags = 0;
     	}
-    	else if (!m_pBlockManager->IsFluid(index))
+    	else
     	{
-    		m_pTiles[tpos].m_Index = COLFLAG_SOLID;
+    		m_pTiles[tpos].m_Index = (!m_pBlockManager->IsFluid(index))?COLFLAG_SOLID:0;
     		m_pTiles[tpos].m_Flags = 0;
     	}
     }

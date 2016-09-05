@@ -160,57 +160,74 @@ void CModalCell::RenderChest(CUIRect MainView)
 
 	int CurItemID = -1;
 	const float CellSize = Modal.w/NUM_CELLS_LINE;
-	CUIRect Button, ButtonLine;
-	int InvIndex = NUM_CELLS_LINE;
-	for (int y=0; y<NumRows; y++)
+	CUIRect Button, ButtonLine, OrgModalTT;
+
+	for (int q=0; q<2; q++)
 	{
-		Modal.HSplitTop(30.0f, &ButtonLine, &Modal);
-		for (int x=0; x<NUM_CELLS_LINE; x++)
+		int InvIndex = NUM_CELLS_LINE;
+		OrgModalTT = Modal;
+		for (int y=0; y<NumRows; y++)
 		{
-			CurItemID = m_pClient->m_apLatestCells[InvIndex].m_ItemId;
-			ButtonLine.VSplitLeft(CellSize, &Button, &ButtonLine);
-			Button.Margin(3.0f, &Button);
-			RenderTools()->DrawUIRect(&Button, vec4(1.0f,1.0f,1.0f,0.5f), 0, 10.0f);
-			if (CurItemID != 0 && (m_SelectedCell != InvIndex || m_pClient->m_apLatestCells[InvIndex].m_Amount-m_SelectedQty > 0))
+			OrgModalTT.HSplitTop(30.0f, &ButtonLine, &OrgModalTT);
+			for (int x=0; x<NUM_CELLS_LINE; x++)
 			{
-				vec2 DPos = vec2(Button.x+(Button.w/2-8.0f), Button.y+(Button.h/2-8.0f));
-				if (CurItemID >= NUM_WEAPONS)
-					DPos = vec2(Button.x+(Button.w/2-16.0f), Button.y+(Button.h/2-12.0f));
-
-				RenderTools()->RenderItem(CurItemID, DPos, m_pClient->m_pMapimages->Get(Layers()->MineTeeLayer()->m_Image), 16.0f, vec2(24.0f, 16.0f));
-
-				TextRender()->TextColor(1.0f, 1.0f, 1.0f, 0.85f);
-				char aBuf[8];
-				if (m_SelectedCell == InvIndex)
-					str_format(aBuf, sizeof(aBuf), "x%d", m_pClient->m_apLatestCells[InvIndex].m_Amount-m_SelectedQty);
-				else
-					str_format(aBuf, sizeof(aBuf), "x%d", m_pClient->m_apLatestCells[InvIndex].m_Amount);
-				TextRender()->Text(0x0, Button.x+2.0f, Button.y, 8.0f, aBuf, -1);
-				TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
-
-				if (m_SelectedCell == -1 && Button.Contains(m_SelectorMouse) && m_MousePressed)
+				CurItemID = m_pClient->m_apLatestCells[InvIndex].m_ItemId;
+				ButtonLine.VSplitLeft(CellSize, &Button, &ButtonLine);
+				Button.Margin(3.0f, &Button);
+				if (q == 0)
 				{
-					if (m_MousePressedKey == KEY_MOUSE_1)
-						m_SelectedQty = m_pClient->m_apLatestCells[InvIndex].m_Amount;
-					else if (m_MousePressedKey == KEY_MOUSE_3)
-						m_SelectedQty = m_pClient->m_apLatestCells[InvIndex].m_Amount/2;
-					else
-						m_SelectedQty = 1;
+					RenderTools()->DrawUIRect(&Button, vec4(1.0f,1.0f,1.0f,0.5f), 0, 10.0f);
 
-					if (m_SelectedQty > 0)
-						m_SelectedCell = InvIndex;
+					if (m_SelectedCell != -1 && Button.Contains(m_SelectorMouse) && !m_LastMousePressed && m_MousePressed)
+					{
+						Client()->SendMoveCell(m_SelectedCell, InvIndex, m_SelectedQty);
+						m_SelectedCell = -1;
+						m_SelectedQty = 0;
+						m_LastMousePressed = true;
+					}
+
+					if (CurItemID != 0 && (m_SelectedCell != InvIndex || m_pClient->m_apLatestCells[InvIndex].m_Amount-m_SelectedQty > 0))
+					{
+						vec2 DPos = vec2(Button.x+(Button.w/2-8.0f), Button.y+(Button.h/2-8.0f));
+						if (CurItemID >= NUM_WEAPONS)
+							DPos = vec2(Button.x+(Button.w/2-16.0f), Button.y+(Button.h/2-12.0f));
+
+						RenderTools()->RenderItem(CurItemID, DPos, m_pClient->m_pMapimages->Get(Layers()->MineTeeLayer()->m_Image), 16.0f, vec2(24.0f, 16.0f));
+
+						TextRender()->TextColor(1.0f, 1.0f, 1.0f, 0.85f);
+						char aBuf[8];
+						if (m_SelectedCell == InvIndex)
+							str_format(aBuf, sizeof(aBuf), "x%d", m_pClient->m_apLatestCells[InvIndex].m_Amount-m_SelectedQty);
+						else
+							str_format(aBuf, sizeof(aBuf), "x%d", m_pClient->m_apLatestCells[InvIndex].m_Amount);
+						TextRender()->Text(0x0, Button.x+2.0f, Button.y, 8.0f, aBuf, -1);
+						TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+						if (m_SelectedCell == -1 && Button.Contains(m_SelectorMouse) && !m_LastMousePressed && m_MousePressed)
+						{
+							if (m_MousePressedKey == KEY_MOUSE_1)
+								m_SelectedQty = m_pClient->m_apLatestCells[InvIndex].m_Amount;
+							else if (m_MousePressedKey == KEY_MOUSE_3)
+								m_SelectedQty = m_pClient->m_apLatestCells[InvIndex].m_Amount/2;
+							else
+								m_SelectedQty = 1;
+
+							if (m_SelectedQty > 0)
+								m_SelectedCell = InvIndex;
+
+							m_LastMousePressed = true;
+						}
+					}
 				}
-			}
+				else if (Button.Contains(m_SelectorMouse))
+					DrawToolTipItemName(CurItemID);
 
-			if (m_SelectedCell != -1 && Button.Contains(m_SelectorMouse) && !m_MousePressed)
-			{
-				Client()->SendMoveCell(m_SelectedCell, InvIndex, m_SelectedQty);
-				m_SelectedCell = -1;
+				++InvIndex;
 			}
-
-			++InvIndex;
 		}
 	}
+
+	Modal = OrgModalTT;
 
 	Modal.HSplitTop(15.0f, &ButtonLine, &Modal);
 	Modal.HSplitTop(30.0f, &ButtonLine, &Modal);
