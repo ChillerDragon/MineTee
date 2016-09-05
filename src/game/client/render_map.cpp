@@ -278,12 +278,12 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
                 	cC = (mx-1) + my*w;
                 	if (pTiles[cC].m_Index)
                 	    Rotation = pBlockInfo->m_Aspect[1];
-                	cC = mx + (my+1)*w;
-					if (pTiles[cC].m_Index)
-						Rotation = pBlockInfo->m_Aspect[2];
 					cC = (mx+1) + my*w;
 					if (pTiles[cC].m_Index)
 						Rotation = pBlockInfo->m_Aspect[3];
+                	cC = mx + (my+1)*w;
+					if (pTiles[cC].m_Index)
+						Rotation = pBlockInfo->m_Aspect[2];
 
                 	// Block Effects
                 	if (pEffects)

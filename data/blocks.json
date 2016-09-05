@@ -127,7 +127,9 @@
     },
     {
         "name": "BEDROCK",
-        "health": 0
+        "health": 0,
+        "place": [[-2],[-2],[-2],[-2],[-2],[-2],[-2],[-2]],
+        "hookable": false,
     },
     {
         "name": "WOOD BROWN",

@@ -326,18 +326,20 @@ void CGameControllerMineTee::DestructionTick(CTile *pTempTiles, const int *pTile
 	// Place Check
 	if (pBlockInfo->m_vPlace.size() > 0)
 	{
-		bool PlaceCheck = false;
+		bool PlaceCheck = true;
 		for (int i=0; i<pBlockInfo->m_vPlace.size(); i++)
 		{
+			PlaceCheck = true;
 			const array<int> *pArray = &pBlockInfo->m_vPlace[i];
 			for (int e=0; e<pArray->size(); e++)
 			{
-				if ((*pArray)[e] == -2)
+				const int PlaceBlockID = (*pArray)[e];
+				if (PlaceBlockID == -2)
 					continue;
-				else if (((*pArray)[e] == -1 && pTileIndex[TILE_TOP+i] != 0) ||
-					((*pArray)[e] != -1 && pTileIndex[TILE_TOP+i] == (*pArray)[e]))
+				else if ((PlaceBlockID == -1 && pTileIndex[TILE_TOP+i] == 0) ||
+					(PlaceBlockID != -1 && pTileIndex[TILE_TOP+i] != PlaceBlockID))
 				{
-					PlaceCheck = true;
+					PlaceCheck = false;
 					break;
 				}
 			}
@@ -362,7 +364,7 @@ void CGameControllerMineTee::DestructionTick(CTile *pTempTiles, const int *pTile
 	// Remove 'Dead' Blocks
 	CMapItemLayerTilemap *pTmap = (CMapItemLayerTilemap *)GameServer()->Layers()->MineTeeLayer();
 	const int TileIndexTemp = y*pTmap->m_Width+x;
-	if (pTileIndex[TILE_CENTER] && pTempTiles[TileIndexTemp].m_Reserved == 0)
+	if (pTileIndex[TILE_CENTER] && pTempTiles[TileIndexTemp].m_Reserved == 0 && pBlockInfo->m_Health != 0)
 		OnPlayerDestroyBlock(-1, ivec2(x, y)); // TODO: Implement last user recognition
 }
 
@@ -1169,6 +1171,13 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 			StartY = max(1, StartY-10);
 			EndY = min(GameServer()->Collision()->GetHeight(), EndY+10);
 
+			if (EndX <= 0 || EndY <= 0
+					|| StartX >= GameServer()->Collision()->GetWidth() || StartY >= GameServer()->Collision()->GetHeight()) // Totally Out of Game Zone
+			{
+				pEval->m_Got = false;
+				return;
+			}
+
 
 			if (BotType != BOT_ANIMAL) // Enemies can spawn underground or outside
 			{
@@ -1317,13 +1326,11 @@ void CGameControllerMineTee::GenerateTree(ivec2 Pos)
 bool CGameControllerMineTee::CheckBlockPosition(ivec2 MapPos)
 {
 	// Inside
-	if (MapPos.x <= 0 || MapPos.x >= GameServer()->Layers()->MineTeeLayer()->m_Width || MapPos.y <= 0 || MapPos.y >= GameServer()->Layers()->MineTeeLayer()->m_Height)
+	if (MapPos.x <= 1 || MapPos.x >= GameServer()->Layers()->MineTeeLayer()->m_Width-2 || MapPos.y <= 0 || MapPos.y >= GameServer()->Layers()->MineTeeLayer()->m_Height-2)
 		return false;
 
 	// Protect Map Spawn
 	const ivec2 MapSpawn = ivec2(m_MapSpawn.x/32, m_MapSpawn.y/32);
-
-	dbg_msg("CHECK", "S: %d [[ %d ]] %d", MapSpawn.x-30, MapPos.x, MapSpawn.x+30);
 
 	if (MapPos.x >= MapSpawn.x-30 && MapPos.x <= MapSpawn.x+30 && MapPos.y <= MapSpawn.y+30)
 		return false;

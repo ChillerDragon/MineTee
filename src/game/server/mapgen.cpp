@@ -480,15 +480,18 @@ void CMapGen::GenerateBorder()
 	{
 		// bottom border
 		ModifTile(ivec2(i, m_pLayers->MineTeeLayer()->m_Height-1), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::BEDROCK, false);
+		ModifTile(ivec2(i, m_pLayers->MineTeeLayer()->m_Height-2), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::BEDROCK, false);
 	}
 
 	for(int i = 0; i < m_pLayers->MineTeeLayer()->m_Height; i++)
 	{
 		// left border
 		ModifTile(ivec2(0, i), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::BEDROCK, false);
+		ModifTile(ivec2(1, i), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::BEDROCK, false);
 		
 		// right border
 		ModifTile(ivec2(m_pLayers->MineTeeLayer()->m_Width-1, i), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::BEDROCK, false);
+		ModifTile(ivec2(m_pLayers->MineTeeLayer()->m_Width-2, i), m_pLayers->GetMineTeeLayerIndex(), CBlockManager::BEDROCK, false);
 	}
 }
 

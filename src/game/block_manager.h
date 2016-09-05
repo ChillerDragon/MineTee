@@ -191,6 +191,7 @@ public:
     			m_vCraft[i].clear();
     		m_Explode = false;
     		m_PlayerVel = 1.0f;
+    		m_Hookable = true;
 
     		mem_zero(m_Aspect, sizeof(float)*4);
 
@@ -222,6 +223,7 @@ public:
 		bool m_HalfTile;
 		bool m_PlayerCollide;
 		bool m_Explode;
+		bool m_Hookable;
 		int m_OnFunctionality;
 		int m_RandomActions;
 		int m_OnPut;

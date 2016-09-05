@@ -51,11 +51,15 @@ void CCollision::Init(class CLayers *pLayers, class CBlockManager *pBlockManager
         if (m_pMineTeeTiles && i < MineTeeLayerSize)
         {
         	const int MTIndex = m_pMineTeeTiles[i].m_Index;
-            if (MTIndex == CBlockManager::BEDROCK)
-                m_pTiles[i].m_Index = TILE_NOHOOK;
             CBlockManager::CBlockInfo *pBlockInfo = m_pBlockManager->GetBlockInfo(MTIndex);
             if (pBlockInfo)
-            	m_pMineTeeTiles[i].m_Reserved = pBlockInfo->m_Health;
+            {
+            	if (!pBlockInfo->m_Hookable)
+            		m_pTiles[i].m_Index = TILE_NOHOOK;
+
+            	if (m_pMineTeeTiles[i].m_Reserved == 0)
+            		m_pMineTeeTiles[i].m_Reserved = pBlockInfo->m_Health;
+            }
         }
         //
 

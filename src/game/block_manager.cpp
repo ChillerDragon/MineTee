@@ -43,6 +43,7 @@ bool CBlockManager::Init(char *pData, int DataSize)
 		pBlockInfo->m_OnSun = ((*pJsonObject)["onSun"].type == json_none)?-1:(*pJsonObject)["onSun"].u.integer;
 		pBlockInfo->m_Explode = ((*pJsonObject)["explode"].type == json_none)?false:(*pJsonObject)["explode"].u.boolean;
 		pBlockInfo->m_PlayerVel = ((*pJsonObject)["playerVel"].type == json_none)?1.0f:(*pJsonObject)["playerVel"].u.dbl;
+		pBlockInfo->m_Hookable = ((*pJsonObject)["hookable"].type == json_none)?true:(*pJsonObject)["hookable"].u.boolean;
 
 		if ((*pJsonObject)["effects"].type != json_none)
 		{
