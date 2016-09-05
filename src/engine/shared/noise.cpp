@@ -12,7 +12,14 @@ CPerlin::CPerlin(uint32_t seed)
     auto mid_range = m_aNumsPerlin.begin() + 256;
 
     std::iota(m_aNumsPerlin.begin(), mid_range, 0); //Generate sequential numbers in the lower half
+#if defined(_MSC_VER) && _MSC_VER <= 1600
+    // Visual C++ 2010 or lower haven't std::shuffle implemented.
+    // Because not use the URNG this 'fix' break shared seeds.
+    std::srand(m_Seed);
+    std::random_shuffle(m_aNumsPerlin.begin(), mid_range);
+#else
     std::shuffle(m_aNumsPerlin.begin(), mid_range, m_Engine); //Shuffle the lower half
+#endif
     std::copy(m_aNumsPerlin.begin(), mid_range, mid_range); //Copy the lower half to the upper half
     //p now has the numbers 0-255, shuffled, and duplicated
 }
