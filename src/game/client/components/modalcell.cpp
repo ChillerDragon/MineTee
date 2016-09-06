@@ -95,11 +95,34 @@ bool CModalCell::OnInput(IInput::CEvent e)
 	return true;
 }
 
+void CModalCell::DoMoveCell(int From, int To, int Qty)
+{
+	Client()->SendMoveCell(From, To, Qty);
+
+	if (Qty == 0 || From == To)
+		return;
+
+	CCellData *pCellFrom = &m_pClient->m_apLatestCells[From];
+	CCellData *pCellTo = (To != -1)?&m_pClient->m_apLatestCells[To]:0x0;
+
+	if (pCellFrom && pCellTo)
+	{
+		CCellData Temp = *pCellFrom;
+		*pCellFrom = *pCellTo;
+		*pCellTo = Temp;
+	}
+	else if (pCellFrom)
+	{
+		pCellFrom->m_Amount = 0;
+		pCellFrom->m_ItemId = 0;
+	}
+}
+
 void CModalCell::OnRender()
 {
 	m_Active = (m_pClient->m_apLatestCells)?true:false;
 
-	if(!m_Active || m_pClient->m_Snap.m_SpecInfo.m_Active)
+	if(!m_Active || m_pClient->m_Snap.m_SpecInfo.m_Active || m_pClient->m_CellsType == CELLS_NONE)
 	{
 		m_Active = false;
 		return;
@@ -180,7 +203,7 @@ void CModalCell::RenderChest(CUIRect MainView)
 
 					if (m_SelectedCell != -1 && Button.Contains(m_SelectorMouse) && !m_LastMousePressed && m_MousePressed)
 					{
-						Client()->SendMoveCell(m_SelectedCell, InvIndex, m_SelectedQty);
+						DoMoveCell(m_SelectedCell, InvIndex, m_SelectedQty);
 						m_SelectedCell = -1;
 						m_SelectedQty = 0;
 						m_LastMousePressed = true;
@@ -246,7 +269,7 @@ void CModalCell::RenderChest(CUIRect MainView)
 
 				if (m_SelectedCell != -1 && Button.Contains(m_SelectorMouse) && !m_LastMousePressed && m_MousePressed)
 				{
-					Client()->SendMoveCell(m_SelectedCell, x, m_SelectedQty);
+					DoMoveCell(m_SelectedCell, x, m_SelectedQty);
 					m_SelectedCell = -1;
 					m_SelectedQty = 0;
 					m_LastMousePressed = true;
@@ -293,7 +316,7 @@ void CModalCell::RenderChest(CUIRect MainView)
 	{
 		if (!m_LastMousePressed && m_MousePressed && !OrgModal.Contains(m_SelectorMouse))
 		{
-			Client()->SendMoveCell(m_SelectedCell, -1, m_SelectedQty);
+			DoMoveCell(m_SelectedCell, -1, m_SelectedQty);
 			m_SelectedCell = -1;
 			m_LastMousePressed = true;
 		}
@@ -365,7 +388,7 @@ void CModalCell::RenderInventory(CUIRect MainView)
 
 					if (m_SelectedCell != -1 && Button.Contains(m_SelectorMouse) && !m_LastMousePressed && m_MousePressed)
 					{
-						Client()->SendMoveCell(m_SelectedCell, StartInvIndex, m_SelectedQty);
+						DoMoveCell(m_SelectedCell, StartInvIndex, m_SelectedQty);
 						m_SelectedCell = -1;
 						m_SelectedQty = 0;
 						m_LastMousePressed = true;
@@ -477,7 +500,7 @@ void CModalCell::RenderInventory(CUIRect MainView)
 
 					if (m_SelectedCell != -1 && Button.Contains(m_SelectorMouse) && !m_LastMousePressed && m_MousePressed)
 					{
-						Client()->SendMoveCell(m_SelectedCell, InvIndex, m_SelectedQty);
+						DoMoveCell(m_SelectedCell, InvIndex, m_SelectedQty);
 						m_SelectedCell = -1;
 						m_SelectedQty = 0;
 						m_LastMousePressed = true;
@@ -542,7 +565,7 @@ void CModalCell::RenderInventory(CUIRect MainView)
 
 				if (m_SelectedCell != -1 && Button.Contains(m_SelectorMouse) && !m_LastMousePressed && m_MousePressed)
 				{
-					Client()->SendMoveCell(m_SelectedCell, x, m_SelectedQty);
+					DoMoveCell(m_SelectedCell, x, m_SelectedQty);
 					m_SelectedCell = -1;
 					m_SelectedQty = 0;
 					m_LastMousePressed = true;
@@ -591,7 +614,7 @@ void CModalCell::RenderInventory(CUIRect MainView)
 	{
 		if (!m_LastMousePressed && m_MousePressed && !OrgModal.Contains(m_SelectorMouse))
 		{
-			Client()->SendMoveCell(m_SelectedCell, -1, m_SelectedQty);
+			DoMoveCell(m_SelectedCell, -1, m_SelectedQty);
 			m_SelectedCell = -1;
 			m_SelectedQty = 0;
 			m_LastMousePressed = true;
@@ -663,7 +686,7 @@ void CModalCell::RenderCraftTable(CUIRect MainView)
 
 					if (m_SelectedCell != -1 && Button.Contains(m_SelectorMouse) && !m_LastMousePressed && m_MousePressed)
 					{
-						Client()->SendMoveCell(m_SelectedCell, StartInvIndex, m_SelectedQty);
+						DoMoveCell(m_SelectedCell, StartInvIndex, m_SelectedQty);
 						m_SelectedCell = -1;
 						m_SelectedQty = 0;
 						m_LastMousePressed = true;
@@ -774,7 +797,7 @@ void CModalCell::RenderCraftTable(CUIRect MainView)
 
 					if (m_SelectedCell != -1 && Button.Contains(m_SelectorMouse) && !m_LastMousePressed && m_MousePressed)
 					{
-						Client()->SendMoveCell(m_SelectedCell, InvIndex, m_SelectedQty);
+						DoMoveCell(m_SelectedCell, InvIndex, m_SelectedQty);
 						m_SelectedCell = -1;
 						m_SelectedQty = 0;
 						m_LastMousePressed = true;
@@ -838,7 +861,7 @@ void CModalCell::RenderCraftTable(CUIRect MainView)
 				RenderTools()->DrawUIRect(&Button, vec4(1.0f,1.0f,1.0f,0.5f), 0, 10.0f);
 				if (m_SelectedCell != -1 && Button.Contains(m_SelectorMouse) && !m_LastMousePressed && m_MousePressed)
 				{
-					Client()->SendMoveCell(m_SelectedCell, x, m_SelectedQty);
+					DoMoveCell(m_SelectedCell, x, m_SelectedQty);
 					m_SelectedCell = -1;
 					m_SelectedQty = 0;
 					m_LastMousePressed = true;
@@ -886,7 +909,7 @@ void CModalCell::RenderCraftTable(CUIRect MainView)
 	{
 		if (!m_LastMousePressed && m_MousePressed && !OrgModal.Contains(m_SelectorMouse))
 		{
-			Client()->SendMoveCell(m_SelectedCell, -1, m_SelectedQty);
+			DoMoveCell(m_SelectedCell, -1, m_SelectedQty);
 			m_SelectedCell = -1;
 			m_SelectedQty = 0;
 			m_LastMousePressed = true;

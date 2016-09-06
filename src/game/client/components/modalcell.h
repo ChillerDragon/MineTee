@@ -31,6 +31,7 @@ class CModalCell : public CComponent
 
 	void OnClose();
 	void OnOpen();
+	void DoMoveCell(int From, int To, int Qty);
 
 public:
 	CModalCell();

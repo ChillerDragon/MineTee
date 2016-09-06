@@ -1537,7 +1537,7 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 			else
 				pCellFrom = &pPlayer->m_aInventory[From-NUM_CELLS_LINE];
 		}
-		else
+		else if (CellsType == CELLS_CHEST)
 		{
 			std::map<int, CChest*>::iterator it = m_lpChests.find(pChar->m_ActiveBlockId);
 			if (it != m_lpChests.end())
@@ -1567,7 +1567,7 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 				else
 					pCellTo = &pPlayer->m_aInventory[To-NUM_CELLS_LINE];
 			}
-			else
+			else if (CellsType == CELLS_CHEST)
 			{
 				std::map<int, CChest*>::iterator it = m_lpChests.find(pChar->m_ActiveBlockId);
 				if (it != m_lpChests.end())
