@@ -1093,9 +1093,6 @@ void CCharacter::Snap(int SnappingClient)
 
 		if(m_pPlayer->GetCID() == SnappingClient && m_NeedSendFastInventory)
 		{
-		    if (m_ActiveBlockId != -1)
-				GameServer()->m_pController->SendInventory(m_pPlayer->GetCID(), (m_ActiveBlockId != -2));
-
 			CNetObj_Inventory *pClientInventory = static_cast<CNetObj_Inventory *>(Server()->SnapNewItem(NETOBJTYPE_INVENTORY, m_pPlayer->GetCID(), sizeof(CNetObj_Inventory)));
 			if(!pClientInventory)
 				return;

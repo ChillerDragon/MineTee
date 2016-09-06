@@ -1010,7 +1010,10 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 	        	if (pMsg->m_ActiveBlock)
 	        		m_pController->OnClientActiveBlock(ClientID);
 	        	if (pMsg->m_OpenInventory)
-	        		m_pController->SendInventory(ClientID, false);
+	        	{
+	        		pPlayer->GetCharacter()->m_ActiveBlockId = -2;
+	        		m_pController->SendCellsData(ClientID, CELLS_INVENTORY);
+	        	}
 	        }
 	    }
 	}
@@ -2055,7 +2058,7 @@ void CGameContext::GiveItem(int ClientID, int ItemID, int ammo)
 		str_format(aBuf, sizeof(aBuf), "Admin give you a '%s'! revise your inventory :)", aItemName);
 		SendChatTarget(ClientID, aBuf);
 		if (pChar->m_ActiveBlockId == -2)
-			m_pController->SendInventory(ClientID, false);
+			m_pController->SendCellsData(ClientID, CELLS_INVENTORY);
 	}
 }
 

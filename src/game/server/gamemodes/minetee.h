@@ -99,7 +99,7 @@ public:
 	void OnPlayerDestroyBlock(int ClientID, ivec2 TilePos);
 	void OnClientMoveCell(int ClientID, int From, int To, unsigned char Qty);
 	bool TakeBlockDamage(vec2 WorldPos, int WeaponItemID, int Dmg, int Owner);
-	void SendInventory(int ClientID, bool IsCraftTable);
+	void SendCellsData(int ClientID, int CellsType);
 	void GenerateMapSpawn();
 
 	void CreateChestSingle(int ClientID, ivec2 TilePos, int NumTiles = 0, CCellData *pCellData = 0x0);

@@ -300,12 +300,12 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
 		                	cC = (mx-1) + my*w;
 		                	if (pTiles[cC].m_Index)
 		                		FlamePos = vec2(x*Scale+24.0f, y*Scale);
-		                	cC = mx + (my+1)*w;
-							if (pTiles[cC].m_Index)
-								FlamePos = vec2(x*Scale+16.0f, y*Scale);
 							cC = (mx+1) + my*w;
 							if (pTiles[cC].m_Index)
 								FlamePos = vec2(x*Scale+8.0f, y*Scale);
+		                	cC = mx + (my+1)*w;
+							if (pTiles[cC].m_Index)
+								FlamePos = vec2(x*Scale+16.0f, y*Scale);
 
 							pEff->LightFlame(FlamePos);
 						}

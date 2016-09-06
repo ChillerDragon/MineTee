@@ -565,14 +565,14 @@ void CHud::RenderInventoryHud()
         else
             Graphics()->SetColor(1.0f, 1.0f, 1.0f, 0.8f);
 
-        RenderTools()->DrawRoundRectExt((m_Width/2-outboxSize/2)+5.0f+3.0f+(i*cellSize)+(3.0f*i), m_Height-30.0f, cellSize, 14.0f, 0.0f, 0);
+        RenderTools()->DrawRoundRectExt((m_Width/2-outboxSize/2)+5.0f+3.0f+(i*cellSize)+(3.0f*i), m_Height-30.0f, cellSize, 18.0f, 0.0f, 0);
 
-        if (i != m_pClient->m_Inventory.m_Selected)
-            Graphics()->SetColor(0.5f, 0.5f, 0.5f, 0.4f);
-        else
-            Graphics()->SetColor(1.0f, 1.0f, 1.0f, 0.4f);
+		if (i != m_pClient->m_Inventory.m_Selected)
+			Graphics()->SetColor(0.5f, 0.5f, 0.5f, 0.4f);
+		else
+			Graphics()->SetColor(1.0f, 1.0f, 1.0f, 0.4f);
 
-        RenderTools()->DrawRoundRectExt((m_Width/2-outboxSize/2)+5.0f+3.0f+(i*cellSize)+(3.0f*i), m_Height-(30.0f-14.0f), cellSize, 10.0f, 0.0f, 0);
+		RenderTools()->DrawRoundRectExt((m_Width/2-outboxSize/2)+5.0f+3.0f+(i*cellSize)+(3.0f*i), m_Height-12.0f, cellSize, 6.0f, 0.0f, 0);
     }
 
     Graphics()->QuadsEnd();
@@ -594,11 +594,30 @@ void CHud::RenderInventoryHud()
 
 			RenderTools()->RenderItem(item, vec2(x, y), m_pClient->m_pMapimages->Get(Layers()->MineTeeLayer()->m_Image), 8.0f, vec2(24.0f, 16.0f));
 
-			str_format(buff, sizeof(buff), "%i", ammo);
-			float TWidth = TextRender()->TextWidth(0, 8.0f, buff, -1);
-			TextRender()->TextColor(1.0f, 1.0f, 1.0f, 0.85f);
-			TextRender()->Text(0x0, (x+cellSize/2-TWidth/2), (y+14.0f)+5.0f-6.0f, 8.0f, buff, -1);
-			TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+			if (item < NUM_WEAPONS)
+			{
+				Graphics()->TextureSet(-1);
+				Graphics()->QuadsBegin();
+					const int maxAmmo = g_pData->m_Weapons.m_aId[item].m_Maxammo;
+					vec3 Rgb;
+					if (ammo > maxAmmo)
+						Rgb = HslToRgb(vec3(1.0f, 1.0f, 0.5f));
+					else
+						Rgb = HslToRgb(vec3(((ammo * 0.35f) / maxAmmo), 1.0f, 0.5f));
+
+					Graphics()->SetColor(Rgb.r, Rgb.g, Rgb.b, 0.4f);
+					float BarW = ammo*cellSize / g_pData->m_Weapons.m_aId[item].m_Maxammo;
+					RenderTools()->DrawRoundRectExt(x, y+18.0f, BarW, 6.0f, 0.0f, 0);
+				Graphics()->QuadsEnd();
+			}
+			else
+			{
+				str_format(buff, sizeof(buff), "%i", ammo);
+				float TWidth = TextRender()->TextWidth(0, 4.0f, buff, -1);
+				TextRender()->TextColor(1.0f, 1.0f, 1.0f, 0.85f);
+				TextRender()->Text(0x0, (x+cellSize/2-TWidth/2), y+18.0f, 4.0f, buff, -1);
+				TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+			}
 		}
     }
 }

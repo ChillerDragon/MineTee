@@ -663,20 +663,39 @@ bool CGameControllerMineTee::CanSpawn(int Team, vec2 *pOutPos, int BotType, int 
 	return Eval.m_Got;
 }
 
-void CGameControllerMineTee::SendInventory(int ClientID, bool IsCraftTable)
+void CGameControllerMineTee::SendCellsData(int ClientID, int CellsType)
 {
 	CCharacter *pChar = GameServer()->GetPlayerChar(ClientID);
 	if (!pChar)
 		return;
 
-	CCellData *pCellData = (CCellData*)mem_alloc(sizeof(CCellData)*(NUM_CELLS_LINE*5+1), 1);
-	mem_copy(pCellData, pChar->m_FastInventory, sizeof(CCellData)*NUM_CELLS_LINE);
-	mem_copy(pCellData+NUM_CELLS_LINE, pChar->GetPlayer()->m_aInventory, sizeof(CCellData)*NUM_CELLS_LINE*3);
-	mem_copy(pCellData+NUM_CELLS_LINE*4, pChar->GetPlayer()->m_aCraft, sizeof(CCellData)*(NUM_CELLS_LINE+1));
-	GameServer()->SendCellData(ClientID, pCellData, NUM_CELLS_LINE*5+1, IsCraftTable?CELLS_CRAFT_TABLE:CELLS_INVENTORY);
+	CCellData *pCellData = 0x0;
+	size_t NumCells = 0;
+	if (CellsType == CELLS_INVENTORY || CellsType == CELLS_NONE || CellsType == CELLS_CRAFT_TABLE)
+	{
+		NumCells = NUM_CELLS_LINE*5+1;
+		pCellData = (CCellData*)mem_alloc(sizeof(CCellData)*NumCells, 1);
+
+		mem_copy(pCellData, pChar->m_FastInventory, sizeof(CCellData)*NUM_CELLS_LINE);
+		mem_copy(pCellData+NUM_CELLS_LINE, pChar->GetPlayer()->m_aInventory, sizeof(CCellData)*NUM_CELLS_LINE*3);
+		mem_copy(pCellData+NUM_CELLS_LINE*4, pChar->GetPlayer()->m_aCraft, sizeof(CCellData)*(NUM_CELLS_LINE+1));
+	}
+	else if (CellsType == CELLS_CHEST)
+	{
+		std::map<int, CChest*>::iterator it = m_lpChests.find(pChar->m_ActiveBlockId);
+		if (it != m_lpChests.end())
+		{
+			NumCells = NUM_CELLS_LINE+(*it).second->m_NumItems;
+			pCellData = (CCellData*)mem_alloc(sizeof(CCellData)*NumCells, 1);
+
+			mem_copy(pCellData, pChar->m_FastInventory, sizeof(CCellData)*NUM_CELLS_LINE);
+			mem_copy(pCellData+NUM_CELLS_LINE, (*it).second->m_apItems, (sizeof(CCellData)*(*it).second->m_NumItems));
+		}
+	}
+
+	if (NumCells > 0)
+		GameServer()->SendCellData(ClientID, pCellData, NumCells, CellsType);
 	mem_free(pCellData);
-	if (!IsCraftTable)
-		pChar->m_ActiveBlockId = -2; // Inventory
 }
 
 void CGameControllerMineTee::CreateChestSingle(int ClientID, ivec2 TilePos, int NumTiles, CCellData *pCellData)
@@ -815,7 +834,7 @@ void CGameControllerMineTee::OnClientActiveBlock(int ClientID)
 		else if (str_comp(pBlockInfo->m_Functionality.m_aType, "craft-table") == 0)
 		{
 			pChar->m_ActiveBlockId = BlockID;
-			SendInventory(ClientID, true);
+			SendCellsData(ClientID, CELLS_CRAFT_TABLE);
 			Actived = true;
 		}
 		else if (str_comp(pBlockInfo->m_Functionality.m_aType, "bed") == 0)
@@ -1470,19 +1489,29 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 	if (!pChar || pChar->m_ActiveBlockId == -1 || Qty == 0 || From == To)
 		return;
 
-	const int x = pChar->m_ActiveBlockId%GameServer()->Collision()->GetWidth();
-	const int y = pChar->m_ActiveBlockId/GameServer()->Collision()->GetWidth();
-	const vec2 BlockPos = vec2(x*32.0f+16.0f, y*32.0f+16.0f);
-
-	int MTTIndex = GameServer()->Collision()->GetMineTeeTileIndexAt(BlockPos);
-	CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(MTTIndex);
-	if (!pBlockInfo)
+	int CellsType = CELLS_NONE;
+	if (pChar->m_ActiveBlockId > 0)
 	{
-		SendInventory(ClientID, false);
-		return;
-	}
+		const int x = pChar->m_ActiveBlockId%GameServer()->Collision()->GetWidth();
+		const int y = pChar->m_ActiveBlockId/GameServer()->Collision()->GetWidth();
+		const vec2 BlockPos = vec2(x*32.0f+16.0f, y*32.0f+16.0f);
 
-	const bool IsCraftTable = (str_comp(pBlockInfo->m_Functionality.m_aType, "craft-table") == 0);
+		int MTTIndex = GameServer()->Collision()->GetMineTeeTileIndexAt(BlockPos);
+		CBlockManager::CBlockInfo *pBlockInfo = GameServer()->m_BlockManager.GetBlockInfo(MTTIndex);
+		if (!pBlockInfo)
+		{
+			SendCellsData(ClientID, CELLS_NONE);
+			return;
+		}
+
+		if (str_comp(pBlockInfo->m_Functionality.m_aType, "craft-table") == 0)
+			CellsType = CELLS_CRAFT_TABLE;
+		else if (str_comp(pBlockInfo->m_Functionality.m_aType, "chest") == 0)
+			CellsType = CELLS_CHEST;
+	}
+	else if (pChar->m_ActiveBlockId == -2)
+		CellsType = CELLS_INVENTORY;
+
 	CPlayer *pPlayer = pChar->GetPlayer();
 	CCellData *pCellFrom = 0x0;
 	CCellData *pCellTo = 0x0;
@@ -1494,7 +1523,7 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 		pCellFrom = &pChar->m_FastInventory[From];
 	else
 	{
-		if (pChar->m_ActiveBlockId == -2 || IsCraftTable)
+		if (CellsType == CELLS_INVENTORY || CellsType == CELLS_CRAFT_TABLE)
 		{
 			if (From >= NUM_CELLS_LINE*4)
 			{
@@ -1520,7 +1549,7 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 			pCellTo = &pChar->m_FastInventory[To];
 		else
 		{
-			if (pChar->m_ActiveBlockId == -2 || IsCraftTable)
+			if (CellsType == CELLS_INVENTORY || CellsType == CELLS_CRAFT_TABLE)
 			{
 				if (To >= NUM_CELLS_LINE*4)
 				{
@@ -1528,7 +1557,7 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 					const int ToID = To-NUM_CELLS_LINE*4;
 					if (ToID == NUM_CELLS_LINE)
 					{
-						SendInventory(ClientID, IsCraftTable);
+						SendCellsData(ClientID, CellsType);
 						return;
 					}
 					pCellTo = &pPlayer->m_aCraft[To-NUM_CELLS_LINE*4];
@@ -1548,7 +1577,7 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 	// Can't move from craft result to craft zone
 	if (IsFromCraftRes && IsToCraftZone)
 	{
-		SendInventory(ClientID, IsCraftTable);
+		SendCellsData(ClientID, CellsType);
 		return;
 	}
 
@@ -1593,7 +1622,7 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 			else
 			{
 				// TODO: SEND MOVE FAIL
-				SendInventory(ClientID, IsCraftTable);
+				SendCellsData(ClientID, CellsType);
 				return;
 			}
 		}
@@ -1629,11 +1658,9 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 
 	// Check craft
 	if (IsToCraftZone)
-	{
 		CheckCraft(ClientID);
-		SendInventory(ClientID, IsCraftTable);
-	}
 
+	SendCellsData(ClientID, CellsType);
 	pChar->m_NeedSendFastInventory = true;
 }
 

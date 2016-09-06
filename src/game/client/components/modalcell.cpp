@@ -754,17 +754,18 @@ void CModalCell::RenderCraftTable(CUIRect MainView)
 	CurItemID = -1;
 	const float CellSize = Modal.w/NUM_CELLS_LINE;
 
-	for (int q=0; q<2; q++)
+	CUIRect ModalTemp;
+	for (int q=0; q<2; q++) // Two pass (1. Render | 2. Show Info)
 	{
+		ModalTemp = Modal;
 		int InvIndex = NUM_CELLS_LINE;
-		CUIRect OrgButtonLine = ButtonLine;
 		for (int y=0; y<NumRows; y++)
 		{
-			Modal.HSplitTop(30.0f, &ButtonLine, &Modal);
+			ModalTemp.HSplitTop(30.0f, &ButtonLine, &ModalTemp);
 			for (int x=0; x<NUM_CELLS_LINE; x++)
 			{
 				CurItemID = m_pClient->m_apLatestCells[InvIndex].m_ItemId;
-				OrgButtonLine.VSplitLeft(CellSize, &Button, &OrgButtonLine);
+				ButtonLine.VSplitLeft(CellSize, &Button, &ButtonLine);
 				Button.Margin(3.0f, &Button);
 
 				if (q == 0)
@@ -814,11 +815,11 @@ void CModalCell::RenderCraftTable(CUIRect MainView)
 				}
 				else if (Button.Contains(m_SelectorMouse))
 					DrawToolTipItemName(CurItemID);
-
 				++InvIndex;
 			}
 		}
 	}
+	Modal = ModalTemp;
 
 	// Fast inventory zone
 	Modal.HSplitTop(15.0f, &ButtonLine, &Modal);
