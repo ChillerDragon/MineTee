@@ -502,15 +502,10 @@ void CGameControllerMineTee::VegetationTick(CTile *pTempTiles, const int *pTileI
 					ModifTile(ivec2(x, y-1), CBlockManager::CACTUS);
 			}
 		}
-		else if (!(rand()%100) && pTileIndex[TILE_CENTER] == CBlockManager::GRASS_D &&
-				pTileIndex[TILE_RIGHT] == 0 && pTileIndex[TILE_BOTTOM] == CBlockManager::GRASS)
-		{
+		else if (!(rand()%100) && pTileIndex[TILE_CENTER] == CBlockManager::GRASS_D && pTileIndex[TILE_RIGHT] == 0)
 			ModifTile(ivec2(x+1, y), CBlockManager::GRASS_A);
-		}
-		else if (!(rand()%100) && pTileIndex[TILE_CENTER] == CBlockManager::BROWN_TREE_SAPLING && pTileIndex[TILE_BOTTOM] == CBlockManager::GRASS)
-		{
+		else if (!(rand()%100) && (pTileIndex[TILE_CENTER] == CBlockManager::BROWN_TREE_SAPLING || pTileIndex[TILE_CENTER] == CBlockManager::BIRCH_TREE_SAPLING))
 			GenerateTree(ivec2(x, y));
-		}
 	}
 
 	/** Dead **/
@@ -1255,7 +1250,7 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 			const float frequency = 64.0f / (float)GameServer()->Layers()->MineTeeLayer()->m_Width;
 			const ivec2 MapPos = ivec2(P.x/32, P.y/32);
 			const float noise = m_pNoise->Noise((float)MapPos.x * frequency, (float)MapPos.y * frequency);
-			if (noise < 0.6f)
+			if (noise < 0.2f)
 				pEval->m_Got = false;
 
 			if (pEval->m_Got)
@@ -1721,6 +1716,7 @@ void CGameControllerMineTee::CheckCraft(int ClientID)
 
 		if (NoCrafts)
 			continue;
+
 
 		bool Crafted = true;
 		for (int i=0; i<NUM_CELLS_LINE; i++)
