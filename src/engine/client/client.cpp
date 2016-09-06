@@ -972,6 +972,7 @@ void CClient::ProcessConnlessPacket(CNetChunk *pPacket)
 	// server info
 	if(pPacket->m_DataSize >= (int)sizeof(SERVERBROWSE_INFO) && mem_comp(pPacket->m_pData, SERVERBROWSE_INFO, sizeof(SERVERBROWSE_INFO)) == 0)
 	{
+		dbg_msg("CCC", "RECIBIDO COA");
 		// we got ze info
 		CUnpacker Up;
 		CServerInfo Info = {0};
@@ -988,10 +989,14 @@ void CClient::ProcessConnlessPacket(CNetChunk *pPacket)
 		Info.m_NumClients = str_toint(Up.GetString());
 		Info.m_MaxClients = str_toint(Up.GetString());
 
+		dbg_msg("CCC", "Game Tyoe: %s", Info.m_aGameType);
+
 		// don't add invalid info to the server browser list
-		if(Info.m_NumClients < 0 || Info.m_NumClients > g_Config.m_SvMaxClients || Info.m_MaxClients < 0 || Info.m_MaxClients > g_Config.m_SvMaxClients ||
+		if(Info.m_NumClients < 0 || Info.m_NumClients > MAX_CLIENTS-MAX_BOTS || Info.m_MaxClients < 0 || Info.m_MaxClients > MAX_CLIENTS-MAX_BOTS ||
 			Info.m_NumPlayers < 0 || Info.m_NumPlayers > Info.m_NumClients || Info.m_MaxPlayers < 0 || Info.m_MaxPlayers > Info.m_MaxClients) // MineTee
 			return;
+
+		dbg_msg("CCC", "PASAAA 22");
 
 		net_addr_str(&pPacket->m_Address, Info.m_aAddress, sizeof(Info.m_aAddress), true);
 

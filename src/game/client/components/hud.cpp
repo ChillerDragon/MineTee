@@ -176,7 +176,7 @@ void CHud::RenderScoreHud()
 			int aPos[2] = { 1, 2 };
 			const CNetObj_PlayerInfo *apPlayerInfo[2] = { 0, 0 };
 			int i = 0;
-			for(int t = 0; t < 2 && i < g_Config.m_SvMaxClients && m_pClient->m_Snap.m_paInfoByScore[i]; ++i)
+			for(int t = 0; t < 2 && i < MAX_CLIENTS-MAX_BOTS && m_pClient->m_Snap.m_paInfoByScore[i]; ++i)
 			{
 				if(m_pClient->m_Snap.m_paInfoByScore[i]->m_Team != TEAM_SPECTATORS)
 				{
@@ -189,7 +189,7 @@ void CHud::RenderScoreHud()
 			// search local player info if not a spectator, nor within top2 scores
 			if(Local == -1 && m_pClient->m_Snap.m_pLocalInfo && m_pClient->m_Snap.m_pLocalInfo->m_Team != TEAM_SPECTATORS)
 			{
-				for(; i < g_Config.m_SvMaxClients && m_pClient->m_Snap.m_paInfoByScore[i]; ++i)
+				for(; i < MAX_CLIENTS-MAX_BOTS && m_pClient->m_Snap.m_paInfoByScore[i]; ++i)
 				{
 					if(m_pClient->m_Snap.m_paInfoByScore[i]->m_Team != TEAM_SPECTATORS)
 						++aPos[1];

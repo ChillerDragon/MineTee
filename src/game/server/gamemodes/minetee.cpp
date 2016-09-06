@@ -1517,6 +1517,7 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 	CCellData *pCellTo = 0x0;
 	bool IsFromCraftRes = false;
 	bool IsToCraftZone = false;
+	bool IsFromCraftZone = false;
 
 	// Get From & To
 	if (From < NUM_CELLS_LINE)
@@ -1527,6 +1528,7 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 		{
 			if (From >= NUM_CELLS_LINE*4)
 			{
+				IsFromCraftZone = true;
 				const int FromID = From-NUM_CELLS_LINE*4;
 				if (FromID == NUM_CELLS_LINE)
 					IsFromCraftRes = true;
@@ -1657,7 +1659,7 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 	}
 
 	// Check craft
-	if (IsToCraftZone)
+	if (IsToCraftZone || IsFromCraftZone)
 		CheckCraft(ClientID);
 
 	SendCellsData(ClientID, CellsType);
