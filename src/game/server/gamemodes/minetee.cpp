@@ -656,7 +656,8 @@ bool CGameControllerMineTee::CanSpawn(int Team, vec2 *pOutPos, int BotType, int 
 	GenerateRandomSpawn(&Eval, BotType);
 
 	// TODO: Improve this
-	if (BotType == BOT_MONSTER && BotSubType == BOT_MONSTER_EYE && Eval.m_Pos.y < 150.0f)
+	const int EyeSpawnLevel = PercOf(TUNNEL_LEVEL, GameServer()->Layers()->MineTeeLayer()->m_Height);
+	if (BotType == BOT_MONSTER && BotSubType == BOT_MONSTER_EYE && Eval.m_Pos.y < EyeSpawnLevel)
 		Eval.m_Got = false;
 
 	*pOutPos = Eval.m_Pos;
@@ -742,10 +743,10 @@ bool CGameControllerMineTee::OnFunctionalBlock(int BlockID, ivec2 TilePos)
 						int ItemID = 0;
 						do
 						{
-							ItemID = rand()%(CBlockManager::MAX_BLOCKS+NUM_WEAPONS);
+							ItemID = (rand()%(CBlockManager::MAX_BLOCKS+NUM_WEAPONS-1))+1;
 							pCellData[i].m_ItemId = ItemID;
 							pNBlockInfo = (ItemID >= NUM_WEAPONS)?GameServer()->m_BlockManager.GetBlockInfo(ItemID-NUM_WEAPONS):0x0;
-						} while (ItemID >= NUM_WEAPONS && pNBlockInfo && str_find(pNBlockInfo->m_aName, "NOT USED"));
+						} while (ItemID >= NUM_WEAPONS && pNBlockInfo && (str_find(pNBlockInfo->m_aName, "NOT USED") || GameServer()->m_BlockManager.IsFluid(ItemID-NUM_WEAPONS)));
 					}
 				}
 				CreateChestSingle(-1, TilePos, NumItems, pCellData);
@@ -1254,7 +1255,7 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 			const float frequency = 64.0f / (float)GameServer()->Layers()->MineTeeLayer()->m_Width;
 			const ivec2 MapPos = ivec2(P.x/32, P.y/32);
 			const float noise = m_pNoise->Noise((float)MapPos.x * frequency, (float)MapPos.y * frequency);
-			if (noise < 0.4f)
+			if (noise < 0.6f)
 				pEval->m_Got = false;
 
 			if (pEval->m_Got)
@@ -1588,6 +1589,12 @@ void CGameControllerMineTee::OnClientMoveCell(int ClientID, int From, int To, un
 	{
 		if (pCellFrom->m_ItemId < NUM_WEAPONS)
 		{
+			if (IsFromCraftRes && pCellTo->m_ItemId != 0) // Crafted Weapons only can move to empty cells
+			{
+				SendCellsData(ClientID, CellsType);
+				return;
+			}
+
 			CCellData TempCell = *pCellTo;
 			*pCellTo = *pCellFrom;
 			*pCellFrom = TempCell;

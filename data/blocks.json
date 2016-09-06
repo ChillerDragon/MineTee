@@ -416,7 +416,7 @@
     {
         "name": "OVEN (ON)",
         "health": 15,
-        "lightSize": 1,
+        "lightSize": 4,
         "onWear": 44,
         "onPut": 44,
         "onBreak": {"44":1}
