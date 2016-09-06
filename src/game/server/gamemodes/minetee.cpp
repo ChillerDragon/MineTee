@@ -1250,7 +1250,7 @@ void CGameControllerMineTee::GenerateRandomSpawn(CSpawnEval *pEval, int BotType)
 			const float frequency = 64.0f / (float)GameServer()->Layers()->MineTeeLayer()->m_Width;
 			const ivec2 MapPos = ivec2(P.x/32, P.y/32);
 			const float noise = m_pNoise->Noise((float)MapPos.x * frequency, (float)MapPos.y * frequency);
-			if (noise < 0.2f)
+			if (noise < 0.3f)
 				pEval->m_Got = false;
 
 			if (pEval->m_Got)

@@ -291,7 +291,7 @@ void CMapGen::GenerateTunnels(int Num)
 	for (int r=0; r<Num; ++r)
 	{
 		Level = TunnelLevel + m_pNoise->Perlin()->GetURandom(0,m_pLayers->MineTeeLayer()->m_Height);
-		Freq = m_pNoise->Perlin()->GetURandom(2,5);
+		Freq = m_pNoise->Perlin()->GetURandom(2,10);
 		TunnelSize = m_pNoise->Perlin()->GetURandom(2,2);
 		StartX = m_pNoise->Perlin()->GetURandom(0,m_pLayers->MineTeeLayer()->m_Width);
 		EndX = min(m_pLayers->MineTeeLayer()->m_Width, m_pNoise->Perlin()->GetURandom(0,m_pLayers->MineTeeLayer()->m_Width)+StartX);
