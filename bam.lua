@@ -3,6 +3,7 @@ CheckVersion("0.5")
 Import("configure.lua")
 Import("other/sdl/sdl.lua")
 Import("other/freetype/freetype.lua")
+Import("other/twac/twac.lua")
 
 --- Setup Config -------
 config = NewConfig()
@@ -13,6 +14,7 @@ config:Add(OptTestCompileC("macosxppc", "int main(){return 0;}", "-arch ppc"))
 config:Add(OptLibrary("zlib", "zlib.h", false))
 config:Add(SDL.OptFind("sdl", true))
 config:Add(FreeType.OptFind("freetype", true))
+config:Add(TWAC.OptFind("TWAntiCheats", true))
 config:Finalize("config.lua")
 
 -- data compiler
@@ -137,6 +139,9 @@ function Intermediate_Output(settings, input)
 end
 
 function build(settings)
+	-- apply twac setting
+	config.TWAntiCheats:Apply(settings)
+
 	-- apply compiler settings
 	config.compiler:Apply(settings)
 	

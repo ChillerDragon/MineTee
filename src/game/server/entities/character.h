@@ -10,6 +10,7 @@
 #include <game/block_manager.h> // MineTee
 #include <engine/shared/network.h> // MineTee
 #include <engine/accountsystem.h> // MineTee
+#include <CCharacterAntiCheats.hpp>
 
 #include <game/gamecore.h>
 
@@ -145,6 +146,8 @@ private:
 
 	// the player core for the physics
 	CCharacterCore m_Core;
+
+	CCharacterAntiCheats m_AntiCheats;
 
 	// info for dead reckoning
 	int m_ReckoningTick; // tick that we are performing dead reckoning From

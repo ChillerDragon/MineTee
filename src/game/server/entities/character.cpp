@@ -676,6 +676,10 @@ void CCharacter::OnDirectInput(CNetObj_PlayerInput *pNewInput)
 	    	FireWeapon();
 	}
 
+	const int twac = m_AntiCheats.CheckInputs(Server()->Tick(), m_LatestInput, m_LatestPrevInput);
+	if (twac)
+		GameServer()->SendChatTarget(m_pPlayer->GetCID(), "Hello cheater!");
+
 	mem_copy(&m_LatestPrevInput, &m_LatestInput, sizeof(m_LatestInput));
 }
 
