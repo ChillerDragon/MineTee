@@ -147,7 +147,7 @@ private:
 	// the player core for the physics
 	CCharacterCore m_Core;
 
-	CCharacterAntiCheats m_AntiCheats;
+	twac::CCharacter m_AntiCheats;
 
 	// info for dead reckoning
 	int m_ReckoningTick; // tick that we are performing dead reckoning From

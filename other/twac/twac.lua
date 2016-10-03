@@ -16,16 +16,17 @@ TWAC = {
 		end
 		
 		local apply = function(option, settings)
-			-- include path
-			settings.cc.includes:Add(TWAC.basepath .. "/include")
+			if option.value == true then
+				-- include path
+				settings.cc.includes:Add(TWAC.basepath .. "/include")
 				
-			if option.use_libver == 32 then
-				settings.link.libpath:Add(TWAC.basepath .. "/lib32")
-			else
-				settings.link.libpath:Add(TWAC.basepath .. "/lib64")
+				if option.use_libver == 32 then
+					settings.link.libpath:Add(TWAC.basepath .. "/lib32")
+				else
+					settings.link.libpath:Add(TWAC.basepath .. "/lib64")
+				end
+				settings.link.libs:Add("TWAntiCheats")
 			end
-			settings.link.libs:Add("TWAntiCheats")
-
 		end
 		
 		local save = function(option, output)
@@ -35,8 +36,8 @@ TWAC = {
 		
 		local display = function(option)
 			if option.value == true then
-				if option.use_libver == 32 then return "using supplied win32 libraries" end
-				if option.use_libver == 64 then return "using supplied win64 libraries" end
+				if option.use_libver == 32 then return "using supplied 32bits libraries" end
+				if option.use_libver == 64 then return "using supplied 64bits libraries" end
 				return "using unknown method"
 			else
 				if option.required then

@@ -30,6 +30,7 @@
 #include <game/generated/protocol.h>
 #include <game/server/player.h>
 #include <game/version.h>
+#include <AntiCheats.hpp>
 //
 
 #include <mastersrv/mastersrv.h>
@@ -1920,6 +1921,8 @@ int main(int argc, const char **argv) // ignore_convention
 	pConfig->RestoreStrings();
 
 	pEngine->InitLogfile();
+
+	dbg_msg("Anti-Cheats", "Using Anti-Cheats v%s", twac::Funcs::TWACVersion());
 
 	// run the server
 	dbg_msg("server", "starting...");
