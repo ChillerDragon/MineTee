@@ -117,6 +117,9 @@ void CNetBase::SendPacket(NETSOCKET Socket, NETADDR *pAddr, CNetPacketConstruct 
 		io_flush(ms_DataLogSent);
 	}
 
+	// compress
+	CompressedSize = ms_Huffman.Compress(pPacket->m_aChunkData, pPacket->m_DataSize, &aBuffer[3], NET_MAX_PACKETSIZE-4);
+
 	// check if the compression was enabled, successful and good enough
 	if(CompressedSize > 0 && CompressedSize < pPacket->m_DataSize)
 	{
@@ -340,7 +343,7 @@ int CNetBase::Decompress(const void *pData, int DataSize, void *pOutput, int Out
 }
 
 
-/*static const unsigned gs_aFreqTable[256+1] = {
+static const unsigned gs_aFreqTable[256+1] = {
 	1<<30,4545,2657,431,1950,919,444,482,2244,617,838,542,715,1814,304,240,754,212,647,186,
 	283,131,146,166,543,164,167,136,179,859,363,113,157,154,204,108,137,180,202,176,
 	872,404,168,134,151,111,113,109,120,126,129,100,41,20,16,22,18,18,17,19,
@@ -353,9 +356,9 @@ int CNetBase::Decompress(const void *pData, int DataSize, void *pOutput, int Out
 	136,53,180,57,142,57,158,61,166,112,152,92,26,22,21,28,20,26,30,21,
 	32,27,20,17,23,21,30,22,22,21,27,25,17,27,23,18,39,26,15,21,
 	12,18,18,27,20,18,15,19,11,17,33,12,18,15,19,18,16,26,17,18,
-	9,10,25,22,22,17,20,16,6,16,15,20,14,18,24,335,1517};*/
+	9,10,25,22,22,17,20,16,6,16,15,20,14,18,24,335,1517};
 
-static const unsigned gs_aFreqTable[256+1] = {
+/*static const unsigned gs_aFreqTable[256+1] = {
 	15527551, 2616356, 2978523, 109620, 188113, 180738, 153149, 303701, 389997,
 	125935, 2683046, 3064090, 96794, 101192, 296109, 32110820, 94916, 96684,
 	94870, 97275, 97100, 95781, 96382, 95046, 94825, 96495, 94879, 96254, 95099,
@@ -377,7 +380,7 @@ static const unsigned gs_aFreqTable[256+1] = {
 	27081, 86763, 718, 156489, 31547, 985, 487, 27201, 1555, 8391, 89421, 1433,
 	903, 27368, 524, 5858, 692, 181727, 156309, 481, 670, 29069, 905, 679, 581,
 	58395, 371, 19627, 29365, 29240, 603, 970, 32021743, 128468, 425, 29298,
-	32096867, 731, 24600408, 53432, 39835709, 1517};
+	32096867, 731, 24600408, 53432, 39835709, 1517};*/
 
 void CNetBase::Init()
 {
