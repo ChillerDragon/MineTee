@@ -4,6 +4,7 @@
 */
 #ifndef H_ANTICHEATS
 #define H_ANTICHEATS
+#include <string>
 
 namespace twac
 {
@@ -12,6 +13,7 @@ namespace twac
 	{
 	public:
 		static const char* TWACVersion();
+		static std::string CensoreString(std::string in);
 	};
 
 }

@@ -18,6 +18,7 @@
 #include "entities/pickup.h" // MineTee
 #include "entities/bots/bossdune.h" // MineTee
 #include <zlib.h> // MineTee
+#include <AntiCheats.hpp> // MineTee
 
 enum
 {
@@ -720,8 +721,9 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 
 			pPlayer->m_LastChat = Server()->Tick();
 
-	        if (m_pController->OnChat(ClientID, Team, pMsg->m_pMessage)) // MineTee
-	            SendChat(ClientID, Team, pMsg->m_pMessage);
+			std::string censored_str(twac::Funcs::CensoreString(pMsg->m_pMessage));
+	        if (m_pController->OnChat(ClientID, Team, censored_str.c_str())) // MineTee
+	            SendChat(ClientID, Team, censored_str.c_str());
 		}
 		else if(MsgID == NETMSGTYPE_CL_CALLVOTE)
 		{

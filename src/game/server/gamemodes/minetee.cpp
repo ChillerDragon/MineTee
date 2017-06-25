@@ -965,7 +965,7 @@ bool CGameControllerMineTee::OnChat(int cid, int team, const char *msg)
 {
 	char *ptr;
 
-	if (!(ptr = strtok((char*)msg, " \n\t")) || msg[0] != '/')
+	if (msg[0] != '/' || !(ptr = strtok((char*)msg, " \n\t")))
 		return true;
 
 	/*if (str_comp_nocase(ptr,"/pet") == 0)

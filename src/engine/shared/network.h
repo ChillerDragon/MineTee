@@ -387,6 +387,11 @@ public:
 
 	// The backroom is ack-NET_MAX_SEQUENCE/2. Used for knowing if we acked a packet or not
 	static int IsSeqInBackroom(int Seq, int Ack);
+
+	static unsigned long m_TotalCompressBytesSent;
+	static unsigned long m_TotalBytesSent;
+	static unsigned int m_FreqTable[256];
+	static void PrintData();
 };
 
 // MineTee
