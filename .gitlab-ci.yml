@@ -18,7 +18,7 @@ build:
     - ~/bam-0.5.0/bam client_release
     - ~/bam-0.5.0/bam server_release
     - ~/bam-0.5.0/bam client_debug
-    - ~/bam-0.5.0/bam server_debuf
+    - ~/bam-0.5.0/bam server_debug
     - python2 scripts/make_release.py $MINETEE_VERSION linux86_64
     - tar -tzf MineTee-$MINETEE_VERSION-linux86_64.tar.gz >/dev/null
   artifacts:
