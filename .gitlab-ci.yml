@@ -1,0 +1,32 @@
+image: gcc
+
+build:
+  stage: build
+  variables:
+    GIT_DEPTH: "1"
+    MINETEE_VERSION: "0.2.2a"
+  before_script:
+    - |
+        apt update && apt -y install libsdl1.2-dev zlib1g-dev libfreetype6-dev libnotify-dev libopus-dev tar gcc
+        if [ ! -x ~/bam-0.5.0/bam ]; then
+          wget -O ~/bamv0.5.0.tar.gz https://github.com/matricks/bam/archive/v0.5.0.tar.gz
+          tar -zxvf ~/bamv0.5.0.tar.gz -C ~/
+          cd ~/bam-0.5.0; ./make_unix.sh
+          cd $CI_PROJECT_DIR
+        fi
+  script: 
+    - ~/bam-0.5.0/bam client_release
+    - ~/bam-0.5.0/bam server_release
+    - ~/bam-0.5.0/bam client_debug
+    - ~/bam-0.5.0/bam server_debuf
+    - python2 scripts/make_release.py $MINETEE_VERSION linux86_64
+    - tar -tzf MineTee-$MINETEE_VERSION-linux86_64.tar.gz >/dev/null
+  artifacts:
+    paths:
+      - tw_minetee
+      - tw_minetee_d
+      - tw_minetee_srv
+      - tw_minetee_srv_d
+  cache:
+    paths:
+        - "~/bam-0.5.0/"
