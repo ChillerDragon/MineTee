@@ -7,7 +7,8 @@ if len(sys.argv) != 3:
 	print(sys.argv[0], "VERSION PLATFORM")
 	sys.exit(-1)
 
-name = "minetee"
+name = "tw_minetee"
+package_name = "MineTee"
 version = sys.argv[1]
 platform = sys.argv[2]
 exe_ext = ""
@@ -51,7 +52,7 @@ def copydir(src, dst, excl=[]):
 			if name[0] != '.':
 				shutil.copy(os.path.join(root, name), os.path.join(dst, root, name))
 				
-package = "MineTee-%s-%s" %(version, platform)
+package = "%s-%s-%s" % (package_name, version, platform)
 package_dir = package
 
 print("cleaning target")
