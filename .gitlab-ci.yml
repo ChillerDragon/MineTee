@@ -1,6 +1,6 @@
 image: gcc
 
-build:linux:release:
+MineTee-Release:
   stage: build
   variables:
     GIT_DEPTH: "1"
@@ -17,7 +17,7 @@ build:linux:release:
     - ~/bam-0.5.0/bam client_release
     - ~/bam-0.5.0/bam server_release
   artifacts:
-    name: MineTee-$CI_COMMIT_REF_NAME
+    name: "$CI_JOB_NAME-$CI_COMMIT_REF_NAME"
     paths:
       - data/
       - tw_minetee
@@ -28,7 +28,7 @@ build:linux:release:
     paths:
         - ~/bam-0.5.0/
         
-build:linux:debug:
+MineTee-Debug:
   stage: build
   variables:
     GIT_DEPTH: "1"
@@ -45,7 +45,7 @@ build:linux:debug:
     - ~/bam-0.5.0/bam client_debug
     - ~/bam-0.5.0/bam server_debug
   artifacts:
-    name: MineTee-$CI_COMMIT_REF_NAME-Debug
+    name: "$CI_JOB_NAME-$CI_COMMIT_REF_NAME"
     paths:
       - data/
       - tw_minetee_d
