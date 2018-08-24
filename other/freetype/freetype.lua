@@ -8,7 +8,7 @@ FreeType = {
 			option.use_winlib = 0
 			option.lib_path = nil
 			
-			if ExecuteSilent("freetype-config") > 0 and ExecuteSilent("freetype-config --cflags") == 0 then
+			if ExecuteSilent("pkg-config") > 0 and ExecuteSilent("pkg-config --cflags freetype2") == 0 then
 				option.value = true
 				option.use_ftconfig = true
 			end
@@ -27,8 +27,8 @@ FreeType = {
 			settings.cc.includes:Add(FreeType.basepath .. "/include")
 			
 			if option.use_ftconfig == true then
-				settings.cc.flags:Add("`freetype-config --cflags`")
-				settings.link.flags:Add("`freetype-config --libs`")
+				settings.cc.flags:Add("`pkg-config --cflags freetype2`")
+				settings.link.flags:Add("`pkg-config --libs freetype2`")
 				
 			elseif option.use_winlib > 0 then
 				if option.use_winlib == 32 then
@@ -48,7 +48,7 @@ FreeType = {
 		
 		local display = function(option)
 			if option.value == true then
-				if option.use_ftconfig == true then return "using freetype-config" end
+				if option.use_ftconfig == true then return "using pkg-config" end
 				if option.use_winlib == 32 then return "using supplied win32 libraries" end
 				if option.use_winlib == 64 then return "using supplied win64 libraries" end
 				return "using unknown method"

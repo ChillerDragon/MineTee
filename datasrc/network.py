@@ -385,6 +385,11 @@ Messages = [
 		NetStringStrict("m_Reason"),
 	]),
 		
+	#OffSet
+	NetMessage("NotImplemented1", []),
+	NetMessage("NotImplemented2", []),
+	NetMessage("NotImplemented", []),
+	
 	# MineTee	
 	NetMessage("SvAn_TileModif", [
 		NetIntAny("m_X"),
@@ -406,8 +411,4 @@ Messages = [
 		NetIntRange("m_ActiveBlock", 0, 1),
 		NetIntRange("m_OpenInventory", 0, 1),
 	]),
-	
-	#NetMessage("", []),
-	#NetMessage("", []),
-	#NetMessage("", []),
 ]
