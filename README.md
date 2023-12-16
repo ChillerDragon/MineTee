@@ -1,4 +1,14 @@
 ---------------------------------------------------------------------
++ CHILLERDRAGON README
+---------------------------------------------------------------------
+
+**I CHILLERDRAGON DID NOT CREATE THIS MOD!**
+
+**THE ORIGINAL REPO OF MINTEE LIVES ON GITLAB!**
+
+https://gitlab.com/Tardo/MineTee
+
+---------------------------------------------------------------------
 + MINETEE README
 ---------------------------------------------------------------------
 Copyright (c) 2016 Alexandre Díaz
